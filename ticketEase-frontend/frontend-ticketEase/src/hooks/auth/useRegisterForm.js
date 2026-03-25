@@ -12,21 +12,23 @@ const INITIAL_FIELDS = {
 
 function validate(form) {
   const errors = {};
-  if (!form.fullName.trim())        errors.fullName = "Full name is required.";
-  if (!form.studentId.trim())       errors.studentId = "Student ID is required.";
-  if (!form.email.trim())           errors.email = "Email is required.";
-  if (!form.password)               errors.password = "Password is required.";
-  else if (form.password.length < 6) errors.password = "Password must be at least 6 characters.";
-  if (form.password !== form.confirmPassword) errors.confirmPassword = "Passwords do not match.";
+  if (!form.fullName.trim()) errors.fullName = "Full name is required.";
+  if (!form.studentId.trim()) errors.studentId = "Student ID is required.";
+  if (!form.email.trim()) errors.email = "Email is required.";
+  if (!form.password) errors.password = "Password is required.";
+  else if (form.password.length < 6)
+    errors.password = "Password must be at least 6 characters.";
+  if (form.password !== form.confirmPassword)
+    errors.confirmPassword = "Passwords do not match.";
   return errors;
 }
 
 export function useRegisterForm() {
   const navigate = useNavigate();
-  const [form, setForm]             = useState(INITIAL_FIELDS);
-  const [errors, setErrors]         = useState({});
+  const [form, setForm] = useState(INITIAL_FIELDS);
+  const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
-  const [loading, setLoading]       = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -34,7 +36,6 @@ export function useRegisterForm() {
   };
 
   const handleRegister = async () => {
-    // 1. Validate fields
     const validationErrors = validate(form);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -44,39 +45,55 @@ export function useRegisterForm() {
     setLoading(true);
     setServerError("");
 
-    // 2. Create auth user in Supabase
+    // Step 1: Create auth user
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
         data: {
-          full_name:  form.fullName,
+          full_name: form.fullName,
           student_id: form.studentId,
-          role:       "student",
+          role: "student",
         },
       },
     });
 
     if (signUpError) {
+      console.error(
+        "❌ Step 1 Failed — Auth signup error:",
+        signUpError.message,
+      );
       setServerError(signUpError.message);
       setLoading(false);
       return;
     }
 
-    // 3. Insert row into profiles table
+    console.log("✅ Step 1 Success — Auth user created:", data.user.id);
+
+    // Step 2: Insert into profiles
     const { error: profileError } = await supabase.from("profiles").insert({
-      id:         data.user.id,
-      full_name:  form.fullName,
-      email:      form.email,
-      role:       "student",
+      id: data.user.id,
+      full_name: form.fullName,
+      email: form.email,
+      role: "student",
       student_id: form.studentId,
     });
 
     if (profileError) {
-      setServerError(profileError.message);
+      console.error(
+        "❌ Step 2 Failed — Profile insert error:",
+        profileError.message,
+      );
+      console.error("❌ Step 2 Details:", profileError);
+      // Tell the user something went wrong
+      setServerError(
+        "Account created but profile setup failed. Please contact support.",
+      );
       setLoading(false);
       return;
     }
+
+    console.log("✅ Step 2 Success — Profile row created for:", form.email);
 
     setLoading(false);
     navigate("/login");
