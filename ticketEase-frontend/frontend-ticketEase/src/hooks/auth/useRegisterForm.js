@@ -36,67 +36,60 @@ export function useRegisterForm() {
   };
 
   const handleRegister = async () => {
-    const validationErrors = validate(form);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
+    try {
+      console.log("Submitting form:", form);
+      console.log("Signup triggered");
+      const validationErrors = validate(form);
+      if (Object.keys(validationErrors).length > 0) {
+        setErrors(validationErrors);
+        return;
+      }
 
-    setLoading(true);
-    setServerError("");
+      setLoading(true);
+      setServerError("");
 
-    // Step 1: Create auth user
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: {
-        data: {
-          full_name: form.fullName,
-          student_id: form.studentId,
-          role: "student",
+      // Step 1: Create auth user
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: {
+            full_name: form.fullName,
+            student_id: form.studentId,
+            role: "student",
+          },
         },
-      },
-    });
+      });
 
-    if (signUpError) {
-      console.error(
-        "❌ Step 1 Failed — Auth signup error:",
-        signUpError.message,
-      );
-      setServerError(signUpError.message);
+      if (signUpError) {
+        console.error(
+          "❌ Step 1 Failed — Auth signup error:",
+          signUpError.message,
+        );
+        setServerError(signUpError.message);
+        setLoading(false);
+        return;
+      }
+
+      console.log("✅ Step 1 Success — Auth user created:", data.user.id);
+      console.log("Full user object:", data.user);
+
+      const { data: sessionData, error: sessionError } =
+        await supabase.auth.getSession();
+        
+      if (!sessionData?.session) {
+        console.warn("No active session after signup.");
+      }
+      console.log("Session after signup:", sessionData);
+      if (sessionError) console.error("Session error:", sessionError);
+
       setLoading(false);
-      return;
-    }
-
-    console.log("✅ Step 1 Success — Auth user created:", data.user.id);
-
-    // Step 2: Insert into profiles
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: data.user.id,
-      full_name: form.fullName,
-      email: form.email,
-      role: "student",
-      student_id: form.studentId,
-    });
-
-    if (profileError) {
-      console.error(
-        "❌ Step 2 Failed — Profile insert error:",
-        profileError.message,
-      );
-      console.error("❌ Step 2 Details:", profileError);
-      // Tell the user something went wrong
-      setServerError(
-        "Account created but profile setup failed. Please contact support.",
-      );
+      navigate("/login");
+    } catch (err) {
+      console.error("Unexpected error during registration:", err);
+      setServerError("Something went wrong. Please try again.");
       setLoading(false);
-      return;
     }
-
-    console.log("✅ Step 2 Success — Profile row created for:", form.email);
-
-    setLoading(false);
-    navigate("/login");
   };
 
   return {
