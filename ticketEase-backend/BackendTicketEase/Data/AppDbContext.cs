@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace BackendTicketEase.Data
+namespace BackendTicketEase.Models
 {
     public class AppDbContext : DbContext
     {
@@ -8,9 +8,8 @@ namespace BackendTicketEase.Data
         {
         }
 
-        // Each DbSet<T> = one table in your database
-        // You'll add your tables here later, e.g.:
-        // public DbSet<Ticket> Tickets { get; set; }
-        // public DbSet<User> Users { get; set; }
+     
+        public DbSet<Ticket> Tickets { get; set; }
+
     }
 }
