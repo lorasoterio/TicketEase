@@ -172,7 +172,7 @@ export default function DocumentRequestPage() {
                   <FormControl error={!!errors.documentType}>
                     <InputLabel>Type of Ticket</InputLabel>
                     <Select value={form.documentType} onChange={handleChange("documentType")} label="Type of Document">
-                      {DOCUMENT_TYPES.map((d) => <MenuItem key={d} value={d}>{d}</MenuItem>)}
+                      {TICKET_CATEGORIES.map((d) => <MenuItem key={d} value={d}>{d}</MenuItem>)}
                     </Select>
                     {errors.documentType && <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>{errors.documentType}</Typography>}
                   </FormControl>
