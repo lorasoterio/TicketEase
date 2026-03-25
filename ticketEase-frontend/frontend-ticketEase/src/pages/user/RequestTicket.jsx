@@ -19,7 +19,7 @@ import {
 import { useTicketForm } from "../../hooks/useTicketForm";
 import {
   validateDocumentRequest,
-  DOCUMENT_TYPES,
+  TICKET_CATEGORIES
 } from "../../utils/ticketHelpers";
 
 // ── MUI Theme (can also be moved to a theme.js file later) ────
