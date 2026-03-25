@@ -1,23 +1,29 @@
-
-import { useEffect } from 'react'
-import { supabase } from './supabaseClient' 
-import AppRoutes from './routes/AppRoutes'
+import { useEffect } from "react";
+import { supabase } from "./supabaseClient";
+import AppRoutes from "./routes/AppRoutes";
 export default function App() {
+  useEffect(() => {
+    let isMounted = true;
 
-    useEffect(() => {
     async function testConnection() {
-      const { data, error } = await supabase.from('tickets').select('*')
-      console.log('data:', data)
-      console.log('error:', error)
+      const { data, error } = await supabase.from("tickets").select("*");
+
+      if (!isMounted) return;
+
+      console.log("data:", data);
+      console.log("error:", error);
     }
-    testConnection()
-  }, [])
-  
+
+    testConnection();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <>
       <AppRoutes />
     </>
-  )
+  );
 }
-
-
