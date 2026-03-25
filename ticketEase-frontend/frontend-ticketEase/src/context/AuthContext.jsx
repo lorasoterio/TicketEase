@@ -1,6 +1,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
+async function fetchProfile(userId) {
+  const { data } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
+  setProfile(data);
+  setLoading(false);
+}
+
 const AuthContext = createContext({});
 
 export function AuthProvider({ children }) {
@@ -17,24 +27,19 @@ export function AuthProvider({ children }) {
     });
 
     // Listen for login/logout changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) fetchProfile(session.user.id);
-      else { setProfile(null); setLoading(false); }
+      else {
+        setProfile(null);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
-
-  async function fetchProfile(userId) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-    setProfile(data);
-    setLoading(false);
-  }
 
   return (
     <AuthContext.Provider value={{ user, profile, loading }}>
