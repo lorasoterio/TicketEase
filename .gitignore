@@ -35,3 +35,7 @@ appsettings.Development.json
 appsettings.json
 
 .vs/
+
+# env frontend
+
+.env
