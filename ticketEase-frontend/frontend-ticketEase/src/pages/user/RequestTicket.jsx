@@ -19,10 +19,7 @@ import {
 import { useTicketForm } from "../../hooks/useTicketForm";
 import {
   validateDocumentRequest,
-  DOCUMENT_TYPES,
-  SEMESTERS,
-  PURPOSES,
-  getSchoolYears,
+  TICKET_CATEGORIES
 } from "../../utils/ticketHelpers";
 
 // ── MUI Theme (can also be moved to a theme.js file later) ────
@@ -62,8 +59,8 @@ const INITIAL_FIELDS = {
   studentId: "",
   fullName: "",
   documentType: "",
-  semester: "",
-  schoolYear: "",
+  subject: "",
+  description: "",
   purpose: "",
   purposeDetails: "",
 };
@@ -74,8 +71,6 @@ export default function DocumentRequestPage() {
   // "REG" is the ticket prefix for the Registrar's office.
   const { form, errors, submitted, ticketNumber, handleChange, handleSubmit, handleReset } =
     useTicketForm(INITIAL_FIELDS, validateDocumentRequest, "REG");
-
-  const schoolYears = getSchoolYears(6);
 
   // ── Render ──────────────────────────────────────────────────
   return (
@@ -175,52 +170,32 @@ export default function DocumentRequestPage() {
                 <SectionLabel icon={<Description sx={{ color: "secondary.main", fontSize: 18 }} />} label="Document Details" />
                 <Stack spacing={2.5}>
                   <FormControl error={!!errors.documentType}>
-                    <InputLabel>Type of Document</InputLabel>
+                    <InputLabel>Type of Ticket</InputLabel>
                     <Select value={form.documentType} onChange={handleChange("documentType")} label="Type of Document">
-                      {DOCUMENT_TYPES.map((d) => <MenuItem key={d} value={d}>{d}</MenuItem>)}
+                      {TICKET_CATEGORIES.map((d) => <MenuItem key={d} value={d}>{d}</MenuItem>)}
                     </Select>
                     {errors.documentType && <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>{errors.documentType}</Typography>}
                   </FormControl>
 
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                    <FormControl error={!!errors.semester}>
-                      <InputLabel>Semester</InputLabel>
-                      <Select value={form.semester} onChange={handleChange("semester")} label="Semester"
-                        startAdornment={<InputAdornment position="start"><CalendarMonth sx={{ color: "text.disabled", fontSize: 18 }} /></InputAdornment>}>
-                        {SEMESTERS.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-                      </Select>
-                      {errors.semester && <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>{errors.semester}</Typography>}
-                    </FormControl>
-
-                    <FormControl error={!!errors.schoolYear}>
-                      <InputLabel>School Year</InputLabel>
-                      <Select value={form.schoolYear} onChange={handleChange("schoolYear")} label="School Year">
-                        {schoolYears.map((y) => <MenuItem key={y} value={y}>{y}</MenuItem>)}
-                      </Select>
-                      {errors.schoolYear && <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>{errors.schoolYear}</Typography>}
-                    </FormControl>
-                  </Stack>
-                </Stack>
-
-                <Divider />
-
-                {/* Section: Purpose */}
-                <SectionLabel icon={<Description sx={{ color: "secondary.main", fontSize: 18 }} />} label="Purpose" />
-                <Stack spacing={2.5}>
-                  <FormControl error={!!errors.purpose}>
-                    <InputLabel>Purpose of Request</InputLabel>
-                    <Select value={form.purpose} onChange={handleChange("purpose")} label="Purpose of Request">
-                      {PURPOSES.map((p) => <MenuItem key={p} value={p}>{p}</MenuItem>)}
-                    </Select>
-                    {errors.purpose && <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>{errors.purpose}</Typography>}
-                  </FormControl>
+                  <TextField
+                    label="Subject"
+                    value={form.subject}
+                    onChange={handleChange("subject")}
+                    error={!!errors.subject}
+                    helperText={errors.subject}
+                    placeholder="e.g. Transcript of Records"
+                    InputProps={{ startAdornment: <InputAdornment position="start"><Description sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+                  />
 
                   <TextField
-                    label="Additional Details (optional)"
-                    value={form.purposeDetails}
-                    onChange={handleChange("purposeDetails")}
-                    multiline rows={3}
-                    placeholder="Provide any additional information relevant to your request…"
+                    label="Description"
+                    value={form.description}
+                    onChange={handleChange("description")}
+                    error={!!errors.description}
+                    helperText={errors.description}
+                    multiline
+                    rows={3}
+                    placeholder="Provide a short description of your request..."
                   />
                 </Stack>
 

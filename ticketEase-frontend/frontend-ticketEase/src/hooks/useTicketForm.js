@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { generateTicketNumber } from "../utils/ticketHelpers";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../context/AuthContext"; // 👈 add this
 
 /**
  * useTicketForm — A reusable custom hook for any ticket submission form.
@@ -13,10 +14,12 @@ import { generateTicketNumber } from "../utils/ticketHelpers";
  * @param {string} ticketPrefix    - Prefix for the generated ticket number (e.g. "REG", "IT", "LIB").
  */
 export function useTicketForm(initialFields, validateFn, ticketPrefix = "TKT") {
+   const { user } = useAuth();
   const [form, setForm] = useState(initialFields);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [ticketNumber, setTicketNumber] = useState("");
+  const [loading, setLoading] = useState(false); // 👈 add this
 
   /**
    * handleChange — Returns a change handler for a specific field.
@@ -31,17 +34,31 @@ export function useTicketForm(initialFields, validateFn, ticketPrefix = "TKT") {
   /**
    * handleSubmit — Runs validation. If valid, generates a ticket number and marks as submitted.
    */
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const validationErrors = validateFn(form);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-    const ticket = generateTicketNumber(ticketPrefix);
-    setTicketNumber(ticket);
+    if (Object.keys(validationErrors).length > 0) { setErrors(validationErrors); return; }
+
+    setLoading(true);
+
+    const { data, error } = await supabase
+      .from("tickets")
+      .insert({
+        student_id:    user.id,        // ✅ real user ID now
+        full_name:     form.fullName,
+        category:      "document_request",
+        subject:       form.subject,
+        description:   form.description,
+        document_type: form.documentType,
+        priority:      "normal",
+      })
+      .select()
+      .single();
+
+    setLoading(false);
+    if (error) { setErrors({ submit: "Failed to submit. Please try again." }); return; }
+    setTicketNumber(data.ticket_number);
     setSubmitted(true);
   };
-
   /**
    * handleReset — Clears everything back to the initial state.
    */
