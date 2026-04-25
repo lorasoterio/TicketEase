@@ -32,6 +32,6 @@ namespace BackendTicketEase.Models
         // Navigation Property
         [Required]
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
+        public virtual User User { get; set; } = null!;
     }
 }

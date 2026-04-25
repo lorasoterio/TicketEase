@@ -28,14 +28,8 @@ namespace BackendTicketEase.Models
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation Properties
-        public virtual Student Student { get; set; } 
-        public virtual Staff Staff { get; set; }
-        
-        public string? Subject { get; set; }
-        public string? Description { get; set; }
-
-        [ForeignKey("StudentId")]
-        public virtual User? StudentUser { get; set; }
+        public virtual Student? Student { get; set; } 
+        public virtual Staff? Staff { get; set; }
 
     }
 

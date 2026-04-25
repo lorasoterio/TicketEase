@@ -11,6 +11,9 @@ namespace BackendTicketEase.Models
         [Key]
         public int TicketId { get; set; }
 
+        [StringLength(50)]
+        public string? ReferenceNumber { get; set; }
+
         // FK to Users.user_id (student who created the ticket)
         [Required]
         public int StudentId { get; set; }
@@ -19,9 +22,9 @@ namespace BackendTicketEase.Models
         public TicketType TicketType { get; set; }
 
         [StringLength(255)]
-        public string Subject { get; set; }
+        public string? Subject { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public TicketPriority Priority { get; set; } = TicketPriority.Normal;
 

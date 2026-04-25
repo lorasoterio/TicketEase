@@ -85,9 +85,9 @@ namespace BackendTicketEase.Controllers
             existing.Description = ticket.Description;
             existing.Priority = ticket.Priority;
             existing.Status = ticket.Status;
-            existing.EstimatedCompletion = ticket.EstimatedCompletion;
             existing.AssignedStaffId = ticket.AssignedStaffId;
             existing.UpdatedAt = DateTime.UtcNow;
+
             // Normalize EstimatedCompletion to UTC if provided
             if (ticket.EstimatedCompletion.HasValue)
             {
