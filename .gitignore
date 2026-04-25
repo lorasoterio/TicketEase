@@ -24,12 +24,17 @@ dist-ssr
 *.sw?
 
 
+
 # Build folders
 bin/
 obj/
 
+
 # secret files
 appsettings.Development.json
+appsettings.json
 
+.vs/
 
-.vs
+# env frontend
+.env

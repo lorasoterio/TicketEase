@@ -36,33 +36,13 @@ export function getSchoolYears(count = 6) {
 // Keep all dropdown option lists here so they're not duplicated
 // across multiple form pages.
 
-export const DOCUMENT_TYPES = [
-  "Transcript of Records (TOR)",
-  "Certificate of Enrollment",
-  "Certificate of Graduation",
-  "Certificate of Good Moral Character",
-  "Diploma",
-  "Form 137 / SF9",
-  "Official Receipt of Payment",
-  "Authentication of Documents",
-  "Course Description",
+export const TICKET_CATEGORIES = [
+  "Inquiry",
+  "Document Request",
   "Other",
 ];
 
-export const SEMESTERS = ["1st Semester", "2nd Semester", "Summer"];
 
-export const PURPOSES = [
-  "Employment / Job Application",
-  "Graduate School Application",
-  "Scholarship Application",
-  "Educational Assistance",
-  "Transfer to Another School",
-  "Board Exam / Licensure",
-  "Travel / Visa Application",
-  "Personal Records",
-  "Government Requirement",
-  "Other",
-];
 
 // ── Validation Rules ─────────────────────────────────────────
 // Each exported function validates a specific form.
@@ -83,12 +63,10 @@ export function validateDocumentRequest(form) {
     errors.fullName = "Full name is required.";
   if (!form.documentType)
     errors.documentType = "Please select a document type.";
-  if (!form.semester)
-    errors.semester = "Please select a semester.";
-  if (!form.schoolYear)
-    errors.schoolYear = "Please select a school year.";
-  if (!form.purpose)
-    errors.purpose = "Please select a purpose.";
+  if (!form.subject?.trim())
+    errors.subject = "Subject is required.";
+  if (!form.description?.trim())
+    errors.description = "Description is required.";
   return errors;
 }
 
