@@ -30,3 +30,6 @@ obj/
 
 # secret files
 appsettings.Development.json
+
+
+.vs
