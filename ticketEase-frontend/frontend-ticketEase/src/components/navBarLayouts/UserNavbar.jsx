@@ -19,6 +19,7 @@ import {
   List,
   ListItem,
   ListItemButton,
+  Drawer,
 } from "@mui/material";
 import {
   ConfirmationNumber as TicketIcon,
@@ -31,6 +32,7 @@ import {
   SettingsOutlined as SettingsIcon,
   LogoutOutlined as LogoutIcon,
   FiberManualRecord as DotIcon,
+  MenuOutlined as HamburgerIcon,
 } from "@mui/icons-material";
 
 const NAV_LINKS = [
@@ -94,10 +96,12 @@ export default function UserNavbar({
   const navigate = useNavigate();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [notifAnchor, setNotifAnchor] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const unread = NOTIFICATIONS.filter((n) => n.unread).length;
 
   return (
+    <>
     <AppBar
       position="sticky"
       elevation={0}
@@ -157,10 +161,11 @@ export default function UserNavbar({
         <Divider
           orientation="vertical"
           flexItem
-          sx={{ mx: 1.5, borderColor: "grey.200" }}
+          sx={{ mx: 1.5, borderColor: "grey.200", display: { xs: "none", md: "block" } }}
         />
 
-        {/* ── Nav Links ── */}
+        {/* ── Nav Links (desktop) ── */}
+        <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 0.5 }}>
         {NAV_LINKS.map(({ to, label, icon, badge, dot }) => (
           <NavLink key={to} to={to} style={{ textDecoration: "none" }}>
             {({ isActive }) => (
@@ -222,6 +227,7 @@ export default function UserNavbar({
             )}
           </NavLink>
         ))}
+        </Box>
 
         {/* ── Right side ── */}
         <Box
@@ -256,11 +262,11 @@ export default function UserNavbar({
             </IconButton>
           </Tooltip>
 
-          {/* Profile button */}
+          {/* Profile button (desktop only) */}
           <Box
             onClick={(e) => setProfileAnchor(e.currentTarget)}
             sx={{
-              display: "flex",
+              display: { xs: "none", md: "flex" },
               alignItems: "center",
               gap: 1,
               pl: 0.5,
@@ -305,6 +311,34 @@ export default function UserNavbar({
               </Typography>
             </Box>
           </Box>
+
+          {/* Avatar only (mobile) */}
+          <Avatar
+            onClick={(e) => setProfileAnchor(e.currentTarget)}
+            sx={{
+              display: { xs: "flex", md: "none" },
+              width: 28,
+              height: 28,
+              bgcolor: ACCENT_LIGHT,
+              color: ACCENT,
+              fontSize: 11,
+              fontWeight: 700,
+              borderRadius: "8px",
+              cursor: "pointer",
+              ml: 0.5,
+            }}
+          >
+            {user.initials}
+          </Avatar>
+
+          {/* Hamburger (mobile only) */}
+          <IconButton
+            size="small"
+            onClick={() => setMobileOpen(true)}
+            sx={{ display: { xs: "flex", md: "none" }, borderRadius: "8px", width: 34, height: 34 }}
+          >
+            <HamburgerIcon sx={{ fontSize: 20, color: "text.secondary" }} />
+          </IconButton>
         </Box>
       </Toolbar>
 
@@ -476,5 +510,70 @@ export default function UserNavbar({
         </MenuItem>
       </Menu>
     </AppBar>
+
+    {/* ── Mobile Drawer ── */}
+    <Drawer
+      anchor="left"
+      open={mobileOpen}
+      onClose={() => setMobileOpen(false)}
+      PaperProps={{ sx: { width: 260 } }}
+    >
+      {/* Drawer header */}
+      <Box sx={{ p: 2, borderBottom: "1px solid", borderColor: "grey.100", display: "flex", alignItems: "center", gap: 1 }}>
+        <Box sx={{ width: 30, height: 30, bgcolor: ACCENT, borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <TicketIcon sx={{ fontSize: 16, color: "#fff" }} />
+        </Box>
+        <Typography sx={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.3px", color: "text.primary", fontFamily: "'DM Sans', sans-serif" }}>
+          <Box component="span" sx={{ color: ACCENT }}>Ticket</Box> Ease
+        </Typography>
+      </Box>
+
+      {/* Nav links */}
+      <List sx={{ pt: 1, px: 1 }}>
+        {NAV_LINKS.map(({ to, label, icon, badge, dot }) => (
+          <NavLink key={to} to={to} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
+            {({ isActive }) => (
+              <ListItemButton
+                sx={{
+                  borderRadius: "8px",
+                  mb: 0.25,
+                  bgcolor: isActive ? ACCENT_LIGHT : "transparent",
+                  color: isActive ? ACCENT : "text.secondary",
+                  "& svg": { color: isActive ? ACCENT : "text.disabled" },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 36 }}>{icon}</ListItemIcon>
+                <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: isActive ? 600 : 450, fontFamily: "'DM Sans', sans-serif" }}>
+                  {label}
+                </ListItemText>
+                {badge && (
+                  <Chip label={badge} size="small" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: isActive ? ACCENT : ACCENT_LIGHT, color: isActive ? "#fff" : ACCENT, "& .MuiChip-label": { px: 0.75 } }} />
+                )}
+                {dot && <Box sx={{ width: 6, height: 6, bgcolor: "error.main", borderRadius: "50%" }} />}
+              </ListItemButton>
+            )}
+          </NavLink>
+        ))}
+      </List>
+
+      <Divider sx={{ my: 0.5 }} />
+
+      {/* Profile actions */}
+      <List sx={{ px: 1 }}>
+        <ListItemButton sx={{ borderRadius: "8px", mb: 0.25 }} onClick={() => { navigate("/profile"); setMobileOpen(false); }}>
+          <ListItemIcon sx={{ minWidth: 36 }}><ProfileIcon fontSize="small" /></ListItemIcon>
+          <ListItemText primaryTypographyProps={{ fontSize: 14 }}>View profile</ListItemText>
+        </ListItemButton>
+        <ListItemButton sx={{ borderRadius: "8px", mb: 0.25 }} onClick={() => { navigate("/settings"); setMobileOpen(false); }}>
+          <ListItemIcon sx={{ minWidth: 36 }}><SettingsIcon fontSize="small" /></ListItemIcon>
+          <ListItemText primaryTypographyProps={{ fontSize: 14 }}>Settings</ListItemText>
+        </ListItemButton>
+        <ListItemButton sx={{ borderRadius: "8px", color: "error.main" }} onClick={() => { navigate("/login"); setMobileOpen(false); }}>
+          <ListItemIcon sx={{ minWidth: 36 }}><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
+          <ListItemText primaryTypographyProps={{ fontSize: 14, color: "error.main" }}>Sign out</ListItemText>
+        </ListItemButton>
+      </List>
+    </Drawer>
+    </>
   );
 }

@@ -16,30 +16,34 @@ export default function TicketRow({ ticket }) {
         "&:hover": { bgcolor: "#f8fafc" },
       }}
     >
-      <Stack direction="row" spacing={1.5} alignItems="center">
-        <StatusChip label={ticket.status} />
+      <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} alignItems={{ xs: "flex-start", sm: "center" }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: { xs: "100%", sm: "auto" } }}>
+          <StatusChip label={ticket.status} />
 
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="body2" fontWeight={500}>
-            {ticket.subject}
-          </Typography>
+          <Box sx={{ flex: 1 }}>
+            <Typography variant="body2" fontWeight={500}>
+              {ticket.subject}
+            </Typography>
 
-          <Typography
-            sx={{
-              fontSize: "11px",
-              color: "text.secondary",
-              fontFamily: "'Source Serif 4', serif",
-            }}
-          >
-            {ticket.type} · Submitted {ticket.date}
-          </Typography>
-        </Box>
+            <Typography
+              sx={{
+                fontSize: "11px",
+                color: "text.secondary",
+                fontFamily: "'Source Serif 4', serif",
+              }}
+            >
+              {ticket.type} · Submitted {ticket.date}
+            </Typography>
+          </Box>
+        </Stack>
 
         <Typography
           sx={{
             fontSize: "11px",
             color: "text.secondary",
             fontFamily: "'Source Serif 4', serif",
+            ml: { xs: 0, sm: "auto" },
+            flexShrink: 0,
           }}
         >
           {ticket.id}

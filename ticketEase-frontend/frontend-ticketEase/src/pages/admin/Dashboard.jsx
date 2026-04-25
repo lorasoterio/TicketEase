@@ -57,15 +57,17 @@ export default function AdminDashboard() {
       <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 900, mx: "auto" }}>
 
         {/* Header */}
-        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 3 }}>
-          <Box sx={{ width: 36, height: 36, borderRadius: "50%", bgcolor: "#e6f4ea", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#1e7e34", fontFamily: "'Source Serif 4', serif" }}>{initials}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="body1" fontWeight={600}>Admin / Staff Dashboard</Typography>
-            <Typography variant="body2" color="text.secondary">{profile?.full_name || "Admin"} — {profile?.department || "Office"}</Typography>
-          </Box>
-          <Box sx={{ ml: "auto !important", px: 1.5, py: 0.4, borderRadius: "20px", bgcolor: "#fdecea" }}>
+        <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} spacing={1.5} sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box sx={{ width: 36, height: 36, borderRadius: "50%", bgcolor: "#e6f4ea", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#1e7e34", fontFamily: "'Source Serif 4', serif" }}>{initials}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body1" fontWeight={600}>Admin / Staff Dashboard</Typography>
+              <Typography variant="body2" color="text.secondary">{profile?.full_name || "Admin"} — {profile?.department || "Office"}</Typography>
+            </Box>
+          </Stack>
+          <Box sx={{ ml: { sm: "auto !important" }, px: 1.5, py: 0.4, borderRadius: "20px", bgcolor: "#fdecea" }}>
             <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#c0392b", fontFamily: "'Source Serif 4', serif" }}>5 new tickets</Typography>
           </Box>
         </Stack>
@@ -86,15 +88,22 @@ export default function AdminDashboard() {
           </Stack>
           {MOCK_QUEUE.map((t, i) => (
             <Box key={t.id}>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ px: 2, py: 1.5 }}>
-                <StatusBadge label={t.status} color={t.statusColor} bg={t.statusBg} />
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="body2" fontWeight={500}>{t.subject} — {t.student}</Typography>
-                  <Typography sx={{ fontSize: "11px", color: "text.secondary", fontFamily: "'Source Serif 4', serif" }}>
-                    Submitted {t.date} · Ticket {t.id}
-                  </Typography>
-                </Box>
-                <Stack direction="row" spacing={0.8}>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                alignItems={{ xs: "flex-start", sm: "center" }}
+                spacing={1.5}
+                sx={{ px: 2, py: 1.5 }}
+              >
+                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: { xs: "100%", sm: "auto" }, flex: { sm: 1 } }}>
+                  <StatusBadge label={t.status} color={t.statusColor} bg={t.statusBg} />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" fontWeight={500}>{t.subject} — {t.student}</Typography>
+                    <Typography sx={{ fontSize: "11px", color: "text.secondary", fontFamily: "'Source Serif 4', serif" }}>
+                      Submitted {t.date} · Ticket {t.id}
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Stack direction="row" spacing={0.8} sx={{ ml: { xs: 0, sm: "auto" }, flexShrink: 0 }}>
                   {t.status === "New" ? (
                     <>
                       <Button size="small" sx={{ fontSize: "11px", color: "#1e7e34", fontFamily: "'Source Serif 4', serif", minWidth: 0 }}>Approve</Button>

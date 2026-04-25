@@ -1,10 +1,8 @@
-﻿
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using BackendTicketEase.Models;
 using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 
 
 namespace BackendTicketEase.Services

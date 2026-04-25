@@ -35,7 +35,7 @@ export default function TrackStatus() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
 
-      <Box sx={{ p: 3, maxWidth: 900, mx: "auto" }}>
+      <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 900, mx: "auto" }}>
         {/* HEADER */}
         <Typography fontWeight={600} sx={{ mb: 2 }}>
           Track Status

@@ -3,6 +3,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   Typography,
@@ -24,6 +25,7 @@ export default function TicketStatusTable({
         overflow: "hidden",
       }}
     >
+      <TableContainer sx={{ overflowX: "auto" }}>
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -42,7 +44,7 @@ export default function TicketStatusTable({
               onClick={() => onSelect(t)}
               sx={{ cursor: "pointer" }}
             >
-              <TableCell>
+              <TableCell sx={{ minWidth: 160 }}>
                 <Typography variant="body2" fontWeight={500}>
                   {t.subject}
                 </Typography>
@@ -53,11 +55,11 @@ export default function TicketStatusTable({
                 </Typography>
               </TableCell>
 
-              <TableCell>
+              <TableCell sx={{ minWidth: 100 }}>
                 <StatusChip label={t.status} />
               </TableCell>
 
-              <TableCell>
+              <TableCell sx={{ minWidth: 120 }}>
                 <Typography variant="body2" color="text.secondary">
                   {t.updatedAt}
                 </Typography>
@@ -66,6 +68,7 @@ export default function TicketStatusTable({
           ))}
         </TableBody>
       </Table>
+      </TableContainer>
     </Paper>
   );
 }

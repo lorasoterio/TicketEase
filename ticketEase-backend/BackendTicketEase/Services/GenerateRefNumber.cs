@@ -22,7 +22,7 @@ namespace BackendTicketEase.Services
 
                 // Count only tickets created this month for a clean monthly reset
                 var countThisMonth = await _context.Tickets
-                    .CountAsync(x => x.ReferenceNumber.StartsWith($"{prefix}-{yearMonth}"));
+                    .CountAsync(x => x.ReferenceNumber != null && x.ReferenceNumber.StartsWith($"{prefix}-{yearMonth}"));
 
                 int nextNumber = countThisMonth + 1;
                 return $"{prefix}-{yearMonth}-{nextNumber:D6}";
