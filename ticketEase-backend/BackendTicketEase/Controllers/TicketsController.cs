@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackendTicketEase.Data;
 using BackendTicketEase.Models;
+using BackendTicketEase.Services;
 
 namespace BackendTicketEase.Controllers
 {
@@ -14,10 +15,12 @@ namespace BackendTicketEase.Controllers
     public class TicketsController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly GenerateRefNumber _refNumberService;
 
-        public TicketsController(AppDbContext context)
+        public TicketsController(AppDbContext context, GenerateRefNumber refNumberService)
         {
             _context = context;
+            _refNumberService = refNumberService;
         }
 
         // GET: api/tickets
@@ -50,6 +53,9 @@ namespace BackendTicketEase.Controllers
         {
             if (ticket == null)
                 return BadRequest();
+
+            // Generate unique reference number
+            ticket.ReferenceNumber = await _refNumberService.GenerateTicketReferenceAsync();
 
             // Ensure timestamps are UTC (Npgsql requires UTC for timestamptz)
             ticket.CreatedAt = DateTime.UtcNow;
