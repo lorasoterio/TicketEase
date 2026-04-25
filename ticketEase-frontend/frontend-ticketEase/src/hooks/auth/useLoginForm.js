@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../supabaseClient";
 
 const INITIAL_FIELDS = {
   email: "",
@@ -38,6 +37,7 @@ export function useLoginForm() {
     setServerError("");
 
     // 2. Sign in with Supabase
+    /*
     const { error } = await supabase.auth.signInWithPassword({
       email:    form.email,
       password: form.password,
@@ -48,9 +48,10 @@ export function useLoginForm() {
       setLoading(false);
       return;
     }
+      */
 
     setLoading(false);
-    navigate("/request-document");
+    navigate("/request-ticket");
   };
 
   return {

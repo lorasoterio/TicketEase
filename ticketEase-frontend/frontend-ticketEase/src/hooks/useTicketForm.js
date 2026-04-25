@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { supabase } from "../supabaseClient";
-import { useAuth } from "../context/AuthContext"; // 👈 add this
+import { useAuth } from "../context/useAuth"; // 👈 add this
+import { submitTicket } from "../services/ticketsService"; // 👈 add this import
 
 /**
  * useTicketForm — A reusable custom hook for any ticket submission form.
@@ -13,7 +13,7 @@ import { useAuth } from "../context/AuthContext"; // 👈 add this
  * @param {Function} validateFn    - A function that receives the form and returns an errors object.
  * @param {string} ticketPrefix    - Prefix for the generated ticket number (e.g. "REG", "IT", "LIB").
  */
-export function useTicketForm(initialFields, validateFn, ticketPrefix = "TKT") {
+export function useTicketForm(initialFields, validateFn) {
    const { user } = useAuth();
   const [form, setForm] = useState(initialFields);
   const [errors, setErrors] = useState({});
@@ -40,19 +40,17 @@ export function useTicketForm(initialFields, validateFn, ticketPrefix = "TKT") {
 
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from("tickets")
-      .insert({
-        student_id:    user.id,        // ✅ real user ID now
-        full_name:     form.fullName,
-        category:      "document_request",
-        subject:       form.subject,
-        description:   form.description,
-        document_type: form.documentType,
-        priority:      "normal",
-      })
-      .select()
-      .single();
+    const ticketData = {
+      student_id: user.id,
+      full_name: form.fullName,
+      category: "document_request",
+      subject: form.subject,
+      description: form.description,
+      document_type: form.documentType,
+      priority: "normal",
+    };
+
+    const { data, error } = await submitTicket(ticketData);
 
     setLoading(false);
     if (error) { setErrors({ submit: "Failed to submit. Please try again." }); return; }
@@ -74,6 +72,7 @@ export function useTicketForm(initialFields, validateFn, ticketPrefix = "TKT") {
     errors,
     submitted,
     ticketNumber,
+    loading,
     handleChange,
     handleSubmit,
     handleReset,

@@ -11,7 +11,10 @@ import RegisterPage from "../pages/auth/RegisterPage";
 
 // Student pages
 import StudentDashboard from "../pages/user/Dashboard";
-import DocumentRequestPage from "../pages/user/RequestTicket";
+import RequestTicket from "../pages/user/RequestTicket";
+import MyTickets from "../pages/user/MyTickets";
+import TrackStatus from "../pages/user/TrackStatus";
+import Profile from "../pages/user/Profile";
 
 // Admin pages
 import AdminDashboard from "../pages/admin/Dashboard";
@@ -33,7 +36,10 @@ export default function AppRoutes() {
       {/* Student routes — wrapped in UserLayout */}
       <Route element={<UserLayout />}>
         <Route path="/dashboard"        element={<StudentDashboard />} />
-        <Route path="/request-document" element={<DocumentRequestPage />} />
+        <Route path="/request-ticket" element={<RequestTicket />} />
+        <Route path="/my-tickets"      element={<MyTickets />} />
+        <Route path="/track-status"     element={<TrackStatus />} />
+        <Route path="/profile"          element={<Profile />} />
       </Route>
 
       {/* Admin routes — wrapped in AdminLayout */}

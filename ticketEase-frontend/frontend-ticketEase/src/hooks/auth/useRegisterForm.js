@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "../../supabaseClient";
 
 const INITIAL_FIELDS = {
   fullName: "",
@@ -48,7 +47,8 @@ export function useRegisterForm() {
       setLoading(true);
       setServerError("");
 
-      // Step 1: Create auth user
+      // Step 1: Create auth user (uncomment when Supabase is configured)
+      /*
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
@@ -76,12 +76,13 @@ export function useRegisterForm() {
 
       const { data: sessionData, error: sessionError } =
         await supabase.auth.getSession();
-        
+
       if (!sessionData?.session) {
         console.warn("No active session after signup.");
       }
       console.log("Session after signup:", sessionData);
       if (sessionError) console.error("Session error:", sessionError);
+      */
 
       setLoading(false);
       navigate("/login");
