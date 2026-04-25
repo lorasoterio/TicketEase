@@ -55,15 +55,17 @@ export default function SuperAdminDashboard() {
       <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 900, mx: "auto" }}>
 
         {/* Header */}
-        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 3 }}>
-          <Box sx={{ width: 36, height: 36, borderRadius: "50%", bgcolor: "#EEEDFE", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#3C3489", fontFamily: "'Source Serif 4', serif" }}>{initials}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="body1" fontWeight={600}>Super Admin Dashboard</Typography>
-            <Typography variant="body2" color="text.secondary">System overview — full access</Typography>
-          </Box>
-          <Box sx={{ ml: "auto !important", px: 1.5, py: 0.4, borderRadius: "20px", bgcolor: "#EEEDFE" }}>
+        <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} spacing={1.5} sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Box sx={{ width: 36, height: 36, borderRadius: "50%", bgcolor: "#EEEDFE", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#3C3489", fontFamily: "'Source Serif 4', serif" }}>{initials}</Typography>
+            </Box>
+            <Box>
+              <Typography variant="body1" fontWeight={600}>Super Admin Dashboard</Typography>
+              <Typography variant="body2" color="text.secondary">System overview — full access</Typography>
+            </Box>
+          </Stack>
+          <Box sx={{ ml: { sm: "auto !important" }, px: 1.5, py: 0.4, borderRadius: "20px", bgcolor: "#EEEDFE" }}>
             <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#3C3489", fontFamily: "'Source Serif 4', serif" }}>Super Admin</Typography>
           </Box>
         </Stack>
