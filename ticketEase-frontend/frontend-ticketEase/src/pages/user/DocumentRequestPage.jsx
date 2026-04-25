@@ -69,7 +69,7 @@ const INITIAL_FIELDS = {
 };
 
 // ─────────────────────────────────────────────────────────────
-export default function DocumentRequestPage() {
+export default function RequestTicket() {
   // All state and handlers come from the reusable hook.
   // "REG" is the ticket prefix for the Registrar's office.
   const { form, errors, submitted, ticketNumber, handleChange, handleSubmit, handleReset } =

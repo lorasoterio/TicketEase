@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { generateTicketNumber } from "../utils/ticketHelpers";
+import { useAuth } from "../context/useAuth"; // 👈 add this
+import { submitTicket } from "../services/ticketsService"; // 👈 add this import
 
 /**
  * useTicketForm — A reusable custom hook for any ticket submission form.
@@ -12,11 +13,13 @@ import { generateTicketNumber } from "../utils/ticketHelpers";
  * @param {Function} validateFn    - A function that receives the form and returns an errors object.
  * @param {string} ticketPrefix    - Prefix for the generated ticket number (e.g. "REG", "IT", "LIB").
  */
-export function useTicketForm(initialFields, validateFn, ticketPrefix = "TKT") {
+export function useTicketForm(initialFields, validateFn) {
+   const { user } = useAuth();
   const [form, setForm] = useState(initialFields);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [ticketNumber, setTicketNumber] = useState("");
+  const [loading, setLoading] = useState(false); // 👈 add this
 
   /**
    * handleChange — Returns a change handler for a specific field.
@@ -31,17 +34,29 @@ export function useTicketForm(initialFields, validateFn, ticketPrefix = "TKT") {
   /**
    * handleSubmit — Runs validation. If valid, generates a ticket number and marks as submitted.
    */
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const validationErrors = validateFn(form);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-    const ticket = generateTicketNumber(ticketPrefix);
-    setTicketNumber(ticket);
+    if (Object.keys(validationErrors).length > 0) { setErrors(validationErrors); return; }
+
+    setLoading(true);
+
+    const ticketData = {
+      student_id: user.id,
+      full_name: form.fullName,
+      category: "document_request",
+      subject: form.subject,
+      description: form.description,
+      document_type: form.documentType,
+      priority: "normal",
+    };
+
+    const { data, error } = await submitTicket(ticketData);
+
+    setLoading(false);
+    if (error) { setErrors({ submit: "Failed to submit. Please try again." }); return; }
+    setTicketNumber(data.ticket_number);
     setSubmitted(true);
   };
-
   /**
    * handleReset — Clears everything back to the initial state.
    */
@@ -57,6 +72,7 @@ export function useTicketForm(initialFields, validateFn, ticketPrefix = "TKT") {
     errors,
     submitted,
     ticketNumber,
+    loading,
     handleChange,
     handleSubmit,
     handleReset,
