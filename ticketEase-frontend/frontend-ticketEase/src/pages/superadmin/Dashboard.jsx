@@ -2,7 +2,7 @@ import {
   ThemeProvider, createTheme, CssBaseline, Box, Paper,
   Typography, Stack, Divider, Button, Grid,
 } from "@mui/material";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 
 const theme = createTheme({
   palette: {

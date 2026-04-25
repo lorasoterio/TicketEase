@@ -129,7 +129,7 @@ export default function AdminNavbar({
         <Divider orientation="vertical" flexItem sx={{ mr: 1.5, borderColor: "grey.200" }} />
 
         {/* ── Nav Links ── */}
-        {NAV_LINKS.map(({ to, label, icon, badge, badgeSeverity, dot }) => (
+        {NAV_LINKS.map(({ to, label, icon, badge, dot }) => (
           <NavLink key={to} to={to} style={{ textDecoration: "none" }}>
             {({ isActive }) => (
               <Box
