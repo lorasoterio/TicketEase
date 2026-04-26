@@ -1,22 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
+import { registerUser } from "../../services/authServices";
 
 const INITIAL_FIELDS = {
   fullName: "",
-  studentId: "",
+  schoolStudentId: "",
+  courseProgram: "",
+  yearLevel: "",
+  contactNumber: "",
+  address: "",
   email: "",
   password: "",
-       confirmPassword: "",
+  confirmPassword: "",
 };
 
 function validate(form) {
   const errors = {};
   if (!form.fullName.trim()) errors.fullName = "Full name is required.";
-  if (!form.studentId.trim()) errors.studentId = "Student ID is required.";
+  if (!form.schoolStudentId.trim()) errors.schoolStudentId = "Student ID is required.";
+  if (!form.courseProgram.trim()) errors.courseProgram = "Course/Program is required.";
+  if (!form.yearLevel.trim()) errors.yearLevel = "Year level is required.";
+  if (!form.contactNumber.trim()) errors.contactNumber = "Contact number is required.";
+  if (!form.address.trim()) errors.address = "Address is required.";
   if (!form.email.trim()) errors.email = "Email is required.";
   if (!form.password) errors.password = "Password is required.";
   else if (form.password.length < 6)
@@ -40,8 +45,6 @@ export function useRegisterForm() {
 
   const handleRegister = async () => {
     try {
-      console.log("Submitting form:", form);
-      console.log("Signup triggered");
       const validationErrors = validate(form);
       if (Object.keys(validationErrors).length > 0) {
         setErrors(validationErrors);
@@ -51,57 +54,14 @@ export function useRegisterForm() {
       setLoading(true);
       setServerError("");
 
-<<<<<<< Updated upstream
-      // Step 1: Create auth user (uncomment when Supabase is configured)
-      /*
-      const { data, error: signUpError } = await supabase.auth.signUp({
-=======
-      // Step 1: Create auth user
-/*      const { data, error: signUpError } = await supabase.auth.signUp({
->>>>>>> Stashed changes
-        email: form.email,
-        password: form.password,
-        options: {
-          data: {
-            full_name: form.fullName,
-            student_id: form.studentId,
-            role: "student",
-          },
-        },
-      });
+      await registerUser(form);
 
-      if (signUpError) {
-        console.error(
-          "❌ Step 1 Failed — Auth signup error:",
-          signUpError.message,
-        );
-        setServerError(signUpError.message);
-        setLoading(false);
-        return;
-      }
-
-      console.log("✅ Step 1 Success — Auth user created:", data.user.id);
-      console.log("Full user object:", data.user);
-
-      const { data: sessionData, error: sessionError } =
-        await supabase.auth.getSession();
-
-      if (!sessionData?.session) {
-        console.warn("No active session after signup.");
-      }
-      console.log("Session after signup:", sessionData);
-      if (sessionError) console.error("Session error:", sessionError);
-<<<<<<< Updated upstream
-      */
-
-=======
-*/
->>>>>>> Stashed changes
       setLoading(false);
       navigate("/login");
     } catch (err) {
-      console.error("Unexpected error during registration:", err);
-      setServerError("Something went wrong. Please try again.");
+      const message =
+        err?.response?.data?.message || "Something went wrong. Please try again.";
+      setServerError(message);
       setLoading(false);
     }
   };

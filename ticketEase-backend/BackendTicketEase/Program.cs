@@ -9,13 +9,10 @@ builder.Services.AddSwaggerGen();
 
 // Services
 builder.Services.AddScoped<JwtService>();
-<<<<<<< Updated upstream
 builder.Services.AddScoped<GenerateRefNumber>();
 
 // Register IDbContext to use AppDbContext implementation
 builder.Services.AddScoped<IDbContext>(provider => provider.GetRequiredService<AppDbContext>());
-=======
->>>>>>> Stashed changes
 
 builder.Services.AddCors(options =>
 {

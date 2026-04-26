@@ -1,11 +1,16 @@
 import {
   ThemeProvider, createTheme, CssBaseline, Box, Paper,
   Typography, TextField, Button, Stack, Alert, Collapse,
-  InputAdornment, Divider,
+  InputAdornment, Divider, MenuItem,
 } from "@mui/material";
-import { School, Person, Email, Lock, HowToReg } from "@mui/icons-material";
+import {
+  School, Person, Email, Lock, HowToReg,
+  MenuBook, CalendarToday, Phone, Home,
+} from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import { useRegisterForm } from "../../hooks/auth/useRegisterForm";
+
+const YEAR_LEVELS = ["1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "Graduate"];
 
 const theme = createTheme({
   palette: {
@@ -53,7 +58,7 @@ export default function RegisterPage() {
           backgroundImage: "radial-gradient(circle at 20% 20%, #d0dce8 0%, transparent 50%), radial-gradient(circle at 80% 80%, #e8d9c0 0%, transparent 50%)",
         }}
       >
-        <Box sx={{ width: "100%", maxWidth: 520 }}>
+        <Box sx={{ width: "100%", maxWidth: 560 }}>
 
           {/* Header */}
           <Box sx={{ textAlign: "center", mb: 3 }}>
@@ -67,6 +72,7 @@ export default function RegisterPage() {
           </Box>
 
           <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderTop: "4px solid", borderTopColor: "secondary.main", p: { xs: 3, sm: 4 } }}>
+            <Box component="form" onSubmit={(e) => { e.preventDefault(); handleRegister(); }} noValidate>
             <Stack spacing={2.5}>
 
               {/* Server Error */}
@@ -75,6 +81,11 @@ export default function RegisterPage() {
                   {serverError}
                 </Alert>
               </Collapse>
+
+              {/* Personal Info Section */}
+              <Typography variant="body1" sx={{ fontWeight: 600, color: "primary.main", borderBottom: "1px solid", borderColor: "divider", pb: 0.5 }}>
+                Personal Information
+              </Typography>
 
               <TextField
                 label="Full Name"
@@ -86,17 +97,74 @@ export default function RegisterPage() {
                 InputProps={{ startAdornment: <InputAdornment position="start"><Person sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
               />
               <TextField
-                label="Student ID"
-                value={form.studentId}
-                onChange={handleChange("studentId")}
-                error={!!errors.studentId}
-                helperText={errors.studentId}
+                label="Contact Number"
+                value={form.contactNumber}
+                onChange={handleChange("contactNumber")}
+                error={!!errors.contactNumber}
+                helperText={errors.contactNumber}
+                placeholder="e.g. 09171234567"
+                InputProps={{ startAdornment: <InputAdornment position="start"><Phone sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+              />
+              <TextField
+                label="Address"
+                value={form.address}
+                onChange={handleChange("address")}
+                error={!!errors.address}
+                helperText={errors.address}
+                placeholder="e.g. 123 Rizal St., Manila"
+                multiline
+                rows={2}
+                InputProps={{ startAdornment: <InputAdornment position="start" sx={{ mt: "6px", alignSelf: "flex-start" }}><Home sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+              />
+
+              {/* Academic Info Section */}
+              <Typography variant="body1" sx={{ fontWeight: 600, color: "primary.main", borderBottom: "1px solid", borderColor: "divider", pb: 0.5 }}>
+                Academic Information
+              </Typography>
+
+              <TextField
+                label="School Student ID"
+                value={form.schoolStudentId}
+                onChange={handleChange("schoolStudentId")}
+                error={!!errors.schoolStudentId}
+                helperText={errors.schoolStudentId}
                 placeholder="e.g. 2021-00123"
                 InputProps={{ startAdornment: <InputAdornment position="start"><School sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
               />
               <TextField
+                label="Course / Program"
+                value={form.courseProgram}
+                onChange={handleChange("courseProgram")}
+                error={!!errors.courseProgram}
+                helperText={errors.courseProgram}
+                placeholder="e.g. BS Computer Science"
+                InputProps={{ startAdornment: <InputAdornment position="start"><MenuBook sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+              />
+              <TextField
+                select
+                label="Year Level"
+                value={form.yearLevel}
+                onChange={handleChange("yearLevel")}
+                error={!!errors.yearLevel}
+                helperText={errors.yearLevel}
+                InputProps={{ startAdornment: <InputAdornment position="start"><CalendarToday sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+              >
+                {YEAR_LEVELS.map((level) => (
+                  <MenuItem key={level} value={level} sx={{ fontFamily: "'Source Serif 4', serif" }}>
+                    {level}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              {/* Account Info Section */}
+              <Typography variant="body1" sx={{ fontWeight: 600, color: "primary.main", borderBottom: "1px solid", borderColor: "divider", pb: 0.5 }}>
+                Account Credentials
+              </Typography>
+
+              <TextField
                 label="Email"
                 type="email"
+                autoComplete="username"
                 value={form.email}
                 onChange={handleChange("email")}
                 error={!!errors.email}
@@ -107,6 +175,7 @@ export default function RegisterPage() {
               <TextField
                 label="Password"
                 type="password"
+                autoComplete="new-password"
                 value={form.password}
                 onChange={handleChange("password")}
                 error={!!errors.password}
@@ -116,6 +185,7 @@ export default function RegisterPage() {
               <TextField
                 label="Confirm Password"
                 type="password"
+                autoComplete="new-password"
                 value={form.confirmPassword}
                 onChange={handleChange("confirmPassword")}
                 error={!!errors.confirmPassword}
@@ -124,8 +194,9 @@ export default function RegisterPage() {
               />
 
               <Button
+                type="submit"
                 variant="contained" fullWidth size="large"
-                onClick={handleRegister} disabled={loading}
+                disabled={loading}
                 sx={{ bgcolor: "primary.main", py: 1.6, fontSize: "0.95rem", "&:hover": { bgcolor: "#122a42" }, boxShadow: "0 4px 14px rgba(26,58,92,0.25)" }}
               >
                 {loading ? "Creating Account..." : "Register"}
@@ -139,6 +210,7 @@ export default function RegisterPage() {
               </Typography>
 
             </Stack>
+            </Box>
           </Paper>
         </Box>
       </Box>

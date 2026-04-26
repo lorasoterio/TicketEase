@@ -1,14 +1,16 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../api/supabaseClient";
+// Supabase disabled — using local .NET backend instead
+// import { supabase } from "../api/supabaseClient";
 
 export const AuthContext = createContext({});
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-
+  // --- Supabase session/profile logic disabled ---
+  /*
   async function fetchProfile(userId) {
     const { data } = await supabase
       .from("profiles")
@@ -41,9 +43,24 @@ export function AuthProvider({ children }) {
 
     return () => subscription.unsubscribe();
   }, []);
+  */
+
+  // Load user from localStorage (set by local .NET backend login)
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        setUser(parsed);
+        setProfile(parsed);
+      } catch {
+        // ignore malformed data
+      }
+    }
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading }}>
+    <AuthContext.Provider value={{ user, profile, loading, setUser, setProfile }}>
       {children}
     </AuthContext.Provider>
   );

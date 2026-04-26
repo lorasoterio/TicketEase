@@ -41,11 +41,7 @@ export default function MyTickets() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
 
-<<<<<<< Updated upstream
       <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 900, mx: "auto" }}>
-=======
-      <Box sx={{ p: 3, maxWidth: 900, mx: "auto" }}>
->>>>>>> Stashed changes
         <Typography fontWeight={600} sx={{ mb: 2 }}>
           My Tickets
         </Typography>
@@ -66,10 +62,7 @@ export default function MyTickets() {
               size="small"
               value={status}
               onChange={(e) => handleSetStatus(e.target.value)}
-<<<<<<< Updated upstream
               sx={{ minWidth: { xs: "100%", sm: 160 } }}
-=======
->>>>>>> Stashed changes
             >
               <MenuItem value="All">All Status</MenuItem>
               <MenuItem value="Pending">Pending</MenuItem>

@@ -6,7 +6,7 @@ import SuperAdminLayout from "../layouts/SuperAdminLayout";
 
 // Auth pages
 import LoginPage    from "../pages/auth/LoginPage";
-import RegisterPage from "../pages/auth/RegisterPage";
+
 
 // Student pages
 import StudentDashboard from "../pages/user/Dashboard";
@@ -14,6 +14,7 @@ import RequestTicket from "../pages/user/RequestTicket";
 import MyTickets from "../pages/user/MyTickets";
 import TrackStatus from "../pages/user/TrackStatus";
 import Profile from "../pages/user/Profile";
+import RegisterPage from "../pages/user/RegisterPage";
 
 // Admin pages
 import AdminDashboard from "../pages/admin/Dashboard";

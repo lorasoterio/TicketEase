@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BackendTicketEase.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260425095241_AddReferenceNumberToTickets")]
-    partial class AddReferenceNumberToTickets
+    [Migration("20260426074440_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -267,7 +267,6 @@ namespace BackendTicketEase.Migrations
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("EstimatedCompletion")
@@ -295,7 +294,6 @@ namespace BackendTicketEase.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Subject")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 

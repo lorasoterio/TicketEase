@@ -42,41 +42,6 @@ export default function StudentDashboard() {
       />
       <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 900, mx: "auto" }}>
         {/* Header */}
-<<<<<<< Updated upstream
-        <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} spacing={1.5} sx={{ mb: 3 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Box
-              sx={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                bgcolor: "#e8f0fe",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Typography
-                sx={{
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "#1a56db",
-                  fontFamily: "'Source Serif 4', serif",
-                }}
-              >
-                {initials}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="body1" fontWeight={600}>
-                Student Dashboard
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {profile?.full_name || "Student"} — {profile?.student_id || ""}
-              </Typography>
-            </Box>
-          </Stack>
-=======
         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 3 }}>
           <Box
             sx={{
@@ -108,17 +73,12 @@ export default function StudentDashboard() {
               {profile?.full_name || "Student"} — {profile?.student_id || ""}
             </Typography>
           </Box>
->>>>>>> Stashed changes
           <Button
             variant="outlined"
             size="small"
             onClick={() => navigate("/request-ticket")}
             sx={{
-<<<<<<< Updated upstream
-              ml: { sm: "auto !important" },
-=======
               ml: "auto !important",
->>>>>>> Stashed changes
               fontFamily: "'Source Serif 4', serif",
               borderColor: "#1a3a5c",
               color: "#1a3a5c",
@@ -191,7 +151,6 @@ export default function StudentDashboard() {
           {recentTickets.map((t, i) => (
             <Box key={t.id}>
               <Stack
-<<<<<<< Updated upstream
                 direction={{ xs: "column", sm: "row" }}
                 alignItems={{ xs: "flex-start", sm: "center" }}
                 spacing={{ xs: 0.5, sm: 1.5 }}
@@ -214,28 +173,6 @@ export default function StudentDashboard() {
                     </Typography>
                   </Box>
                 </Stack>
-=======
-                direction="row"
-                alignItems="center"
-                spacing={1.5}
-                sx={{ px: 2, py: 1.5 }}
-              >
-                <StatusChip label={t.status} />
-                <Box sx={{ flex: 1 }}>
-                  <Typography variant="body2" fontWeight={500}>
-                    {t.subject}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: "11px",
-                      color: "text.secondary",
-                      fontFamily: "'Source Serif 4', serif",
-                    }}
-                  >
-                    Submitted {t.date} · Ticket {t.id}
-                  </Typography>
-                </Box>
->>>>>>> Stashed changes
               </Stack>
               {i < recentTickets.length - 1 && <Divider />}
             </Box>
