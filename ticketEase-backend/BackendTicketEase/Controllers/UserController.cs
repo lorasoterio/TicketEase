@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using BackendTicketEase.Data;
 using BackendTicketEase.Models;
+using BackendTicketEase.DTOs;
 
 namespace BackendTicketEase.Controllers
 {
@@ -236,23 +237,6 @@ namespace BackendTicketEase.Controllers
         {
             return await _context.Set<User>().AnyAsync(e => e.UserId == id);
         }
-
-        // DTOs
-        public class UserDto
-        {
-            public int UserId { get; set; }
-            public string Email { get; set; } = string.Empty;
-            public string Role { get; set; } = string.Empty;
-            public bool IsActive { get; set; }
-            public DateTime CreatedAt { get; set; }
-            public DateTime UpdatedAt { get; set; }
-        }
-
-        public class UpdateUserRequest
-        {
-            public string? Email { get; set; }
-            public string? Role { get; set; }
-            public bool? IsActive { get; set; }
-        }
+       
     }
 }
