@@ -14,10 +14,11 @@ import RequestTicket from "../pages/user/RequestTicket";
 import MyTickets from "../pages/user/MyTickets";
 import TrackStatus from "../pages/user/TrackStatus";
 import Profile from "../pages/user/Profile";
-import RegisterPage from "../pages/user/RegisterPage";
+import UserRegisterPage from "../pages/user/RegisterPage";
 
 // Admin pages
 import AdminDashboard from "../pages/admin/Dashboard";
+import AdminRegisterPage from "../pages/admin/RegisterPage";
 
 // SuperAdmin pages
 import SuperAdminDashboard from "../pages/superadmin/Dashboard";
@@ -31,7 +32,9 @@ export default function AppRoutes() {
 
       {/* Auth — no layout wrapper */}
       <Route path="/login"    element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
+
+      <Route path="/admin/register" element={<AdminRegisterPage />} />
+      <Route path="/user/register" element={<UserRegisterPage />} />
 
       {/* Student routes — wrapped in UserLayout */}
       <Route element={<UserLayout />}>

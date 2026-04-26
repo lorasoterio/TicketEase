@@ -40,7 +40,7 @@ const theme = createTheme({
   },
 });
 
-export default function RegisterPage() {
+export default function UserRegisterPage() {
   const {
     form, errors, serverError, loading,
     handleChange, handleRegister,

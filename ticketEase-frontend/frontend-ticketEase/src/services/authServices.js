@@ -28,6 +28,32 @@ export const registerUser = async (data) => {
 };
 
 /**
+ * Register new staff/admin user (two-step: create auth user, then staff profile)
+ */
+export const registerStaff = async (data) => {
+  // Step 1: Create auth user with Staff or Admin role
+  const authResponse = await client.post("/auth/register", {
+    Email: data.email,
+    Password: data.password,
+    Role: data.role,
+  });
+
+  const userId = authResponse.data.userId;
+
+  // Step 2: Create staff profile
+  await client.post("/staff", {
+    UserId: userId,
+    FullName: data.fullName,
+    Position: data.position,
+    Department: data.department,
+    ContactNumber: data.contactNumber,
+    IsActive: true,
+  });
+
+  return authResponse.data;
+};
+
+/**
  * Login user
  */
 export const loginUser = async (data) => {
