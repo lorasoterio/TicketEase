@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackendTicketEase.Data;
 using BackendTicketEase.Models;
+using BackendTicketEase.DTOs;
+using BackendTicketEase.Services;
 
 
 namespace BackendTicketEase.Controllers
@@ -15,10 +17,14 @@ namespace BackendTicketEase.Controllers
     public class AuthController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IStudentService _studentService;
+        private readonly IStaffService _staffService;
 
-        public AuthController(AppDbContext context)
+        public AuthController(AppDbContext context, IStudentService studentService, IStaffService staffService)
         {
             _context = context;
+            _studentService = studentService;
+            _staffService = staffService;
         }
 
         public class AuthRequest
@@ -36,6 +42,66 @@ namespace BackendTicketEase.Controllers
         {
             public int UserId { get; set; }
             public string Email { get; set; } = string.Empty;
+        }
+
+        [HttpPost("register/student")]
+        public async Task<IActionResult> RegisterStudent([FromBody] RegisterStudentRequest request)
+        {
+            var result = await _studentService.RegisterStudentAsync(
+                request.Email,
+                request.Password,
+                request.SchoolStudentId,
+                request.FullName,
+                request.CourseProgram,
+                request.YearLevel,
+                request.ContactNumber,
+                request.Address
+            );
+
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            var response = new RegisterResponse
+            {
+                UserId = result.User!.UserId,
+                Email = result.User.Email,
+                Role = "Student",
+                ProfileId = result.Student!.StudentId,
+                Message = result.Message
+            };
+
+            return CreatedAtAction(null, response);
+        }
+
+        [HttpPost("register/staff")]
+        public async Task<IActionResult> RegisterStaff([FromBody] RegisterStaffRequest request)
+        {
+            var result = await _staffService.RegisterStaffAsync(
+                request.Email,
+                request.Password,
+                request.FullName,
+                request.Position,
+                request.Department,
+                request.ContactNumber
+            );
+
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            var response = new RegisterResponse
+            {
+                UserId = result.User!.UserId,
+                Email = result.User.Email,
+                Role = "Staff",
+                ProfileId = result.Staff!.StaffId,
+                Message = result.Message
+            };
+
+            return CreatedAtAction(null, response);
         }
 
         [HttpPost("register")]

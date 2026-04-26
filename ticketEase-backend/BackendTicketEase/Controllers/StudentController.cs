@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using BackendTicketEase.Data;
 using BackendTicketEase.Models;
 using BackendTicketEase.DTOs;
+using BackendTicketEase.Services;
 
 namespace BackendTicketEase.Controllers
 {
@@ -11,100 +12,48 @@ namespace BackendTicketEase.Controllers
     public class StudentController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IStudentService _studentService;
 
-        public StudentController(AppDbContext context)
+        public StudentController(AppDbContext context, IStudentService studentService)
         {
             _context = context;
+            _studentService = studentService;
         }
 
         // GET: api/student
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents()
         {
-            var students = await _context.Students
-                .Include(s => s.User)
-                .Select(s => new StudentDto
-                {
-                    StudentId = s.StudentId,
-                    UserId = s.UserId,
-                    SchoolStudentId = s.SchoolStudentId,
-                    FullName = s.FullName,
-                    CourseProgram = s.CourseProgram,
-                    YearLevel = s.YearLevel,
-                    ContactNumber = s.ContactNumber,
-                    Address = s.Address,
-                    IsVerified = s.IsVerified,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    UserEmail = s.User.Email
-                })
-                .ToListAsync();
-
-            return Ok(students);
+            var result = await _studentService.GetAllStudentsAsync();
+            return Ok(result.Students);
         }
 
         // GET: api/student/5
         [HttpGet("{id}")]
         public async Task<ActionResult<StudentDto>> GetStudent(int id)
         {
-            var student = await _context.Students
-                .Include(s => s.User)
-                .FirstOrDefaultAsync(s => s.StudentId == id);
+            var result = await _studentService.GetStudentByIdAsync(id);
 
-            if (student == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Student with ID {id} not found." });
+                return NotFound(new { message = result.Message });
             }
 
-            var studentDto = new StudentDto
-            {
-                StudentId = student.StudentId,
-                UserId = student.UserId,
-                SchoolStudentId = student.SchoolStudentId,
-                FullName = student.FullName,
-                CourseProgram = student.CourseProgram,
-                YearLevel = student.YearLevel,
-                ContactNumber = student.ContactNumber,
-                Address = student.Address,
-                IsVerified = student.IsVerified,
-                CreatedAt = student.CreatedAt,
-                UpdatedAt = student.UpdatedAt,
-                UserEmail = student.User.Email
-            };
-
-            return Ok(studentDto);
+            return Ok(result.StudentDto);
         }
 
         // GET: api/student/user/{userId}
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<StudentDto>> GetStudentByUserId(int userId)
         {
-            var student = await _context.Students
-                .Include(s => s.User)
-                .FirstOrDefaultAsync(s => s.UserId == userId);
+            var result = await _studentService.GetStudentByUserIdAsync(userId);
 
-            if (student == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Student with User ID {userId} not found." });
+                return NotFound(new { message = result.Message });
             }
 
-            var studentDto = new StudentDto
-            {
-                StudentId = student.StudentId,
-                UserId = student.UserId,
-                SchoolStudentId = student.SchoolStudentId,
-                FullName = student.FullName,
-                CourseProgram = student.CourseProgram,
-                YearLevel = student.YearLevel,
-                ContactNumber = student.ContactNumber,
-                Address = student.Address,
-                IsVerified = student.IsVerified,
-                CreatedAt = student.CreatedAt,
-                UpdatedAt = student.UpdatedAt,
-                UserEmail = student.User.Email
-            };
-
-            return Ok(studentDto);
+            return Ok(result.StudentDto);
         }
 
         // GET: api/student/school-id/{schoolStudentId}
@@ -143,54 +92,16 @@ namespace BackendTicketEase.Controllers
         [HttpGet("verified")]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetVerifiedStudents()
         {
-            var students = await _context.Students
-                .Include(s => s.User)
-                .Where(s => s.IsVerified)
-                .Select(s => new StudentDto
-                {
-                    StudentId = s.StudentId,
-                    UserId = s.UserId,
-                    SchoolStudentId = s.SchoolStudentId,
-                    FullName = s.FullName,
-                    CourseProgram = s.CourseProgram,
-                    YearLevel = s.YearLevel,
-                    ContactNumber = s.ContactNumber,
-                    Address = s.Address,
-                    IsVerified = s.IsVerified,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    UserEmail = s.User.Email
-                })
-                .ToListAsync();
-
-            return Ok(students);
+            var result = await _studentService.GetVerifiedStudentsAsync();
+            return Ok(result.Students);
         }
 
         // GET: api/student/unverified
         [HttpGet("unverified")]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetUnverifiedStudents()
         {
-            var students = await _context.Students
-                .Include(s => s.User)
-                .Where(s => !s.IsVerified)
-                .Select(s => new StudentDto
-                {
-                    StudentId = s.StudentId,
-                    UserId = s.UserId,
-                    SchoolStudentId = s.SchoolStudentId,
-                    FullName = s.FullName,
-                    CourseProgram = s.CourseProgram,
-                    YearLevel = s.YearLevel,
-                    ContactNumber = s.ContactNumber,
-                    Address = s.Address,
-                    IsVerified = s.IsVerified,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    UserEmail = s.User.Email
-                })
-                .ToListAsync();
-
-            return Ok(students);
+            var result = await _studentService.GetUnverifiedStudentsAsync();
+            return Ok(result.Students);
         }
 
         // GET: api/student/course/{courseProgram}
@@ -317,67 +228,11 @@ namespace BackendTicketEase.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStudent(int id, [FromBody] UpdateStudentRequest request)
         {
-            var student = await _context.Students.FindAsync(id);
+            var result = await _studentService.UpdateStudentAsync(id, request);
 
-            if (student == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Student with ID {id} not found." });
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.SchoolStudentId))
-            {
-                var schoolIdExists = await _context.Students
-                    .AnyAsync(s => s.SchoolStudentId == request.SchoolStudentId && s.StudentId != id);
-                if (schoolIdExists)
-                {
-                    return BadRequest(new { message = "School Student ID already exists." });
-                }
-                student.SchoolStudentId = request.SchoolStudentId;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.FullName))
-            {
-                student.FullName = request.FullName;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.CourseProgram))
-            {
-                student.CourseProgram = request.CourseProgram;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.YearLevel))
-            {
-                student.YearLevel = request.YearLevel;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.ContactNumber))
-            {
-                student.ContactNumber = request.ContactNumber;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.Address))
-            {
-                student.Address = request.Address;
-            }
-
-            if (request.IsVerified.HasValue)
-            {
-                student.IsVerified = request.IsVerified.Value;
-            }
-
-            student.UpdatedAt = DateTime.UtcNow;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await StudentExists(id))
-                {
-                    return NotFound(new { message = $"Student with ID {id} not found." });
-                }
-                throw;
+                return BadRequest(new { message = result.Message });
             }
 
             return NoContent();
@@ -387,17 +242,12 @@ namespace BackendTicketEase.Controllers
         [HttpPatch("{id}/verify")]
         public async Task<IActionResult> VerifyStudent(int id)
         {
-            var student = await _context.Students.FindAsync(id);
+            var result = await _studentService.VerifyStudentAsync(id);
 
-            if (student == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Student with ID {id} not found." });
+                return NotFound(new { message = result.Message });
             }
-
-            student.IsVerified = true;
-            student.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -425,15 +275,12 @@ namespace BackendTicketEase.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            var student = await _context.Students.FindAsync(id);
+            var result = await _studentService.DeleteStudentAsync(id);
 
-            if (student == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Student with ID {id} not found." });
+                return NotFound(new { message = result.Message });
             }
-
-            _context.Students.Remove(student);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }

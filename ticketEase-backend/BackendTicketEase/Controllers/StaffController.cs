@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using BackendTicketEase.Data;
 using BackendTicketEase.Models;
 using BackendTicketEase.DTOs;
+using BackendTicketEase.Services;
 
 namespace BackendTicketEase.Controllers
 {
@@ -11,144 +12,64 @@ namespace BackendTicketEase.Controllers
     public class StaffController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IStaffService _staffService;
 
-        public StaffController(AppDbContext context)
+        public StaffController(AppDbContext context, IStaffService staffService)
         {
             _context = context;
+            _staffService = staffService;
         }
 
         // GET: api/staff
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StaffDto>>> GetStaff()
         {
-            var staff = await _context.Staffs
-                .Include(s => s.User)
-                .Select(s => new StaffDto
-                {
-                    StaffId = s.StaffId,
-                    UserId = s.UserId,
-                    FullName = s.FullName,
-                    Position = s.Position,
-                    Department = s.Department,
-                    ContactNumber = s.ContactNumber,
-                    IsActive = s.IsActive,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    UserEmail = s.User.Email
-                })
-                .ToListAsync();
-
-            return Ok(staff);
+            var result = await _staffService.GetAllStaffAsync();
+            return Ok(result.Staff);
         }
 
         // GET: api/staff/5
         [HttpGet("{id}")]
         public async Task<ActionResult<StaffDto>> GetStaff(int id)
         {
-            var staff = await _context.Staffs
-                .Include(s => s.User)
-                .FirstOrDefaultAsync(s => s.StaffId == id);
+            var result = await _staffService.GetStaffByIdAsync(id);
 
-            if (staff == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Staff with ID {id} not found." });
+                return NotFound(new { message = result.Message });
             }
 
-            var staffDto = new StaffDto
-            {
-                StaffId = staff.StaffId,
-                UserId = staff.UserId,
-                FullName = staff.FullName,
-                Position = staff.Position,
-                Department = staff.Department,
-                ContactNumber = staff.ContactNumber,
-                IsActive = staff.IsActive,
-                CreatedAt = staff.CreatedAt,
-                UpdatedAt = staff.UpdatedAt,
-                UserEmail = staff.User.Email
-            };
-
-            return Ok(staffDto);
+            return Ok(result.StaffDto);
         }
 
         // GET: api/staff/user/{userId}
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<StaffDto>> GetStaffByUserId(int userId)
         {
-            var staff = await _context.Staffs
-                .Include(s => s.User)
-                .FirstOrDefaultAsync(s => s.UserId == userId);
+            var result = await _staffService.GetStaffByUserIdAsync(userId);
 
-            if (staff == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Staff with User ID {userId} not found." });
+                return NotFound(new { message = result.Message });
             }
 
-            var staffDto = new StaffDto
-            {
-                StaffId = staff.StaffId,
-                UserId = staff.UserId,
-                FullName = staff.FullName,
-                Position = staff.Position,
-                Department = staff.Department,
-                ContactNumber = staff.ContactNumber,
-                IsActive = staff.IsActive,
-                CreatedAt = staff.CreatedAt,
-                UpdatedAt = staff.UpdatedAt,
-                UserEmail = staff.User.Email
-            };
-
-            return Ok(staffDto);
+            return Ok(result.StaffDto);
         }
 
         // GET: api/staff/active
         [HttpGet("active")]
         public async Task<ActionResult<IEnumerable<StaffDto>>> GetActiveStaff()
         {
-            var staff = await _context.Staffs
-                .Include(s => s.User)
-                .Where(s => s.IsActive)
-                .Select(s => new StaffDto
-                {
-                    StaffId = s.StaffId,
-                    UserId = s.UserId,
-                    FullName = s.FullName,
-                    Position = s.Position,
-                    Department = s.Department,
-                    ContactNumber = s.ContactNumber,
-                    IsActive = s.IsActive,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    UserEmail = s.User.Email
-                })
-                .ToListAsync();
-
-            return Ok(staff);
+            var result = await _staffService.GetActiveStaffAsync();
+            return Ok(result.Staff);
         }
 
         // GET: api/staff/inactive
         [HttpGet("inactive")]
         public async Task<ActionResult<IEnumerable<StaffDto>>> GetInactiveStaff()
         {
-            var staff = await _context.Staffs
-                .Include(s => s.User)
-                .Where(s => !s.IsActive)
-                .Select(s => new StaffDto
-                {
-                    StaffId = s.StaffId,
-                    UserId = s.UserId,
-                    FullName = s.FullName,
-                    Position = s.Position,
-                    Department = s.Department,
-                    ContactNumber = s.ContactNumber,
-                    IsActive = s.IsActive,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    UserEmail = s.User.Email
-                })
-                .ToListAsync();
-
-            return Ok(staff);
+            var result = await _staffService.GetInactiveStaffAsync();
+            return Ok(result.Staff);
         }
 
         // GET: api/staff/department/{department}
@@ -257,51 +178,11 @@ namespace BackendTicketEase.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStaff(int id, [FromBody] UpdateStaffRequest request)
         {
-            var staff = await _context.Staffs.FindAsync(id);
+            var result = await _staffService.UpdateStaffAsync(id, request);
 
-            if (staff == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Staff with ID {id} not found." });
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.FullName))
-            {
-                staff.FullName = request.FullName;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.Position))
-            {
-                staff.Position = request.Position;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.Department))
-            {
-                staff.Department = request.Department;
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.ContactNumber))
-            {
-                staff.ContactNumber = request.ContactNumber;
-            }
-
-            if (request.IsActive.HasValue)
-            {
-                staff.IsActive = request.IsActive.Value;
-            }
-
-            staff.UpdatedAt = DateTime.UtcNow;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!await StaffExists(id))
-                {
-                    return NotFound(new { message = $"Staff with ID {id} not found." });
-                }
-                throw;
+                return BadRequest(new { message = result.Message });
             }
 
             return NoContent();
@@ -330,17 +211,12 @@ namespace BackendTicketEase.Controllers
         [HttpPatch("{id}/deactivate")]
         public async Task<IActionResult> DeactivateStaff(int id)
         {
-            var staff = await _context.Staffs.FindAsync(id);
+            var result = await _staffService.DeactivateStaffAsync(id);
 
-            if (staff == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Staff with ID {id} not found." });
+                return NotFound(new { message = result.Message });
             }
-
-            staff.IsActive = false;
-            staff.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -349,15 +225,12 @@ namespace BackendTicketEase.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStaff(int id)
         {
-            var staff = await _context.Staffs.FindAsync(id);
+            var result = await _staffService.DeleteStaffAsync(id);
 
-            if (staff == null)
+            if (!result.Success)
             {
-                return NotFound(new { message = $"Staff with ID {id} not found." });
+                return NotFound(new { message = result.Message });
             }
-
-            _context.Staffs.Remove(staff);
-            await _context.SaveChangesAsync();
 
             return NoContent();
         }
