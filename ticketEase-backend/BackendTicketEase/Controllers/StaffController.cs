@@ -20,7 +20,6 @@ namespace BackendTicketEase.Controllers
             _staffService = staffService;
         }
 
-        // GET: api/staff
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StaffDto>>> GetStaff()
         {
@@ -28,7 +27,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.Staff);
         }
 
-        // GET: api/staff/5
         [HttpGet("{id}")]
         public async Task<ActionResult<StaffDto>> GetStaff(int id)
         {
@@ -42,7 +40,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.StaffDto);
         }
 
-        // GET: api/staff/user/{userId}
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<StaffDto>> GetStaffByUserId(int userId)
         {
@@ -56,7 +53,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.StaffDto);
         }
 
-        // GET: api/staff/active
         [HttpGet("active")]
         public async Task<ActionResult<IEnumerable<StaffDto>>> GetActiveStaff()
         {
@@ -64,7 +60,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.Staff);
         }
 
-        // GET: api/staff/inactive
         [HttpGet("inactive")]
         public async Task<ActionResult<IEnumerable<StaffDto>>> GetInactiveStaff()
         {
@@ -72,7 +67,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.Staff);
         }
 
-        // GET: api/staff/department/{department}
         [HttpGet("department/{department}")]
         public async Task<ActionResult<IEnumerable<StaffDto>>> GetStaffByDepartment(string department)
         {
@@ -97,7 +91,6 @@ namespace BackendTicketEase.Controllers
             return Ok(staff);
         }
 
-        // GET: api/staff/position/{position}
         [HttpGet("position/{position}")]
         public async Task<ActionResult<IEnumerable<StaffDto>>> GetStaffByPosition(string position)
         {
@@ -122,7 +115,6 @@ namespace BackendTicketEase.Controllers
             return Ok(staff);
         }
 
-        // POST: api/staff
         [HttpPost]
         public async Task<ActionResult<StaffDto>> CreateStaff([FromBody] CreateStaffRequest request)
         {
@@ -174,7 +166,6 @@ namespace BackendTicketEase.Controllers
             return CreatedAtAction(nameof(GetStaff), new { id = staff.StaffId }, staffDto);
         }
 
-        // PUT: api/staff/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStaff(int id, [FromBody] UpdateStaffRequest request)
         {
@@ -188,7 +179,6 @@ namespace BackendTicketEase.Controllers
             return NoContent();
         }
 
-        // PATCH: api/staff/5/activate
         [HttpPatch("{id}/activate")]
         public async Task<IActionResult> ActivateStaff(int id)
         {
@@ -207,7 +197,6 @@ namespace BackendTicketEase.Controllers
             return NoContent();
         }
 
-        // PATCH: api/staff/5/deactivate
         [HttpPatch("{id}/deactivate")]
         public async Task<IActionResult> DeactivateStaff(int id)
         {
@@ -221,7 +210,6 @@ namespace BackendTicketEase.Controllers
             return NoContent();
         }
 
-        // DELETE: api/staff/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStaff(int id)
         {

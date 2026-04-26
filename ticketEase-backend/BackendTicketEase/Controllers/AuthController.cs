@@ -152,7 +152,6 @@ namespace BackendTicketEase.Controllers
             return Ok(new AuthResponse { UserId = user.UserId, Email = user.Email });
         }
 
-        // Simple PBKDF2 hashing (store as iterations.salt.hash in base64)
         private static string HashPassword(string password)
         {
             const int iterations = 100_000;

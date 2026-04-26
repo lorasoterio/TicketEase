@@ -20,7 +20,6 @@ namespace BackendTicketEase.Controllers
             _studentService = studentService;
         }
 
-        // GET: api/student
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents()
         {
@@ -28,7 +27,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.Students);
         }
 
-        // GET: api/student/5
         [HttpGet("{id}")]
         public async Task<ActionResult<StudentDto>> GetStudent(int id)
         {
@@ -42,7 +40,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.StudentDto);
         }
 
-        // GET: api/student/user/{userId}
         [HttpGet("user/{userId}")]
         public async Task<ActionResult<StudentDto>> GetStudentByUserId(int userId)
         {
@@ -56,7 +53,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.StudentDto);
         }
 
-        // GET: api/student/school-id/{schoolStudentId}
         [HttpGet("school-id/{schoolStudentId}")]
         public async Task<ActionResult<StudentDto>> GetStudentBySchoolId(string schoolStudentId)
         {
@@ -88,7 +84,6 @@ namespace BackendTicketEase.Controllers
             return Ok(studentDto);
         }
 
-        // GET: api/student/verified
         [HttpGet("verified")]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetVerifiedStudents()
         {
@@ -96,7 +91,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.Students);
         }
 
-        // GET: api/student/unverified
         [HttpGet("unverified")]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetUnverifiedStudents()
         {
@@ -104,7 +98,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.Students);
         }
 
-        // GET: api/student/course/{courseProgram}
         [HttpGet("course/{courseProgram}")]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudentsByCourse(string courseProgram)
         {
@@ -131,7 +124,6 @@ namespace BackendTicketEase.Controllers
             return Ok(students);
         }
 
-        // GET: api/student/year/{yearLevel}
         [HttpGet("year/{yearLevel}")]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudentsByYearLevel(string yearLevel)
         {
@@ -158,7 +150,6 @@ namespace BackendTicketEase.Controllers
             return Ok(students);
         }
 
-        // POST: api/student
         [HttpPost]
         public async Task<ActionResult<StudentDto>> CreateStudent([FromBody] CreateStudentRequest request)
         {
@@ -224,7 +215,6 @@ namespace BackendTicketEase.Controllers
             return CreatedAtAction(nameof(GetStudent), new { id = student.StudentId }, studentDto);
         }
 
-        // PUT: api/student/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStudent(int id, [FromBody] UpdateStudentRequest request)
         {
@@ -238,7 +228,6 @@ namespace BackendTicketEase.Controllers
             return NoContent();
         }
 
-        // PATCH: api/student/5/verify
         [HttpPatch("{id}/verify")]
         public async Task<IActionResult> VerifyStudent(int id)
         {
@@ -252,7 +241,6 @@ namespace BackendTicketEase.Controllers
             return NoContent();
         }
 
-        // PATCH: api/student/5/unverify
         [HttpPatch("{id}/unverify")]
         public async Task<IActionResult> UnverifyStudent(int id)
         {
@@ -271,7 +259,6 @@ namespace BackendTicketEase.Controllers
             return NoContent();
         }
 
-        // DELETE: api/student/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
