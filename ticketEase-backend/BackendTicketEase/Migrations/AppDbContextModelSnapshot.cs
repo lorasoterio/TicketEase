@@ -22,6 +22,7 @@ namespace BackendTicketEase.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+<<<<<<< Updated upstream
             modelBuilder.Entity("BackendTicketEase.Models.AuditLog", b =>
                 {
                     b.Property<int>("LogId")
@@ -96,6 +97,8 @@ namespace BackendTicketEase.Migrations
                     b.ToTable("Notifications", (string)null);
                 });
 
+=======
+>>>>>>> Stashed changes
             modelBuilder.Entity("BackendTicketEase.Models.Staff", b =>
                 {
                     b.Property<int>("StaffId")
@@ -110,9 +113,13 @@ namespace BackendTicketEase.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.Property<DateTime>("CreatedAt")
+<<<<<<< Updated upstream
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+=======
+                        .HasColumnType("timestamp with time zone");
+>>>>>>> Stashed changes
 
                     b.Property<string>("Department")
                         .IsRequired()
@@ -133,9 +140,13 @@ namespace BackendTicketEase.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("UpdatedAt")
+<<<<<<< Updated upstream
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+=======
+                        .HasColumnType("timestamp with time zone");
+>>>>>>> Stashed changes
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -145,6 +156,7 @@ namespace BackendTicketEase.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
+<<<<<<< Updated upstream
                     b.ToTable("Staff", (string)null);
                 });
 
@@ -184,6 +196,9 @@ namespace BackendTicketEase.Migrations
                     b.HasIndex("TicketId");
 
                     b.ToTable("StatusHistory", (string)null);
+=======
+                    b.ToTable("Staff");
+>>>>>>> Stashed changes
                 });
 
             modelBuilder.Entity("BackendTicketEase.Models.Student", b =>
@@ -209,9 +224,13 @@ namespace BackendTicketEase.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("CreatedAt")
+<<<<<<< Updated upstream
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+=======
+                        .HasColumnType("timestamp with time zone");
+>>>>>>> Stashed changes
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -227,9 +246,13 @@ namespace BackendTicketEase.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("UpdatedAt")
+<<<<<<< Updated upstream
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+=======
+                        .HasColumnType("timestamp with time zone");
+>>>>>>> Stashed changes
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -244,7 +267,11 @@ namespace BackendTicketEase.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
+<<<<<<< Updated upstream
                     b.ToTable("Students", (string)null);
+=======
+                    b.ToTable("Student");
+>>>>>>> Stashed changes
                 });
 
             modelBuilder.Entity("BackendTicketEase.Models.Ticket", b =>
@@ -277,10 +304,13 @@ namespace BackendTicketEase.Migrations
                         .HasColumnType("character varying(20)")
                         .HasDefaultValue("Normal");
 
+<<<<<<< Updated upstream
                     b.Property<string>("ReferenceNumber")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+=======
+>>>>>>> Stashed changes
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -315,6 +345,7 @@ namespace BackendTicketEase.Migrations
                     b.ToTable("Tickets", (string)null);
                 });
 
+<<<<<<< Updated upstream
             modelBuilder.Entity("BackendTicketEase.Models.TicketAssignment", b =>
                 {
                     b.Property<int>("AssignmentId")
@@ -383,6 +414,8 @@ namespace BackendTicketEase.Migrations
                     b.ToTable("TicketMessages", (string)null);
                 });
 
+=======
+>>>>>>> Stashed changes
             modelBuilder.Entity("BackendTicketEase.Models.User", b =>
                 {
                     b.Property<int>("UserId")
@@ -391,10 +424,21 @@ namespace BackendTicketEase.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserId"));
 
+<<<<<<< Updated upstream
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+=======
+                    b.Property<int?>("AssignedStaffId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+>>>>>>> Stashed changes
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -412,6 +456,7 @@ namespace BackendTicketEase.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
+<<<<<<< Updated upstream
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone")
@@ -442,6 +487,24 @@ namespace BackendTicketEase.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+=======
+                    b.Property<int?>("StudentId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("AssignedStaffId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("User");
+>>>>>>> Stashed changes
                 });
 
             modelBuilder.Entity("BackendTicketEase.Models.Staff", b =>
@@ -455,6 +518,7 @@ namespace BackendTicketEase.Migrations
                     b.Navigation("User");
                 });
 
+<<<<<<< Updated upstream
             modelBuilder.Entity("BackendTicketEase.Models.StatusHistory", b =>
                 {
                     b.HasOne("BackendTicketEase.Models.User", "ChangedByUser")
@@ -473,6 +537,8 @@ namespace BackendTicketEase.Migrations
                     b.Navigation("Ticket");
                 });
 
+=======
+>>>>>>> Stashed changes
             modelBuilder.Entity("BackendTicketEase.Models.Student", b =>
                 {
                     b.HasOne("BackendTicketEase.Models.User", "User")
@@ -502,6 +568,7 @@ namespace BackendTicketEase.Migrations
                     b.Navigation("StudentUser");
                 });
 
+<<<<<<< Updated upstream
             modelBuilder.Entity("BackendTicketEase.Models.TicketAssignment", b =>
                 {
                     b.HasOne("BackendTicketEase.Models.User", "AssignedByUser")
@@ -546,13 +613,36 @@ namespace BackendTicketEase.Migrations
                     b.Navigation("Sender");
 
                     b.Navigation("Ticket");
+=======
+            modelBuilder.Entity("BackendTicketEase.Models.User", b =>
+                {
+                    b.HasOne("BackendTicketEase.Models.User", "AssignedStaff")
+                        .WithMany()
+                        .HasForeignKey("AssignedStaffId");
+
+                    b.HasOne("BackendTicketEase.Models.User", "StudentUser")
+                        .WithMany()
+                        .HasForeignKey("StudentId");
+
+                    b.Navigation("AssignedStaff");
+
+                    b.Navigation("StudentUser");
+>>>>>>> Stashed changes
                 });
 
             modelBuilder.Entity("BackendTicketEase.Models.User", b =>
                 {
+<<<<<<< Updated upstream
                     b.Navigation("Staff");
 
                     b.Navigation("Student");
+=======
+                    b.Navigation("Staff")
+                        .IsRequired();
+
+                    b.Navigation("Student")
+                        .IsRequired();
+>>>>>>> Stashed changes
                 });
 #pragma warning restore 612, 618
         }

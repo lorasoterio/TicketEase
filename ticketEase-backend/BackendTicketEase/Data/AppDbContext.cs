@@ -11,8 +11,11 @@ namespace BackendTicketEase.Data
         }
 
         public DbSet<User> Users { get; set; }
+<<<<<<< Updated upstream
         public DbSet<Student> Students { get; set; }
         public DbSet<Staff> Staffs { get; set; }
+=======
+>>>>>>> Stashed changes
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
@@ -24,6 +27,7 @@ namespace BackendTicketEase.Data
         {
             base.OnModelCreating(modelBuilder);
 
+<<<<<<< Updated upstream
             // User Configuration
             modelBuilder.Entity<User>(entity =>
             {
@@ -60,6 +64,8 @@ namespace BackendTicketEase.Data
             });
 
             // Ticket Configuration
+=======
+>>>>>>> Stashed changes
             modelBuilder.Entity<Ticket>(entity =>
             {
                 entity.ToTable("Tickets");
@@ -112,7 +118,11 @@ namespace BackendTicketEase.Data
                     .HasDefaultValue(TicketStatus.Pending)
                     .IsRequired();
 
+<<<<<<< Updated upstream
                 // Timestamps defaults
+=======
+                // Timestamps defaults — provider-specific SQL may be needed (CURRENT_TIMESTAMP works for many providers)
+>>>>>>> Stashed changes
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
@@ -120,13 +130,20 @@ namespace BackendTicketEase.Data
                     .HasDefaultValueSql("CURRENT_TIMESTAMP")
                     .ValueGeneratedOnAddOrUpdate();
 
+<<<<<<< Updated upstream
                 // Relationships to Users table
                 entity.HasOne(t => t.StudentUser)
                       .WithMany()
+=======
+                // Relationships to Users table (foreign keys reference Users.user_id)
+                entity.HasOne(t => t.StudentUser)
+                      .WithMany() // adjust to WithMany(u => u.CreatedTickets) if you add a collection on User
+>>>>>>> Stashed changes
                       .HasForeignKey(t => t.StudentId)
                       .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(t => t.AssignedStaff)
+<<<<<<< Updated upstream
                       .WithMany()
                       .HasForeignKey(t => t.AssignedStaffId)
                       .OnDelete(DeleteBehavior.Restrict);
@@ -219,6 +236,15 @@ namespace BackendTicketEase.Data
 
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
+=======
+                      .WithMany() // adjust to WithMany(u => u.AssignedTickets) if you add a collection on User
+                      .HasForeignKey(t => t.AssignedStaffId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Optional: column lengths
+                entity.Property(e => e.Subject).HasMaxLength(255);
+            });
+>>>>>>> Stashed changes
         }
     }
 }
