@@ -1,8 +1,6 @@
-import { useEffect } from "react";
-import { supabase } from "./supabaseClient";
 import AppRoutes from "./routes/AppRoutes";
 export default function App() {
-  useEffect(() => {
+ /* useEffect(() => {
     let isMounted = true;
 
     async function testConnection() {
@@ -14,12 +12,12 @@ export default function App() {
       console.log("error:", error);
     }
 
-    testConnection();
+    testConnection();  */
 
-    return () => {
+   /* return () => {
       isMounted = false;
     };
-  }, []);
+  }, []); */
 
   return (
     <>

@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-
 // Layouts
 import UserLayout       from "../layouts/UserLayout";
 import AdminLayout      from "../layouts/AdminLayout";

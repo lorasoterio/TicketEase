@@ -132,8 +132,12 @@ export default function AdminNavbar({
         {/* ── Divider ── */}
         <Divider orientation="vertical" flexItem sx={{ mr: 1.5, borderColor: "grey.200", display: { xs: "none", md: "block" } }} />
 
+<<<<<<< Updated upstream
         {/* ── Nav Links (desktop) ── */}
         <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 0.5 }}>
+=======
+        {/* ── Nav Links ── */}
+>>>>>>> Stashed changes
         {NAV_LINKS.map(({ to, label, icon, badge, dot }) => (
           <NavLink key={to} to={to} style={{ textDecoration: "none" }}>
             {({ isActive }) => (

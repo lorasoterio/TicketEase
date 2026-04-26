@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 
 const INITIAL_FIELDS = {
   fullName: "",
   studentId: "",
   email: "",
   password: "",
-  confirmPassword: "",
+       confirmPassword: "",
 };
 
 function validate(form) {
@@ -47,9 +51,14 @@ export function useRegisterForm() {
       setLoading(true);
       setServerError("");
 
+<<<<<<< Updated upstream
       // Step 1: Create auth user (uncomment when Supabase is configured)
       /*
       const { data, error: signUpError } = await supabase.auth.signUp({
+=======
+      // Step 1: Create auth user
+/*      const { data, error: signUpError } = await supabase.auth.signUp({
+>>>>>>> Stashed changes
         email: form.email,
         password: form.password,
         options: {
@@ -82,8 +91,12 @@ export function useRegisterForm() {
       }
       console.log("Session after signup:", sessionData);
       if (sessionError) console.error("Session error:", sessionError);
+<<<<<<< Updated upstream
       */
 
+=======
+*/
+>>>>>>> Stashed changes
       setLoading(false);
       navigate("/login");
     } catch (err) {

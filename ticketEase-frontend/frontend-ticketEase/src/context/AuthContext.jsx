@@ -48,8 +48,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
-// Custom hook — use this anywhere to get the current user
-export function useAuth() {
-  return useContext(AuthContext);
-}

@@ -96,7 +96,10 @@ export default function UserNavbar({
   const navigate = useNavigate();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [notifAnchor, setNotifAnchor] = useState(null);
+<<<<<<< Updated upstream
   const [mobileOpen, setMobileOpen] = useState(false);
+=======
+>>>>>>> Stashed changes
 
   const unread = NOTIFICATIONS.filter((n) => n.unread).length;
 
@@ -161,7 +164,11 @@ export default function UserNavbar({
         <Divider
           orientation="vertical"
           flexItem
+<<<<<<< Updated upstream
           sx={{ mx: 1.5, borderColor: "grey.200", display: { xs: "none", md: "block" } }}
+=======
+          sx={{ mx: 1.5, borderColor: "grey.200" }}
+>>>>>>> Stashed changes
         />
 
         {/* ── Nav Links (desktop) ── */}

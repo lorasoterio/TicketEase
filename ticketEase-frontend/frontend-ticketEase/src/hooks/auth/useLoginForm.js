@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 
 const INITIAL_FIELDS = {
   email: "",
