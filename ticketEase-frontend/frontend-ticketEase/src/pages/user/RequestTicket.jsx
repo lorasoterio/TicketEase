@@ -179,6 +179,7 @@ export default function RequestTicket() {
 
                   <TextField
                     label="Subject"
+                    placeholder="Brief title for your request... e.g. Request for Transcript of Records"
                     value={form.subject}
                     onChange={handleChange("subject")}
                     error={!!errors.subject}
@@ -189,13 +190,13 @@ export default function RequestTicket() {
 
                   <TextField
                     label="Description"
+                    placeholder="Provide a short description of your request... eg: I need a copy of my Transcript of Records for graduate school application. Please include my grades up to the 2nd semester of 2023."
                     value={form.description}
                     onChange={handleChange("description")}
                     error={!!errors.description}
                     helperText={errors.description}
                     multiline
                     rows={3}
-                    placeholder="Provide a short description of your request..."
                   />
                 </Stack>
 

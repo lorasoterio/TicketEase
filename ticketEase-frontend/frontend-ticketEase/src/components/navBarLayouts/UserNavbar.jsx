@@ -37,28 +37,28 @@ import {
 
 const NAV_LINKS = [
   {
-    to: "/dashboard",
+    to: "/user/dashboard",
     label: "Dashboard",
     icon: <DashboardIcon fontSize="small" />,
   },
   {
-    to: "/my-tickets",
+    to: "/user/my-tickets",
     label: "My tickets",
     icon: <TicketIcon fontSize="small" />,
     badge: 4,
   },
   {
-    to: "/request-ticket",
+    to: "/user/request-ticket",
     label: "Request ticket",
     icon: <SubmitIcon fontSize="small" />,
   },
   {
-    to: "/track-status",
+    to: "/user/track-status",
     label: "Track status",
     icon: <TrackIcon fontSize="small" />,
   },
   {
-    to: "/messages",
+    to: "/user/messages",
     label: "Messages",
     icon: <MessageIcon fontSize="small" />,
     dot: true,

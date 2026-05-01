@@ -51,7 +51,7 @@ export function useLoginForm() {
       */
 
     setLoading(false);
-    navigate("/request-ticket");
+    navigate("/user/request-ticket");
   };
 
   return {

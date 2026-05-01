@@ -38,11 +38,11 @@ export default function AppRoutes() {
 
       {/* Student routes — wrapped in UserLayout */}
       <Route element={<UserLayout />}>
-        <Route path="/dashboard"        element={<StudentDashboard />} />
-        <Route path="/request-ticket" element={<RequestTicket />} />
-        <Route path="/my-tickets"      element={<MyTickets />} />
-        <Route path="/track-status"     element={<TrackStatus />} />
-        <Route path="/profile"          element={<Profile />} />
+        <Route path="/user/dashboard"        element={<StudentDashboard />} />
+        <Route path="/user/request-ticket" element={<RequestTicket />} />
+        <Route path="/user/my-tickets"      element={<MyTickets />} />
+        <Route path="/user/track-status"     element={<TrackStatus />} />
+        <Route path="/user/profile"          element={<Profile />} />
       </Route>
 
       {/* Admin routes — wrapped in AdminLayout */}
