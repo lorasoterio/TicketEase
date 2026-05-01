@@ -1,6 +1,15 @@
 // PAGE: Reports
 // ═══════════════════════════════════════════════════════════════════════════════
-function PageReports() {
+
+import { Box, Button, Card, CardContent, Grid, SimpleBar, Stack, Table, TableBody, TableCell, TableHead, TableRow, Tabs, Tab, Typography } from "@mui/material";
+
+import GoldLine from "../../components/GoldLine";
+import CardTitle from "../../components/CardTitle";
+import StatusChip from "../../components/ticketComponents/StatusChip";
+import ColumnChart from "../../components/ColumnChart";
+import { useState } from "react";
+
+export default function PageReports() {
   const [tab, setTab] = useState(0);
   const monthData = [
     { label: "Jan", v: 55 }, { label: "Feb", v: 70, gold: true },

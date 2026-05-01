@@ -1,6 +1,12 @@
 // PAGE: Register User
 // ═══════════════════════════════════════════════════════════════════════════════
-function PageRegister() {
+import { Avatar, Box, Button, Card, CardContent, FormControl, Grid, MenuItem, Paper, Select, Stack, Switch, Typography } from "@mui/material";
+
+import GoldLine from "../../components/GoldLine";
+import StatusChip from "../../components/ticketComponents/StatusChip";
+import CardTitle from "../../components/CardTitle";
+
+export default function PageRegister() {
   const recentUsers = [
     { initials: "PA", name: "Pedro Aquino",  meta: "IT Department · Staff · 1h ago",    navyBg: true,  status: "Active" },
     { initials: "LO", name: "Lea Ocampo",    meta: "Registrar · Staff · Yesterday",      navyBg: false, status: "Active" },

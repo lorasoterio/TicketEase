@@ -1,6 +1,9 @@
 // PAGE: Ticket Queue
 // ═══════════════════════════════════════════════════════════════════════════════
-function PageQueue() {
+import { Box, Button, FormControl, InputAdornment, MenuItem, Paper, Select, Stack, TextField, Typography } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+
+export default function PageQueue() {
   const items = [
     { num: 1, subject: "Transcript of Records — Cruz, Maria L.",    id: "#T-2081", time: "3h ago", priority: "Urgent" },
     { num: 2, subject: "Enrollment Verification — Santos, Jun B.",  id: "#T-2080", time: "5h ago", priority: "Normal" },

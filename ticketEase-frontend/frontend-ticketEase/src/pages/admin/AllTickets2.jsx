@@ -1,6 +1,9 @@
 // PAGE: All Tickets
 // ═══════════════════════════════════════════════════════════════════════════════
-function PageTickets() {
+import { Box, Button, FormControl, InputAdornment, MenuItem, Paper, Select, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
+
+export default function PageTickets() {
   const rows = [
     { id: "#T-2081", subject: "Transcript of Records",  requestor: "Cruz, Maria L.",   type: "Document",    date: "May 1, 2026",  status: "Urgent" },
     { id: "#T-2080", subject: "Enrollment Verification",requestor: "Santos, Jun B.",   type: "Certificate", date: "May 1, 2026",  status: "Open" },

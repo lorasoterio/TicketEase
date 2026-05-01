@@ -1,6 +1,10 @@
 // PAGE: Dashboard
 // ═══════════════════════════════════════════════════════════════════════════════
-function PageDashboard() {
+import { Box, Card, CardContent, Grid, Paper, Stack, Typography } from "@mui/material";
+
+import GoldLine from "../../components/GoldLine";
+
+export default function PageDashboard() {
   const stats = [
     { label: "Total Tickets", value: "248", sub: "↑ 14 this week",      color: "primary.main" },
     { label: "Open",          value: "87",  sub: "Awaiting action",      color: "primary.main" },

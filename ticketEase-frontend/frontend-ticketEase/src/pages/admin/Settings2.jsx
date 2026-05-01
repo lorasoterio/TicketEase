@@ -1,6 +1,13 @@
 // PAGE: Settings
 // ═══════════════════════════════════════════════════════════════════════════════
-function PageSettings() {
+
+import { Box, Button, Card, CardContent, FormControl, Grid, MenuItem, Switch, TextField, Typography } from "@mui/material";
+import { useState } from "react";
+import GoldLine from "../../components/GoldLine";
+import CardTitle from "../../components/CardTitle";
+
+
+export default function PageSettings() {
   const [toggles, setToggles] = useState({ email: true, autoAssign: false, sla: true, archive: true });
  
   const toggle = (key) => setToggles(p => ({ ...p, [key]: !p[key] }));
