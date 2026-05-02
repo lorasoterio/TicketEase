@@ -46,7 +46,7 @@ export function useLoginForm() {
       if (role === "staff" || role === "admin") {
         navigate("/admin/dashboard");
       } else if (role === "superadmin") {
-        navigate("/super-admin/dashboard");
+        navigate("/superadmin/dashboard");
       } else {
         navigate("/user/request-ticket");
       }
