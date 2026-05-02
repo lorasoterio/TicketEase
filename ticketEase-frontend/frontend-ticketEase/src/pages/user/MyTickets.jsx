@@ -42,6 +42,7 @@ export default function MyTickets() {
     pageCount,
     handleSetStatus,
     handleSetSearch,
+    refetch,
   } = useMyTickets();
 
   return (
@@ -65,7 +66,7 @@ export default function MyTickets() {
         {/* Request Ticket Form */}
         <Collapse in={showForm} unmountOnExit>
           <Box sx={{ mb: 2 }}>
-            <TicketRequestForm onSubmitted={() => setShowForm(false)} />
+            <TicketRequestForm onSuccess={refetch} onSubmitted={() => setShowForm(false)} />
           </Box>
         </Collapse>
 

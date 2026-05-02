@@ -19,12 +19,14 @@ namespace BackendTicketEase.Controllers
         private readonly AppDbContext _context;
         private readonly IStudentService _studentService;
         private readonly IStaffService _staffService;
+        private readonly JwtService _jwtService;
 
-        public AuthController(AppDbContext context, IStudentService studentService, IStaffService staffService)
+        public AuthController(AppDbContext context, IStudentService studentService, IStaffService staffService, JwtService jwtService)
         {
             _context = context;
             _studentService = studentService;
             _staffService = staffService;
+            _jwtService = jwtService;
         }
 
         public class AuthRequest
@@ -43,6 +45,7 @@ namespace BackendTicketEase.Controllers
             public int UserId { get; set; }
             public string Email { get; set; } = string.Empty;
             public string Role { get; set; } = string.Empty;
+            public string Token { get; set; } = string.Empty;
         }
 
         [HttpPost("register/student")]
@@ -150,7 +153,8 @@ namespace BackendTicketEase.Controllers
             if (!VerifyPassword(req.Password, user.PasswordHash))
                 return Unauthorized(new { message = "Invalid credentials." });
 
-            return Ok(new AuthResponse { UserId = user.UserId, Email = user.Email, Role = user.Role.ToString() });
+            var token = _jwtService.GenerateJwt(user);
+            return Ok(new AuthResponse { UserId = user.UserId, Email = user.Email, Role = user.Role.ToString(), Token = token });
         }
 
         private static string HashPassword(string password)

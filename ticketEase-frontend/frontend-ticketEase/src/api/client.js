@@ -8,4 +8,19 @@ const client = axios.create({
   },
 });
 
+client.interceptors.request.use((config) => {
+  try {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const user = JSON.parse(stored);
+      if (user?.token) {
+        config.headers.Authorization = `Bearer ${user.token}`;
+      }
+    }
+  } catch {
+    // ignore malformed localStorage data
+  }
+  return config;
+});
+
 export default client;
