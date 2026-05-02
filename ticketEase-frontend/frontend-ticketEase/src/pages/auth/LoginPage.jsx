@@ -108,7 +108,7 @@ export default function LoginPage() {
 
               <Typography variant="body1" textAlign="center" color="text.secondary">
                 Don't have an account?{" "}
-                <Link to="/register" style={{ color: "#1a3a5c", fontWeight: 600 }}>Register here</Link>
+                <Link to="/user/register" style={{ color: "#1a3a5c", fontWeight: 600 }}>Register here</Link>
               </Typography>
 
             </Stack>

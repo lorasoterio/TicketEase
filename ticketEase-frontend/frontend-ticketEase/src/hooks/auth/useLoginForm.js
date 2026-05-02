@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { loginUser } from "../../services/authServices";
 
 const INITIAL_FIELDS = {
   email: "",
@@ -36,22 +37,24 @@ export function useLoginForm() {
     setLoading(true);
     setServerError("");
 
-    // 2. Sign in with Supabase
-    /*
-    const { error } = await supabase.auth.signInWithPassword({
-      email:    form.email,
-      password: form.password,
-    });
+    try {
+      const data = await loginUser(form);
 
-    if (error) {
-      setServerError(error.message);
+      localStorage.setItem("user", JSON.stringify(data));
+
+      const role = data.role?.toLowerCase();
+      if (role === "staff" || role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "superadmin") {
+        navigate("/super-admin/dashboard");
+      } else {
+        navigate("/user/request-ticket");
+      }
+    } catch (err) {
+      setServerError(err.message || "Login failed. Please try again.");
+    } finally {
       setLoading(false);
-      return;
     }
-      */
-
-    setLoading(false);
-    navigate("/user/request-ticket");
   };
 
   return {

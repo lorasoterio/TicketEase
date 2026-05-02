@@ -42,6 +42,7 @@ namespace BackendTicketEase.Controllers
         {
             public int UserId { get; set; }
             public string Email { get; set; } = string.Empty;
+            public string Role { get; set; } = string.Empty;
         }
 
         [HttpPost("register/student")]
@@ -133,7 +134,7 @@ namespace BackendTicketEase.Controllers
             _context.Set<User>().Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(null, new AuthResponse { UserId = user.UserId, Email = user.Email });
+            return CreatedAtAction(null, new AuthResponse { UserId = user.UserId, Email = user.Email, Role = user.Role.ToString() });
         }
 
         [HttpPost("login")]
@@ -149,7 +150,7 @@ namespace BackendTicketEase.Controllers
             if (!VerifyPassword(req.Password, user.PasswordHash))
                 return Unauthorized(new { message = "Invalid credentials." });
 
-            return Ok(new AuthResponse { UserId = user.UserId, Email = user.Email });
+            return Ok(new AuthResponse { UserId = user.UserId, Email = user.Email, Role = user.Role.ToString() });
         }
 
         private static string HashPassword(string password)
