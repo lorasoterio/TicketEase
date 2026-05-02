@@ -48,11 +48,6 @@ const NAV_LINKS = [
     badge: 4,
   },
   {
-    to: "/user/request-ticket",
-    label: "Request ticket",
-    icon: <SubmitIcon fontSize="small" />,
-  },
-  {
     to: "/user/track-status",
     label: "Track status",
     icon: <TrackIcon fontSize="small" />,

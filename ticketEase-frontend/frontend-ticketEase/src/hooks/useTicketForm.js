@@ -1,6 +1,7 @@
-import { useState } from "react";
-import { useAuth } from "../context/useAuth"; // 👈 add this
-import { submitTicket } from "../services/ticketsService"; // 👈 add this import
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/useAuth";
+import { submitTicket } from "../services/ticketsService";
+import { getStudentByUserId } from "../services/studentService";
 
 /**
  * useTicketForm — A reusable custom hook for any ticket submission form.
@@ -14,12 +15,27 @@ import { submitTicket } from "../services/ticketsService"; // 👈 add this impo
  * @param {string} ticketPrefix    - Prefix for the generated ticket number (e.g. "REG", "IT", "LIB").
  */
 export function useTicketForm(initialFields, validateFn) {
-   const { user } = useAuth();
+  const { user } = useAuth();
   const [form, setForm] = useState(initialFields);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [ticketNumber, setTicketNumber] = useState("");
-  const [loading, setLoading] = useState(false); // 👈 add this
+  const [loading, setLoading] = useState(false);
+  const [studentProfile, setStudentProfile] = useState(null);
+
+  // Fetch the student profile and auto-fill school ID and full name
+  useEffect(() => {
+    if (!user?.userId) return;
+    getStudentByUserId(user.userId).then(({ data }) => {
+      if (!data) return;
+      setStudentProfile(data);
+      setForm((prev) => ({
+        ...prev,
+        studentId: data.schoolStudentId ?? prev.studentId,
+        fullName: data.fullName ?? prev.fullName,
+      }));
+    });
+  }, [user?.userId]);
 
   /**
    * handleChange — Returns a change handler for a specific field.
@@ -41,20 +57,18 @@ export function useTicketForm(initialFields, validateFn) {
     setLoading(true);
 
     const ticketData = {
-      student_id: user.id,
-      full_name: form.fullName,
-      category: "document_request",
-      subject: form.subject,
-      description: form.description,
-      document_type: form.documentType,
-      priority: "normal",
+      StudentId: user.userId,
+      TicketType: 0, // 0 = DocumentRequest
+      Subject: form.subject,
+      Description: form.description,
+      Priority: 0, // 0 = Normal
     };
 
     const { data, error } = await submitTicket(ticketData);
 
     setLoading(false);
     if (error) { setErrors({ submit: "Failed to submit. Please try again." }); return; }
-    setTicketNumber(data.ticket_number);
+    setTicketNumber(data.referenceNumber);
     setSubmitted(true);
   };
   /**
@@ -73,6 +87,7 @@ export function useTicketForm(initialFields, validateFn) {
     submitted,
     ticketNumber,
     loading,
+    studentProfile,
     handleChange,
     handleSubmit,
     handleReset,
