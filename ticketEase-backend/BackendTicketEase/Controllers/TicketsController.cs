@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackendTicketEase.Data;
@@ -23,14 +25,34 @@ namespace BackendTicketEase.Controllers
             _refNumberService = refNumberService;
         }
 
-        // GET: api/tickets?studentId=5
+        // GET: api/tickets
+        // Students always see only their own tickets (derived from JWT).
+        // Staff/Admin may optionally filter by studentId query param.
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Ticket>>> GetTickets([FromQuery] int? studentId = null)
         {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+            // If role claim is absent, default to the most restrictive (student) behavior
+            var isStudent = string.IsNullOrEmpty(roleClaim) ||
+                            string.Equals(roleClaim, nameof(UserRole.Student), StringComparison.OrdinalIgnoreCase);
+
             var query = _context.Tickets.AsNoTracking();
 
-            if (studentId.HasValue)
+            if (isStudent)
+            {
+                // Students can only access their own tickets; ignore any caller-supplied studentId
+                query = query.Where(t => t.StudentId == userId);
+            }
+            else if (studentId.HasValue)
+            {
+                // Staff/Admin can optionally filter by a specific student
                 query = query.Where(t => t.StudentId == studentId.Value);
+            }
 
             var tickets = await query
                 .OrderByDescending(t => t.CreatedAt)

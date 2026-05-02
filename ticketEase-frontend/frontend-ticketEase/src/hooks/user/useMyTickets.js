@@ -26,9 +26,7 @@ export default function useMyTickets() {
       setFetchError("");
 
       try {
-        const { data } = await client.get("/tickets", {
-          params: { studentId: user.userId },
-        });
+        const { data } = await client.get("/tickets");
 
         const shaped = data.map((t) => ({
           id:       t.referenceNumber || String(t.ticketId),
