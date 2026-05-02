@@ -69,7 +69,7 @@ const INITIAL_FIELDS = {
 export default function RequestTicket() {
   // All state and handlers come from the reusable hook.
   // "REG" is the ticket prefix for the Registrar's office.
-  const { form, errors, submitted, ticketNumber, handleChange, handleSubmit, handleReset } =
+  const { form, updateForm, errors, submitted, ticketNumber, handleChange, handleSubmit, handleReset } =
     useTicketForm(INITIAL_FIELDS, validateDocumentRequest, "REG");
 
   // ── Render ──────────────────────────────────────────────────
@@ -204,7 +204,10 @@ export default function RequestTicket() {
                   <Button
                     variant="contained" fullWidth size="large"
                     endIcon={<Send sx={{ fontSize: "18px !important" }} />}
-                    onClick={handleSubmit}
+                    onClick={() => {
+                      console.log("[RequestTicket] Submit button clicked");
+                      handleSubmit();
+                    }}
                     sx={{ bgcolor: "primary.main", py: 1.6, fontSize: "0.95rem", "&:hover": { bgcolor: "#122a42" }, boxShadow: "0 4px 14px rgba(26,58,92,0.25)" }}
                   >
                     Submit Request

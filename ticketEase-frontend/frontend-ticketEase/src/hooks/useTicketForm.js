@@ -1,12 +1,35 @@
 import { useState } from "react";
-import { useAuth } from "../context/useAuth"; // 👈 add this
-import { submitTicket } from "../services/ticketsService"; // 👈 add this import
+import { useAuth } from "../context/useAuth";
+import { submitTicket } from "../services/ticketsService";
+
+
+async function fetchStudentByUserId(userId) {
+  try {
+    const res = await fetch(`/api/student/user/${userId}`);
+    if (!res.ok) {
+      console.error(`[fetchStudentByUserId] HTTP ${res.status} for userId=${userId}`);
+      throw new Error("Failed to fetch student info");
+    }
+    const student = await res.json();
+    return student;
+  } catch (e) {
+    console.error("[fetchStudentByUserId] Error fetching student:", e);
+    return null;
+  }
+}
+
+// Maps the display category string to the TicketType enum integer value
+// Backend enum: DocumentRequest=0, Inquiry=1
+function mapTicketType(documentType) {
+  if (documentType === "Inquiry") return 1; // = Inquiry
+  return 0; // = DocumentRequest 
+}
 
 /**
  * useTicketForm — A reusable custom hook for any ticket submission form.
  *
  * HOW TO USE IN ANY PAGE:
- *   const { form, errors, submitted, ticketNumber, handleChange, handleSubmit, handleReset }
+ *   const { form, updateForm, errors, submitted, ticketNumber, handleChange, handleSubmit, handleReset }
  *     = useTicketForm(initialFields, validationRules);
  *
  * @param {Object} initialFields   - The initial empty state of your form fields.
@@ -14,48 +37,79 @@ import { submitTicket } from "../services/ticketsService"; // 👈 add this impo
  * @param {string} ticketPrefix    - Prefix for the generated ticket number (e.g. "REG", "IT", "LIB").
  */
 export function useTicketForm(initialFields, validateFn) {
-   const { user } = useAuth();
+  const { user } = useAuth();
   const [form, setForm] = useState(initialFields);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [ticketNumber, setTicketNumber] = useState("");
-  const [loading, setLoading] = useState(false); // 👈 add this
+  const [loading, setLoading] = useState(false);
 
-  /**
-   * handleChange — Returns a change handler for a specific field.
-   * Usage in JSX: onChange={handleChange("fieldName")}
-   */
+
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    // Clear the error for this field as soon as the user starts typing
+
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
-  /**
-   * handleSubmit — Runs validation. If valid, generates a ticket number and marks as submitted.
-   */
+
   const handleSubmit = async () => {
-    const validationErrors = validateFn(form);
-    if (Object.keys(validationErrors).length > 0) { setErrors(validationErrors); return; }
+    console.log("[useTicketForm] handleSubmit triggered");
+
+    // Only use AuthContext for userId
+    const userId = user?.userId;
+    if (!userId) {
+      console.warn("[useTicketForm] handleSubmit: No authenticated user found.", { user });
+      setErrors({ submit: "User not authenticated." });
+      return;
+    }
 
     setLoading(true);
+    // Fetch student record linked to this user
+    const studentData = await fetchStudentByUserId(userId);
+    setLoading(false);
+    if (!studentData) {
+      console.error("[useTicketForm] handleSubmit: Student record missing.", { userId });
+      setErrors({ submit: "Student record not found." });
+      return;
+    }
 
+    const updatedForm = {
+      ...form,
+      studentId: studentData.schoolStudentId,  // school-issued student ID (display only)
+      fullName: studentData.fullName,
+    };
+    setForm(updatedForm);
+
+    const validationErrors = validateFn(updatedForm);
+    if (Object.keys(validationErrors).length > 0) {
+      console.warn("[useTicketForm] handleSubmit: Validation failed.", validationErrors);
+      setErrors(validationErrors);
+      return;
+    }
+
+    setLoading(true);
+    // Ticket.StudentId is FK to User.UserId (not Student.StudentId)
     const ticketData = {
-      student_id: user.id,
-      full_name: form.fullName,
-      category: "document_request",
+      studentId: updatedForm.studentId,
+      ticketType: mapTicketType(form.documentType),  // 0 = DocumentRequest, 1 = Inquiry
       subject: form.subject,
       description: form.description,
-      document_type: form.documentType,
-      priority: "normal",
+      priority: 0,  // 0 = Normal (enum integer)
     };
 
+    console.log("[useTicketForm] Submitting ticket with data:", ticketData);
     const { data, error } = await submitTicket(ticketData);
 
     setLoading(false);
-    if (error) { setErrors({ submit: "Failed to submit. Please try again." }); return; }
-    setTicketNumber(data.ticket_number);
+    if (error) {
+      console.error("[useTicketForm] handleSubmit: submitTicket failed.", error);
+      setErrors({ submit: "Failed to submit. Please try again." });
+      return;
+    }
+    // Backend returns the Ticket object; reference number is in `referenceNumber`
+    setTicketNumber(data.referenceNumber);
     setSubmitted(true);
+    console.log("[useTicketForm] Ticket submitted successfully. Reference number:", data.referenceNumber);
   };
   /**
    * handleReset — Clears everything back to the initial state.

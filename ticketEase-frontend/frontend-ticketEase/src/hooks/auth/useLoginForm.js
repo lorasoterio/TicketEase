@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+import { loginUser } from "../../services/authServices";
 
 const INITIAL_FIELDS = {
   email: "",
@@ -9,16 +11,17 @@ const INITIAL_FIELDS = {
 function validate(form) {
   const errors = {};
   if (!form.email.trim()) errors.email = "Email is required.";
-  if (!form.password)     errors.password = "Password is required.";
+  if (!form.password) errors.password = "Password is required.";
   return errors;
 }
 
 export function useLoginForm() {
   const navigate = useNavigate();
-  const [form, setForm]               = useState(INITIAL_FIELDS);
-  const [errors, setErrors]           = useState({});
+  const [form, setForm] = useState(INITIAL_FIELDS);
+  const { setUser } = useAuth();
+  const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
-  const [loading, setLoading]         = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -49,9 +52,34 @@ export function useLoginForm() {
       return;
     }
       */
+    try {
+      // 2. Call the .NET backend login endpoint
+      const data = await loginUser({
+        email: form.email,
+        password: form.password,
+      });
 
-    setLoading(false);
-    navigate("/request-ticket");
+      // 3. Persist to localStorage so AuthContext can rehydrate on refresh
+      localStorage.setItem("user", JSON.stringify(data));
+
+      // 4. Update the in-memory auth context immediately
+      setUser(data);
+
+      setLoading(false);
+      const role = data?.role?.toLowerCase() ?? data?.Role?.toLowerCase();
+      if (role === "staff" || role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/request-ticket");
+      }
+    } catch (err) {
+      const message =
+        err?.response?.data?.message || err?.message || "Login failed.";
+      setServerError(message);
+      setLoading(false);
+    }
+
+
   };
 
   return {

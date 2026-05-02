@@ -10,6 +10,7 @@ export const submitTicket = async (ticketData) => {
     const response = await client.post('/tickets', ticketData);
     return { data: response.data, error: null };
   } catch (error) {
+    console.error("[ticketsService] submitTicket failed:", error.response?.data || error.message, error);
     return { data: null, error: error.response?.data || error.message };
   }
 };
@@ -24,6 +25,7 @@ export const getTicketsByUser = async (userId) => {
     const response = await client.get(`/tickets?userId=${userId}`);
     return { data: response.data, error: null };
   } catch (error) {
+    console.error(`[ticketsService] getTicketsByUser failed for userId=${userId}:`, error.response?.data || error.message, error);
     return { data: null, error: error.response?.data || error.message };
   }
 };
@@ -37,6 +39,7 @@ export const getAllTickets = async () => {
     const response = await client.get('/tickets');
     return { data: response.data, error: null };
   } catch (error) {
+    console.error("[ticketsService] getAllTickets failed:", error.response?.data || error.message, error);
     return { data: null, error: error.response?.data || error.message };
   }
 };
