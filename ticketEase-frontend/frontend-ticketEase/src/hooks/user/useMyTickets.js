@@ -1,9 +1,15 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "../../context/useAuth";
+import client from "../../api/client";
 
 export default function useMyTickets() {
-  const [allTickets] = useState([]);
-  const [loading] = useState(true);
-  const [fetchError] = useState("");
+  const { user } = useAuth();
+  const [allTickets, setAllTickets] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [fetchError, setFetchError] = useState("");
+
+  const [fetchTrigger, setFetchTrigger] = useState(0);
+  const refetch = () => setFetchTrigger((n) => n + 1);
 
   const [status, setStatus] = useState("All");
   const [search, setSearch] = useState("");
@@ -11,40 +17,38 @@ export default function useMyTickets() {
 
   const PER_PAGE = 8;
 
-  /* ---------- FETCH FROM SUPABASE ---------- */
-  /*
+  /* ---------- FETCH FROM BACKEND ---------- */
   useEffect(() => {
-    if (!user) return;
+    if (!user?.userId) return;
 
     const fetchTickets = async () => {
       setLoading(true);
       setFetchError("");
 
-      const { data, error } = await supabase
-        .from("tickets")
-        .select("id, ticket_number, subject, status, category, submitted_at")
-        .eq("student_id", user.id)
-        .order("submitted_at", { ascending: false });
+      try {
+        const { data } = await client.get("/tickets", {
+          params: { studentId: user.userId },
+        });
 
-      if (error) {
-        setFetchError(error.message);
-      } else {
-        // Shape the data to match what TicketRow expects
         const shaped = data.map((t) => ({
-          id:      t.ticket_number,               // e.g. TKT-2024-0001
-          subject: t.subject,
-          status:  formatStatus(t.status),        // "open" → "Pending"
-          type:    formatCategory(t.category),    // "document_request" → "Document Request"
-          date:    formatDate(t.submitted_at),    // "Mar 10, 2026"
+          id:       t.referenceNumber || String(t.ticketId),
+          ticketId: t.ticketId,
+          subject:  t.subject ?? "(No subject)",
+          status:   formatStatus(t.status),
+          type:     formatTicketType(t.ticketType),
+          date:     formatDate(t.createdAt),
         }));
-        setAllTickets(shaped);
-      }
 
-      setLoading(false);
+        setAllTickets(shaped);
+      } catch (err) {
+        setFetchError(err.message || "Failed to load tickets.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchTickets();
-  }, [user]);*/
+  }, [user, fetchTrigger]);
 
   /* ---------- HANDLERS ---------- */
   const handleSetStatus = (val) => { setStatus(val); setPage(1); };
@@ -80,28 +84,32 @@ export default function useMyTickets() {
     total: filteredTickets.length,
     handleSetStatus,
     handleSetSearch,
+    refetch,
   };
 }
 
 /* ---------- HELPERS ---------- */
 function formatStatus(status) {
   const map = {
-    open:        "Pending",
-    in_progress: "In progress",
-    resolved:    "Completed",
-    rejected:    "Rejected",
-    closed:      "Completed",
+    Pending:        "Pending",
+    Assigned:       "Pending",
+    InProgress:     "In progress",
+    ReadyForPickup: "In progress",
+    Completed:      "Completed",
+    Rejected:       "Rejected",
+    Open:           "Pending",
+    Responded:      "In progress",
+    Closed:         "Completed",
   };
   return map[status] ?? status;
 }
 
-function formatCategory(category) {
+function formatTicketType(ticketType) {
   const map = {
-    document_request: "Document Request",
-    inquiry:          "Inquiry",
-    other:            "Other",
+    DocumentRequest: "Document Request",
+    Inquiry:         "Inquiry",
   };
-  return map[category] ?? category;
+  return map[ticketType] ?? ticketType ?? "Other";
 }
 
 function formatDate(timestamp) {

@@ -23,13 +23,19 @@ namespace BackendTicketEase.Controllers
             _refNumberService = refNumberService;
         }
 
-        // GET: api/tickets
+        // GET: api/tickets?studentId=5
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Ticket>>> GetTickets()
+        public async Task<ActionResult<IEnumerable<Ticket>>> GetTickets([FromQuery] int? studentId = null)
         {
-            var tickets = await _context.Tickets
-                .AsNoTracking()
+            var query = _context.Tickets.AsNoTracking();
+
+            if (studentId.HasValue)
+                query = query.Where(t => t.StudentId == studentId.Value);
+
+            var tickets = await query
+                .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
+
             return Ok(tickets);
         }
 
