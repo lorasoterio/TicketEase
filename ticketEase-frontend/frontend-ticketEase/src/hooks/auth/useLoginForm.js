@@ -48,7 +48,7 @@ export function useLoginForm() {
       } else if (role === "superadmin") {
         navigate("/superadmin/dashboard");
       } else {
-        navigate("/user/request-ticket");
+        navigate("/user/dashboard");
       }
     } catch (err) {
       setServerError(err.message || "Login failed. Please try again.");
