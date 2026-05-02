@@ -50,8 +50,8 @@ export const registerStaff = async (data) => {
 export const loginUser = async (data) => {
   try {
     const response = await client.post("/auth/login", {
-      Email: data.email,
-      Password: data.password,
+      email: data.email,
+      password: data.password,
     });
     return response.data;
   } catch (err) {
