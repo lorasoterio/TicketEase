@@ -54,7 +54,12 @@ app.Use(async (context, next) =>
     var request = context.Request;
     var port = request.Host.Port ?? (request.IsHttps ? 443 : 80);
     var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-    Console.WriteLine($"[{timestamp}] {request.Method} {request.Path}{request.QueryString} | Port: {port}");
+    app.Logger.LogInformation(
+        "[{Timestamp}] {Method} {Path} | Port: {Port}",
+        timestamp,
+        request.Method,
+        request.Path,
+        port);
     await next();
 });
 
