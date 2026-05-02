@@ -10,10 +10,15 @@ import {
   MenuItem,
   Divider,
   Pagination,
+  Button,
+  Collapse,
 } from "@mui/material";
+import { Add, ExpandLess } from "@mui/icons-material";
+import { useState } from "react";
 
 import useMyTickets from "../../hooks/user/useMyTickets";
 import TicketRow from "../../components/ticketComponents/TicketRow";
+import TicketRequestForm from "../../components/ticketComponents/TicketRequestForm";
 
 /* same dashboard theme */
 const theme = createTheme({
@@ -26,6 +31,8 @@ const theme = createTheme({
 });
 
 export default function MyTickets() {
+  const [showForm, setShowForm] = useState(false);
+
   const {
     tickets,
     status,
@@ -42,9 +49,25 @@ export default function MyTickets() {
       <CssBaseline />
 
       <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 900, mx: "auto" }}>
-        <Typography fontWeight={600} sx={{ mb: 2 }}>
-          My Tickets
-        </Typography>
+        {/* Header row */}
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography fontWeight={600}>My Tickets</Typography>
+          <Button
+            variant={showForm ? "outlined" : "contained"}
+            size="small"
+            startIcon={showForm ? <ExpandLess /> : <Add />}
+            onClick={() => setShowForm((v) => !v)}
+          >
+            {showForm ? "Cancel" : "New Ticket"}
+          </Button>
+        </Stack>
+
+        {/* Request Ticket Form */}
+        <Collapse in={showForm} unmountOnExit>
+          <Box sx={{ mb: 2 }}>
+            <TicketRequestForm onSubmitted={() => setShowForm(false)} />
+          </Box>
+        </Collapse>
 
         {/* Filters */}
         <Paper sx={{ p: 2, mb: 2 }}>

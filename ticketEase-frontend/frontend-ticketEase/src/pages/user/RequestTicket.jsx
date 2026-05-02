@@ -69,7 +69,7 @@ const INITIAL_FIELDS = {
 export default function RequestTicket() {
   // All state and handlers come from the reusable hook.
   // "REG" is the ticket prefix for the Registrar's office.
-  const { form, errors, submitted, ticketNumber, handleChange, handleSubmit, handleReset } =
+  const { form, errors, submitted, ticketNumber, studentProfile, handleChange, handleSubmit, handleReset } =
     useTicketForm(INITIAL_FIELDS, validateDocumentRequest, "REG");
 
   // ── Render ──────────────────────────────────────────────────
@@ -151,7 +151,7 @@ export default function RequestTicket() {
                     error={!!errors.studentId}
                     helperText={errors.studentId}
                     placeholder="e.g. 2021-00123"
-                    InputProps={{ startAdornment: <InputAdornment position="start"><School sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+                    InputProps={{ readOnly: !!studentProfile, startAdornment: <InputAdornment position="start"><School sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
                   />
                   <TextField
                     label="Full Name"
@@ -160,7 +160,7 @@ export default function RequestTicket() {
                     error={!!errors.fullName}
                     helperText={errors.fullName}
                     placeholder="e.g. Juan dela Cruz"
-                    InputProps={{ startAdornment: <InputAdornment position="start"><Badge sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+                    InputProps={{ readOnly: !!studentProfile, startAdornment: <InputAdornment position="start"><Badge sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
                   />
                 </Stack>
 
