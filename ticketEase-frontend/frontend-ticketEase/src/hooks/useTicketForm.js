@@ -8,13 +8,13 @@ import { getStudentByUserId } from "../services/studentService";
  *
  * HOW TO USE IN ANY PAGE:
  *   const { form, errors, submitted, ticketNumber, handleChange, handleSubmit, handleReset }
- *     = useTicketForm(initialFields, validationRules);
+ *     = useTicketForm(initialFields, validationRules, onSuccess);
  *
  * @param {Object} initialFields   - The initial empty state of your form fields.
  * @param {Function} validateFn    - A function that receives the form and returns an errors object.
- * @param {string} ticketPrefix    - Prefix for the generated ticket number (e.g. "REG", "IT", "LIB").
+ * @param {Function} [onSuccess]   - Optional callback invoked immediately after a successful submission.
  */
-export function useTicketForm(initialFields, validateFn) {
+export function useTicketForm(initialFields, validateFn, onSuccess) {
   const { user } = useAuth();
   const [form, setForm] = useState(initialFields);
   const [errors, setErrors] = useState({});
@@ -70,6 +70,7 @@ export function useTicketForm(initialFields, validateFn) {
     if (error) { setErrors({ submit: "Failed to submit. Please try again." }); return; }
     setTicketNumber(data.referenceNumber);
     setSubmitted(true);
+    if (typeof onSuccess === "function") onSuccess();
   };
   /**
    * handleReset — Clears everything back to the initial state.

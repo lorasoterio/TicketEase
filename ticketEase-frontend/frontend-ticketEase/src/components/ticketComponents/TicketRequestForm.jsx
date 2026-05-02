@@ -42,7 +42,7 @@ const INITIAL_FIELDS = {
 };
 
 // ─────────────────────────────────────────────────────────────
-export default function TicketRequestForm({ onSubmitted }) {
+export default function TicketRequestForm({ onSuccess, onSubmitted }) {
   const {
     form,
     errors,
@@ -53,7 +53,7 @@ export default function TicketRequestForm({ onSubmitted }) {
     handleChange,
     handleSubmit,
     handleReset,
-  } = useTicketForm(INITIAL_FIELDS, validateDocumentRequest);
+  } = useTicketForm(INITIAL_FIELDS, validateDocumentRequest, onSuccess);
 
   const handleReset_ = () => {
     handleReset();
