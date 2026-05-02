@@ -5,6 +5,7 @@ using BackendTicketEase.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<JwtService>();
@@ -28,7 +29,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.AddEndpointsApiExplorer();
+
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -44,12 +45,28 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseCors("AllowReactApp");
+
 app.UseHttpsRedirection();
+
+app.Use(async (context, next) =>
+{
+    var request = context.Request;
+    var port = request.Host.Port ?? (request.IsHttps ? 443 : 80);
+    var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+    app.Logger.LogInformation(
+        "[{Timestamp}] {Method} {Path} | Port: {Port}",
+        timestamp,
+        request.Method,
+        request.Path,
+        port);
+    await next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseCors("AllowReactApp");
+
 
 app.MapControllers();
 

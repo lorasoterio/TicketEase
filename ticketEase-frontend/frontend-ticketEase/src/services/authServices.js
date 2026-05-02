@@ -48,10 +48,14 @@ export const registerStaff = async (data) => {
  * Login user
  */
 export const loginUser = async (data) => {
-  const response = await client.post("/auth/login", {
-    Email: data.email,
-    Password: data.password,
-  });
-
-  return response.data;
+  try {
+    const response = await client.post("/auth/login", {
+      email: data.email,
+      password: data.password,
+    });
+    return response.data;
+  } catch (err) {
+    const message = err?.response?.data?.message || "Login failed.";
+    throw new Error(message);
+  }
 };

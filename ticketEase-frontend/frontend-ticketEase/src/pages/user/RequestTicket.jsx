@@ -184,7 +184,7 @@ export default function RequestTicket() {
                     onChange={handleChange("subject")}
                     error={!!errors.subject}
                     helperText={errors.subject}
-                    placeholder="e.g. Transcript of Records"
+
                     InputProps={{ startAdornment: <InputAdornment position="start"><Description sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
                   />
 

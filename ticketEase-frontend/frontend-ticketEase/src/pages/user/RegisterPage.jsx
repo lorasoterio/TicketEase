@@ -10,7 +10,7 @@ import {
 import { Link } from "react-router-dom";
 import { useRegisterForm } from "../../hooks/auth/useRegisterForm";
 
-const YEAR_LEVELS = ["1st Year", "2nd Year", "3rd Year", "4th Year", "5th Year", "Graduate"];
+const YEAR_LEVELS = ["11th Grade", "12th Grade", "Graduate"];
 
 const theme = createTheme({
   palette: {
