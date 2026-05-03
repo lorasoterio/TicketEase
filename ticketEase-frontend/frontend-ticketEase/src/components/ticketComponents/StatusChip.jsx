@@ -1,9 +1,14 @@
 import { Box, Typography } from "@mui/material";
 const STATUS_COLORS = {
-  "In progress": { bg: "#e8f0fe", color: "#1a56db" },
-  Pending: { bg: "#fff8e1", color: "#b45309" },
-  Completed: { bg: "#e6f4ea", color: "#1e7e34" },
-  Rejected: { bg: "#fdecea", color: "#c0392b" },
+  Pending:        { bg: "#fff8e1", color: "#b45309" },
+  Assigned:       { bg: "#e8f0fe", color: "#1a56db" },
+  "In Progress":  { bg: "#dbeafe", color: "#1d4ed8" },
+  "Ready for Pickup": { bg: "#ede9fe", color: "#6d28d9" },
+  Completed:      { bg: "#e6f4ea", color: "#1e7e34" },
+  Rejected:       { bg: "#fdecea", color: "#c0392b" },
+  Open:           { bg: "#e0f7fa", color: "#0277bd" },
+  Responded:      { bg: "#e8f5e9", color: "#2e7d32" },
+  Closed:         { bg: "#f3f4f6", color: "#374151" },
 };
 
 export default function StatusChip({ label }) {
