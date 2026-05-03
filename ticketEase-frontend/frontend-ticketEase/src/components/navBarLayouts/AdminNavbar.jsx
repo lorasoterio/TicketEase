@@ -26,21 +26,21 @@ import {
   DashboardOutlined as DashboardIcon,
   InboxOutlined as QueueIcon,
   ListAltOutlined as AllTicketsIcon,
-  ChatBubbleOutline as MessageIcon,
   BarChartOutlined as ReportIcon,
   NotificationsOutlined as BellIcon,
   PersonOutline as ProfileIcon,
   SettingsOutlined as SettingsIcon,
   LogoutOutlined as LogoutIcon,
   MenuOutlined as HamburgerIcon,
+  PeopleOutlined as UsersIcon,
 } from "@mui/icons-material";
 
 const NAV_LINKS = [
   { to: "/admin/dashboard",    label: "Dashboard",     icon: <DashboardIcon fontSize="small" /> },
   { to: "/admin/queue",        label: "Ticket queue",  icon: <QueueIcon fontSize="small" />,      badge: 5, badgeSeverity: "error" },
-  { to: "/admin/all-tickets",  label: "All tickets",   icon: <AllTicketsIcon fontSize="small" /> },
-  { to: "/admin/messages",     label: "Messages",      icon: <MessageIcon fontSize="small" />,    dot: true },
+  { to: "/admin/tickets",  label: "All tickets",   icon: <AllTicketsIcon fontSize="small" /> },
   { to: "/admin/reports",      label: "Reports",       icon: <ReportIcon fontSize="small" /> },
+  { to: "/admin/manage-users",        label: "Manage users",  icon: <UsersIcon fontSize="small" /> },
 ];
 
 const NOTIFICATIONS = [

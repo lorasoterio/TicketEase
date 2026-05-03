@@ -1,150 +1,113 @@
-import {
-  ThemeProvider, createTheme, CssBaseline, Box, Paper,
-  Typography, Stack, Divider, Button, Grid,
-} from "@mui/material";
-import { useAuth } from "../../context/useAuth";
+import React from "react";
+import { Box, Grid, Card, CardContent, Typography } from "@mui/material";
+import GoldLine from "../../components/adminuis/GoldLine";
+import StatusChip from "../../components/adminuis/StatusChip";
+import CardTitle from "../../components/adminuis/CardTitle";
+import SimpleBar from "../../components/adminuis/SimpleBar";
+import ColumnChart from "../../components/adminuis/ColumnChart";
 
-const theme = createTheme({
-  palette: {
-    mode: "light",
-    primary: { main: "#1a3a5c" },
-    secondary: { main: "#c9993a" },
-    background: { default: "#f0f4f8", paper: "#ffffff" },
-  },
-  typography: {
-    fontFamily: "'Playfair Display', serif",
-    h5: { fontWeight: 700 },
-    body1: { fontFamily: "'Source Serif 4', serif", fontSize: "0.95rem" },
-    body2: { fontFamily: "'Source Serif 4', serif", fontSize: "0.85rem" },
-    button: { fontFamily: "'Source Serif 4', serif", fontWeight: 600 },
-  },
-  shape: { borderRadius: 4 },
-});
+export default function Dashboard() {
+  const stats = [
+    { label: "Total Tickets", value: "248", sub: "↑ 14 this week", color: "primary.main" },
+    { label: "Open", value: "87", sub: "Awaiting action", color: "primary.main" },
+    { label: "Resolved", value: "141", sub: "↑ 8% vs last month", color: "success.main" },
+    { label: "Urgent", value: "20", sub: "Needs attention", color: "error.main" },
+  ];
 
-function StatCard({ label, value, color }) {
+  const recentTickets = [
+    { id: "#T-2081", subject: "Transcript of Records Request", status: "Urgent" },
+    { id: "#T-2080", subject: "Enrollment Verification Letter", status: "Open" },
+    { id: "#T-2079", subject: "Certificate of Graduation", status: "Pending" },
+    { id: "#T-2078", subject: "Good Moral Certificate", status: "Closed" },
+    { id: "#T-2077", subject: "Diploma Authentication", status: "Open" },
+  ];
+
+  const weekData = [
+    { label: "Mon", v: 40, dim: true }, { label: "Tue", v: 60 },
+    { label: "Wed", v: 50, dim: true }, { label: "Thu", v: 75 },
+    { label: "Fri", v: 65, dim: false }, { label: "Sat", v: 30, gold: true },
+    { label: "Sun", v: 15, gold: true },
+  ];
+
+  const activity = [
+    { color: "secondary.main", text: <span>Ticket #T-2081 marked <strong>Urgent</strong> by Admin</span>, time: "2m ago" },
+    { color: "success.main", text: <span>Ticket #T-2075 resolved by <strong>Maria R.</strong></span>, time: "18m ago" },
+    { color: "primary.main", text: <span>New user <strong>Pedro A.</strong> registered</span>, time: "1h ago" },
+    { color: "secondary.main", text: <span>Ticket #T-2070 reassigned to Registrar</span>, time: "2h ago" },
+    { color: "success.main", text: <span>Batch of 5 tickets closed automatically</span>, time: "3h ago" },
+  ];
+
   return (
-    <Paper elevation={0} sx={{ bgcolor: "#f0f4f8", borderRadius: 2, p: 1.5 }}>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>{label}</Typography>
-      <Typography sx={{ fontSize: "22px", fontWeight: 600, color: color || "text.primary", fontFamily: "'Playfair Display', serif" }}>
-        {value}
-      </Typography>
-    </Paper>
-  );
-}
-
-function StatusBadge({ label, color, bg }) {
-  return (
-    <Box sx={{ px: 1.2, py: 0.3, borderRadius: "20px", bgcolor: bg, display: "inline-block" }}>
-      <Typography sx={{ fontSize: "11px", fontWeight: 600, color, fontFamily: "'Source Serif 4', serif" }}>{label}</Typography>
+    <Box>
+      <GoldLine />
+      <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+        {stats.map((s, i) => (
+          <Grid item xs={3} key={i}>
+            <Card variant="outlined" sx={{ borderColor: "rgba(26,58,92,0.12)" }}>
+              <CardContent sx={{ p: "14px 16px !important" }}>
+                <Typography sx={{ fontSize: 11, color: "text.secondary", textTransform: "uppercase", letterSpacing: "0.06em", mb: 0.8 }}>{s.label}</Typography>
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  {i === 0 && <Box sx={{ width: 3, height: 28, bgcolor: "secondary.main", borderRadius: 1, mr: 1 }} />}
+                  <Typography variant="h4" sx={{ fontSize: 26, color: s.color, lineHeight: 1 }}>{s.value}</Typography>
+                </Box>
+                <Typography sx={{ fontSize: 11, color: "text.secondary", mt: 0.5 }}>{s.sub}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+      <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
+        <Grid item xs={6}>
+          <Card variant="outlined" sx={{ borderColor: "rgba(26,58,92,0.12)" }}>
+            <CardContent>
+              <CardTitle action={<Typography sx={{ fontSize: 11, color: "text.secondary" }}>Today</Typography>}>Recent Tickets</CardTitle>
+              {recentTickets.map((t, i) => (
+                <Box key={i} sx={{ display: "flex", alignItems: "center", gap: 1.2, py: 1, borderBottom: i < recentTickets.length - 1 ? "1px solid rgba(26,58,92,0.08)" : "none" }}>
+                  <Typography sx={{ fontSize: 11, color: "text.secondary", minWidth: 60 }}>{t.id}</Typography>
+                  <Typography sx={{ flex: 1, fontSize: 12, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.subject}</Typography>
+                  <StatusChip status={t.status} />
+                </Box>
+              ))}
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={6}>
+          <Card variant="outlined" sx={{ borderColor: "rgba(26,58,92,0.12)" }}>
+            <CardContent>
+              <CardTitle>Tickets by Category</CardTitle>
+              <SimpleBar label="Transcript of Records" pct={42} />
+              <SimpleBar label="Enrollment Verification" pct={28} />
+              <SimpleBar label="Certificate Request" pct={18} color="secondary.main" />
+              <SimpleBar label="Authentication" pct={8} color="secondary.main" />
+              <SimpleBar label="Others" pct={4} color="text.secondary" />
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+      <Grid container spacing={1.5}>
+        <Grid item xs={6}>
+          <Card variant="outlined" sx={{ borderColor: "rgba(26,58,92,0.12)" }}>
+            <CardContent>
+              <CardTitle>Weekly Volume</CardTitle>
+              <ColumnChart data={weekData} />
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={6}>
+          <Card variant="outlined" sx={{ borderColor: "rgba(26,58,92,0.12)" }}>
+            <CardContent>
+              <CardTitle>Recent Activity</CardTitle>
+              {activity.map((a, i) => (
+                <Box key={i} sx={{ display: "flex", gap: 1.2, py: 0.9, borderBottom: i < activity.length - 1 ? "1px solid rgba(26,58,92,0.08)" : "none", alignItems: "flex-start" }}>
+                  <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: a.color, mt: 0.5, flexShrink: 0 }} />
+                  <Typography sx={{ flex: 1, fontSize: 12, lineHeight: 1.4 }}>{a.text}</Typography>
+                  <Typography sx={{ fontSize: 10, color: "text.secondary", whiteSpace: "nowrap" }}>{a.time}</Typography>
+                </Box>
+              ))}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
     </Box>
-  );
-}
-
-const MOCK_QUEUE = [
-  { id: "#1064", subject: "Transcript request",          student: "Ana Cruz",    date: "Mar 25, 2026", status: "New",         statusColor: "#b45309", statusBg: "#fff8e1" },
-  { id: "#1055", subject: "Good moral certificate",      student: "Marco Reyes", date: "Mar 23, 2026", status: "In progress", statusColor: "#1a56db", statusBg: "#e8f0fe" },
-  { id: "#1063", subject: "Enrollment inquiry",          student: "Pia Santos",  date: "Mar 25, 2026", status: "New",         statusColor: "#b45309", statusBg: "#fff8e1" },
-];
-
-export default function AdminDashboard() {
-  const { profile } = useAuth();
-  const initials    = profile?.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "AD";
-
-  return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Serif+4:wght@300;400;600&display=swap" rel="stylesheet" />
-      <Box sx={{ p: { xs: 2, sm: 3 }, maxWidth: 900, mx: "auto" }}>
-
-        {/* Header */}
-        <Stack direction={{ xs: "column", sm: "row" }} alignItems={{ xs: "flex-start", sm: "center" }} spacing={1.5} sx={{ mb: 3 }}>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Box sx={{ width: 36, height: 36, borderRadius: "50%", bgcolor: "#e6f4ea", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Typography sx={{ fontSize: "13px", fontWeight: 600, color: "#1e7e34", fontFamily: "'Source Serif 4', serif" }}>{initials}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="body1" fontWeight={600}>Admin / Staff Dashboard</Typography>
-              <Typography variant="body2" color="text.secondary">{profile?.full_name || "Admin"} — {profile?.department || "Office"}</Typography>
-            </Box>
-          </Stack>
-          <Box sx={{ ml: { sm: "auto !important" }, px: 1.5, py: 0.4, borderRadius: "20px", bgcolor: "#fdecea" }}>
-            <Typography sx={{ fontSize: "11px", fontWeight: 600, color: "#c0392b", fontFamily: "'Source Serif 4', serif" }}>5 new tickets</Typography>
-          </Box>
-        </Stack>
-
-        {/* Stat Cards */}
-        <Grid container spacing={1.5} sx={{ mb: 3 }}>
-          <Grid item xs={6} sm={3}><StatCard label="Open tickets"   value="12" color="#c0392b" /></Grid>
-          <Grid item xs={6} sm={3}><StatCard label="In progress"    value="7"  color="#1a56db" /></Grid>
-          <Grid item xs={6} sm={3}><StatCard label="Resolved today" value="9"  color="#1e7e34" /></Grid>
-          <Grid item xs={6} sm={3}><StatCard label="Avg. response"  value="1.4d" /></Grid>
-        </Grid>
-
-        {/* Incoming Queue */}
-        <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden", mb: 3 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
-            <Typography variant="body1" fontWeight={600}>Incoming Queue</Typography>
-            <Typography variant="body2" color="text.secondary">Sorted by date received</Typography>
-          </Stack>
-          {MOCK_QUEUE.map((t, i) => (
-            <Box key={t.id}>
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                alignItems={{ xs: "flex-start", sm: "center" }}
-                spacing={1.5}
-                sx={{ px: 2, py: 1.5 }}
-              >
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: { xs: "100%", sm: "auto" }, flex: { sm: 1 } }}>
-                  <StatusBadge label={t.status} color={t.statusColor} bg={t.statusBg} />
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="body2" fontWeight={500}>{t.subject} — {t.student}</Typography>
-                    <Typography sx={{ fontSize: "11px", color: "text.secondary", fontFamily: "'Source Serif 4', serif" }}>
-                      Submitted {t.date} · Ticket {t.id}
-                    </Typography>
-                  </Box>
-                </Stack>
-                <Stack direction="row" spacing={0.8} sx={{ ml: { xs: 0, sm: "auto" }, flexShrink: 0 }}>
-                  {t.status === "New" ? (
-                    <>
-                      <Button size="small" sx={{ fontSize: "11px", color: "#1e7e34", fontFamily: "'Source Serif 4', serif", minWidth: 0 }}>Approve</Button>
-                      <Button size="small" sx={{ fontSize: "11px", color: "#c0392b", fontFamily: "'Source Serif 4', serif", minWidth: 0 }}>Reject</Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button size="small" sx={{ fontSize: "11px", fontFamily: "'Source Serif 4', serif", minWidth: 0 }}>Update status</Button>
-                      <Button size="small" sx={{ fontSize: "11px", fontFamily: "'Source Serif 4', serif", minWidth: 0 }}>Reply</Button>
-                    </>
-                  )}
-                </Stack>
-              </Stack>
-              {i < MOCK_QUEUE.length - 1 && <Divider />}
-            </Box>
-          ))}
-        </Paper>
-
-        {/* Quick Tools */}
-        <Grid container spacing={1.5}>
-          <Grid item xs={12} sm={4}>
-            <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, p: 2 }}>
-              <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>Unread Comments</Typography>
-              <Typography variant="body2" color="text.secondary">4 student replies</Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, p: 2 }}>
-              <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>Ticket History</Typography>
-              <Typography variant="body2" color="text.secondary">Browse all processed</Typography>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, p: 2 }}>
-              <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>Document Workflow</Typography>
-              <Typography variant="body2" color="text.secondary">Manage processing steps</Typography>
-            </Paper>
-          </Grid>
-        </Grid>
-
-      </Box>
-    </ThemeProvider>
   );
 }
