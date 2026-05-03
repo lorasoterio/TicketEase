@@ -106,19 +106,23 @@ export default function useTrackStatus() {
           ),
         ];
 
-        // Fetch staff details in parallel
-        const staffEntries = await Promise.all(
-          staffIds.map((id) =>
-            client
-              .get(`/staff/user/${id}`)
-              .then((res) => [id, res.data])
-              .catch(() => [id, null])
-          )
-        );
+        // Fetch all staff once and index by user ID to avoid N+1 requests
+        const { data: staffList } = await client.get("/staff");
 
         if (cancelled) return;
 
-        setStaffMap(Object.fromEntries(staffEntries));
+        const staffMap = Object.fromEntries(
+          staffIds.map((id) => {
+            const staff =
+              staffList.find((entry) => entry?.userId === id) ??
+              staffList.find((entry) => entry?.user?.id === id) ??
+              null;
+
+            return [id, staff];
+          })
+        );
+
+        setStaffMap(staffMap);
         setRawTickets(ticketList);
       } catch (err) {
         if (!cancelled)
