@@ -1,26 +1,49 @@
 import { useState, useEffect, useMemo } from "react";
 import client from "../../api/client";
 
+// Ordered by enum value (0–8) — matches backend TicketStatus enum
+const STATUS_BY_NUMBER = [
+  "Pending",        // 0
+  "Assigned",       // 1
+  "InProgress",     // 2
+  "ReadyForPickup", // 3
+  "Completed",      // 4
+  "Rejected",       // 5
+  "Open",           // 6
+  "Responded",      // 7
+  "Closed",         // 8
+];
+
+// Normalizes numeric or string status → canonical string key
+function normalizeStatus(status) {
+  if (typeof status === "number") return STATUS_BY_NUMBER[status] ?? String(status);
+  return status;
+}
+
+// Maps canonical status key → display label shown in the UI
 const STATUS_LABEL = {
-  Open: "Pending",
-  Pending: "Pending",
-  Assigned: "In progress",
-  InProgress: "In progress",
-  ReadyForPickup: "In progress",
-  Responded: "In progress",
-  Completed: "Completed",
-  Closed: "Completed",
-  Rejected: "Rejected",
+  Pending:        "Pending",
+  Assigned:       "Assigned",
+  InProgress:     "In Progress",
+  ReadyForPickup: "Ready for Pickup",
+  Completed:      "Completed",
+  Rejected:       "Rejected",
+  Open:           "Open",
+  Responded:      "Responded",
+  Closed:         "Closed",
 };
 
-const IN_PROGRESS_STATUSES = new Set([
-  "Assigned",
-  "InProgress",
-  "ReadyForPickup",
-  "Responded",
-]);
-
-const COMPLETED_STATUSES = new Set(["Completed", "Closed"]);
+// Rank determines how far along the ticket is in the workflow
+const STATUS_RANK = {
+  Pending:        0,
+  Open:           0,
+  Assigned:       1,
+  InProgress:     2,
+  ReadyForPickup: 3,
+  Responded:      3,
+  Completed:      4,
+  Closed:         4,
+};
 
 function formatDate(dateStr) {
   if (!dateStr) return null;
@@ -38,29 +61,40 @@ function formatDate(dateStr) {
 }
 
 function buildTimeline(ticket) {
-  const inProgress = IN_PROGRESS_STATUSES.has(ticket.status);
-  const completed = COMPLETED_STATUSES.has(ticket.status);
-  return [
-    { label: "Submitted", date: formatDate(ticket.createdAt), done: true },
-    {
-      label: "In progress",
-      date: inProgress ? formatDate(ticket.updatedAt) : null,
-      done: inProgress,
-    },
-    {
-      label: "Completed",
-      date: completed ? formatDate(ticket.updatedAt) : null,
-      done: completed,
-    },
+  const status = normalizeStatus(ticket.status);
+  const rejected = status === "Rejected";
+  const rank = rejected ? -1 : (STATUS_RANK[status] ?? 0);
+  const isDocumentRequest =
+    ticket.ticketType === "DocumentRequest" || ticket.ticketType === 0;
+
+  const updatedDate = formatDate(ticket.updatedAt);
+
+  const steps = [
+    { label: "Submitted",    date: formatDate(ticket.createdAt), done: true },
+    { label: "Assigned",     date: rank >= 1 ? updatedDate : null, done: rank >= 1 },
+    { label: "In Progress",  date: rank >= 2 ? updatedDate : null, done: rank >= 2 },
+    isDocumentRequest
+      ? { label: "Ready for Pickup", date: rank >= 3 ? updatedDate : null, done: rank >= 3 }
+      : { label: "Responded",        date: rank >= 3 ? updatedDate : null, done: rank >= 3 },
   ];
+
+  if (rejected) {
+    steps.push({ label: "Rejected",  date: updatedDate, done: true });
+  } else {
+    steps.push({ label: "Completed", date: rank >= 4 ? updatedDate : null, done: rank >= 4 });
+  }
+
+  return steps;
 }
 
 function mapTicket(ticket, staffMap) {
+  const statusKey = normalizeStatus(ticket.status);
   const staff = ticket.assignedStaffId ? staffMap[ticket.assignedStaffId] : null;
   return {
     id: ticket.referenceNumber ?? `#${ticket.ticketId}`,
     subject: ticket.subject ?? "",
-    status: STATUS_LABEL[ticket.status] ?? ticket.status,
+    ticketType: ticket.ticketType,
+    status: STATUS_LABEL[statusKey] ?? statusKey,
     updatedAt: formatDate(ticket.updatedAt),
     assignedStaff: staff
       ? {
