@@ -1,60 +1,285 @@
-import React from "react";
-import { Box, TextField, FormControl, Select, MenuItem, Paper, Typography, Button, Stack, InputAdornment } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Box, TextField, FormControl, Select, MenuItem, Paper, Typography,
+  Button, Stack, InputAdornment, CircularProgress, Alert,
+  Dialog, DialogTitle, DialogContent, DialogActions, Divider, Chip,
+} from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import GoldLine from "../../components/adminuis/GoldLine";
+import useTicketQueue, { timeAgo, priorityLabel } from "../../hooks/admin/useTicketQueue";
+import { getAllStaff } from "../../services/userService";
 
 export default function Queue() {
-  const items = [
-    { num: 1, subject: "Transcript of Records — Cruz, Maria L.", id: "#T-2081", time: "3h ago", priority: "Urgent" },
-    // ...other items
-  ];
+  const {
+    tickets, loading, error,
+    search, setSearch,
+    priorityFilter, setPriorityFilter,
+    typeFilter, setTypeFilter,
+    refetch, assignTicketToStaff,
+  } = useTicketQueue();
+
+  // ── View dialog ──────────────────────────────────────────────
+  const [viewTicket, setViewTicket] = useState(null);
+
+  // ── Assign dialog ─────────────────────────────────────────────
+  const [assignTarget, setAssignTarget] = useState(null);
+  const [staffList, setStaffList] = useState([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [selectedStaffId, setSelectedStaffId] = useState("");
+  const [assigning, setAssigning] = useState(false);
+  const [assignError, setAssignError] = useState(null);
+
+  const handleOpenAssign = async (ticket) => {
+    setAssignTarget(ticket);
+    setSelectedStaffId("");
+    setAssignError(null);
+    setStaffLoading(true);
+    try {
+      const data = await getAllStaff();
+      setStaffList(data || []);
+    } catch {
+      setStaffList([]);
+    } finally {
+      setStaffLoading(false);
+    }
+  };
+
+  const handleCloseAssign = () => {
+    if (assigning) return;
+    setAssignTarget(null);
+    setAssignError(null);
+  };
+
+  const handleConfirmAssign = async () => {
+    if (!selectedStaffId || !assignTarget) return;
+    setAssigning(true);
+    setAssignError(null);
+    const { success, error: err } = await assignTicketToStaff(assignTarget, Number(selectedStaffId));
+    setAssigning(false);
+    if (success) {
+      setAssignTarget(null);
+    } else {
+      setAssignError(err);
+    }
+  };
 
   return (
     <Box>
       <GoldLine />
       <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
         <TextField
-          size="small" placeholder="Search queue…"
-          InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 16, color: "text.secondary" }} /></InputAdornment> }}
+          size="small"
+          placeholder="Search queue…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+              </InputAdornment>
+            ),
+          }}
           sx={{ flex: 1, maxWidth: 260, "& .MuiInputBase-input": { fontSize: 12 } }}
         />
         <FormControl size="small" sx={{ minWidth: 130 }}>
-          <Select defaultValue="" displayEmpty sx={{ fontSize: 12 }}>
+          <Select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+            displayEmpty
+            sx={{ fontSize: 12 }}
+          >
             <MenuItem value="" sx={{ fontSize: 12 }}>All Priorities</MenuItem>
             <MenuItem value="urgent" sx={{ fontSize: 12 }}>Urgent</MenuItem>
             <MenuItem value="normal" sx={{ fontSize: 12 }}>Normal</MenuItem>
           </Select>
         </FormControl>
         <FormControl size="small" sx={{ minWidth: 130 }}>
-          <Select defaultValue="" displayEmpty sx={{ fontSize: 12 }}>
+          <Select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            displayEmpty
+            sx={{ fontSize: 12 }}
+          >
             <MenuItem value="" sx={{ fontSize: 12 }}>All Types</MenuItem>
-            <MenuItem value="transcript" sx={{ fontSize: 12 }}>Transcript</MenuItem>
-            <MenuItem value="certificate" sx={{ fontSize: 12 }}>Certificate</MenuItem>
+            <MenuItem value="document" sx={{ fontSize: 12 }}>Document Request</MenuItem>
+            <MenuItem value="inquiry" sx={{ fontSize: 12 }}>Inquiry</MenuItem>
           </Select>
         </FormControl>
       </Box>
-      <Stack spacing={0.8}>
-        {items.map((item, i) => (
-          <Paper key={i} variant="outlined" sx={{
-            display: "flex", alignItems: "center", gap: 1.2, p: "10px 12px",
-            borderColor: "rgba(26,58,92,0.12)", cursor: "pointer",
-            "&:hover": { borderColor: "primary.main" }, transition: "border-color 0.15s"
-          }}>
-            <Typography variant="h5" sx={{ color: "secondary.main", minWidth: 28, fontSize: 18 }}>{item.num}</Typography>
-            <Box sx={{ flex: 1 }}>
-              <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{item.subject}</Typography>
-              <Typography sx={{ fontSize: 11, color: "text.secondary", mt: 0.2 }}>
-                {item.id} · Submitted {item.time} ·{" "}
-                <Box component="strong" sx={{ color: item.priority === "Urgent" ? "error.main" : "inherit" }}>{item.priority}</Box>
+
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+          <CircularProgress size={28} />
+        </Box>
+      )}
+
+      {error && (
+        <Alert severity="error" onClose={refetch} sx={{ mb: 1.5, fontSize: 12 }}>
+          {error}
+        </Alert>
+      )}
+
+      {!loading && !error && tickets.length === 0 && (
+        <Typography sx={{ fontSize: 13, color: "text.secondary", textAlign: "center", py: 4 }}>
+          No pending tickets in the queue.
+        </Typography>
+      )}
+
+      {!loading && !error && (
+        <Stack spacing={0.8}>
+          {tickets.map((ticket, i) => {
+            const label = priorityLabel(ticket.priority);
+            return (
+              <Paper
+                key={ticket.ticketId}
+                variant="outlined"
+                sx={{
+                  display: "flex", alignItems: "center", gap: 1.2, p: "10px 12px",
+                  borderColor: "rgba(26,58,92,0.12)", cursor: "pointer",
+                  "&:hover": { borderColor: "primary.main" }, transition: "border-color 0.15s",
+                }}
+              >
+                <Typography variant="h5" sx={{ color: "secondary.main", minWidth: 28, fontSize: 18 }}>
+                  {i + 1}
+                </Typography>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 600 }}>
+                    {ticket.subject || `${ticket.ticketType} Request`}
+                  </Typography>
+                  <Typography sx={{ fontSize: 11, color: "text.secondary", mt: 0.2 }}>
+                    #{ticket.referenceNumber} · Submitted {timeAgo(ticket.createdAt)} ·{" "}
+                    <Box
+                      component="strong"
+                      sx={{ color: label === "Urgent" ? "error.main" : "inherit" }}
+                    >
+                      {label}
+                    </Box>
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", gap: 0.8 }}>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                    sx={{ fontSize: 11, py: 0.6, px: 1.2 }}
+                    onClick={(e) => { e.stopPropagation(); handleOpenAssign(ticket); }}
+                  >
+                    Assign
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    sx={{ fontSize: 11, py: 0.6, px: 1.2 }}
+                    onClick={(e) => { e.stopPropagation(); setViewTicket(ticket); }}
+                  >
+                    View
+                  </Button>
+                </Box>
+              </Paper>
+            );
+          })}
+        </Stack>
+      )}
+
+      {/* ── View Ticket Dialog ─────────────────────────────────── */}
+      <Dialog open={!!viewTicket} onClose={() => setViewTicket(null)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontSize: 14, fontWeight: 700 }}>
+          Ticket Details
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ pt: 2 }}>
+          {viewTicket && (
+            <Stack spacing={1.5}>
+              <DetailRow label="Reference #" value={`#${viewTicket.referenceNumber}`} />
+              <DetailRow label="Subject" value={viewTicket.subject || "—"} />
+              <DetailRow label="Type" value={viewTicket.ticketType} />
+              <DetailRow
+                label="Priority"
+                value={
+                  <Chip
+                    label={priorityLabel(viewTicket.priority)}
+                    size="small"
+                    color={viewTicket.priority === "High" ? "error" : "default"}
+                    sx={{ fontSize: 11 }}
+                  />
+                }
+              />
+              <DetailRow label="Status" value={viewTicket.status} />
+              <DetailRow label="Submitted" value={timeAgo(viewTicket.createdAt)} />
+              {viewTicket.description && (
+                <Box>
+                  <Typography sx={{ fontSize: 11, color: "text.secondary", mb: 0.4 }}>Description</Typography>
+                  <Typography sx={{ fontSize: 12 }}>{viewTicket.description}</Typography>
+                </Box>
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setViewTicket(null)} size="small" sx={{ fontSize: 12 }}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Assign Ticket Dialog ───────────────────────────────── */}
+      <Dialog open={!!assignTarget} onClose={handleCloseAssign} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontSize: 14, fontWeight: 700 }}>Assign Ticket</DialogTitle>
+        <Divider />
+        <DialogContent sx={{ pt: 2 }}>
+          {assignTarget && (
+            <Stack spacing={1.5}>
+              <Typography sx={{ fontSize: 12 }}>
+                Assigning <strong>{assignTarget.subject || `#${assignTarget.referenceNumber}`}</strong> to a staff member.
               </Typography>
-            </Box>
-            <Box sx={{ display: "flex", gap: 0.8 }}>
-              <Button size="small" variant="contained" color="primary" sx={{ fontSize: 11, py: 0.6, px: 1.2 }}>Assign</Button>
-              <Button size="small" variant="outlined" sx={{ fontSize: 11, py: 0.6, px: 1.2 }}>View</Button>
-            </Box>
-          </Paper>
-        ))}
-      </Stack>
+              {staffLoading ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                  <CircularProgress size={22} />
+                </Box>
+              ) : (
+                <FormControl size="small" fullWidth>
+                  <Select
+                    value={selectedStaffId}
+                    onChange={(e) => setSelectedStaffId(e.target.value)}
+                    displayEmpty
+                    sx={{ fontSize: 12 }}
+                  >
+                    <MenuItem value="" disabled sx={{ fontSize: 12 }}>Select staff member…</MenuItem>
+                    {staffList.map((s) => (
+                      <MenuItem key={s.userId ?? s.staffId} value={s.userId ?? s.staffId} sx={{ fontSize: 12 }}>
+                        {s.fullName ?? s.user?.fullName ?? `Staff #${s.staffId}`}
+                        {s.department ? ` — ${s.department}` : ""}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+              {assignError && (
+                <Alert severity="error" sx={{ fontSize: 12 }}>{assignError}</Alert>
+              )}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAssign} size="small" sx={{ fontSize: 12 }} disabled={assigning}>Cancel</Button>
+          <Button
+            onClick={handleConfirmAssign}
+            size="small"
+            variant="contained"
+            sx={{ fontSize: 12 }}
+            disabled={!selectedStaffId || assigning}
+          >
+            {assigning ? "Assigning…" : "Confirm"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+}
+
+function DetailRow({ label, value }) {
+  return (
+    <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+      <Typography sx={{ fontSize: 11, color: "text.secondary", minWidth: 100 }}>{label}</Typography>
+      <Typography sx={{ fontSize: 12, fontWeight: 500 }} component="div">{value}</Typography>
     </Box>
   );
 }

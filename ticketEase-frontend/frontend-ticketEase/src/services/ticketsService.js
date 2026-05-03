@@ -40,3 +40,23 @@ export const getAllTickets = async () => {
     return { data: null, error: error.response?.data || error.message };
   }
 };
+
+/**
+ * Assigns a staff member to a ticket.
+ * @param {number} ticketId - The ID of the ticket.
+ * @param {number} staffId - The ID of the staff to assign.
+ * @param {Object} ticketData - The full current ticket object (required for PUT).
+ * @returns {Promise<{data: Object, error: Object}>}
+ */
+export const assignTicket = async (ticketId, staffId, ticketData) => {
+  try {
+    const response = await client.put(`/tickets/${ticketId}`, {
+      ...ticketData,
+      assignedStaffId: staffId,
+      status: 'Assigned',
+    });
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: error.response?.data || error.message };
+  }
+};

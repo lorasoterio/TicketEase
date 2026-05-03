@@ -37,10 +37,10 @@ import {
 
 const NAV_LINKS = [
   { to: "/admin/dashboard",    label: "Dashboard",     icon: <DashboardIcon fontSize="small" /> },
-  { to: "/admin/queue",        label: "Ticket queue",  icon: <QueueIcon fontSize="small" />,      badge: 5, badgeSeverity: "error" },
-  { to: "/admin/tickets",  label: "All tickets",   icon: <AllTicketsIcon fontSize="small" /> },
+  { to: "/admin/queue",        label: "Ticket Queue",  icon: <QueueIcon fontSize="small" />,      badge: 5, badgeSeverity: "error" },
+  { to: "/admin/tickets",  label: "All Tickets",   icon: <AllTicketsIcon fontSize="small" /> },
   { to: "/admin/reports",      label: "Reports",       icon: <ReportIcon fontSize="small" /> },
-  { to: "/admin/manage-users",        label: "Manage users",  icon: <UsersIcon fontSize="small" /> },
+  { to: "/admin/manage-users",        label: "Manage Users",  icon: <UsersIcon fontSize="small" /> },
 ];
 
 const NOTIFICATIONS = [
