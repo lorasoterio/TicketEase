@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../services/authServices";
+import { useAuth } from "../../context/useAuth";
 
 const INITIAL_FIELDS = {
   email: "",
@@ -16,6 +17,7 @@ function validate(form) {
 
 export function useLoginForm() {
   const navigate = useNavigate();
+  const { setUser, setProfile } = useAuth();
   const [form, setForm]               = useState(INITIAL_FIELDS);
   const [errors, setErrors]           = useState({});
   const [serverError, setServerError] = useState("");
@@ -41,6 +43,8 @@ export function useLoginForm() {
       const data = await loginUser(form);
 
       localStorage.setItem("user", JSON.stringify(data));
+      setUser(data);
+      setProfile(data);
 
       const role = data.role?.toLowerCase();
       if (role === "staff" || role === "admin") {

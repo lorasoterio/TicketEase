@@ -37,6 +37,7 @@ namespace BackendTicketEase.Models
     {
         Student,
         Staff,
-        Admin
+        Admin,
+        SuperAdmin
     }
 }

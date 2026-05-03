@@ -17,12 +17,18 @@ export default function ContactInfoCard({ profile }) {
 
       <Stack spacing={1}>
         <Typography variant="body2">
-          Email: {profile.email}
+          Email: {profile.userEmail || profile.email}
         </Typography>
 
         <Typography variant="body2">
-          Phone: {profile.phone}
+          Phone: {profile.contactNumber || profile.phone}
         </Typography>
+
+        {(profile.address) && (
+          <Typography variant="body2">
+            Address: {profile.address}
+          </Typography>
+        )}
       </Stack>
     </Paper>
   );

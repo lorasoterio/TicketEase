@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import client from "../api/client";
 // Supabase disabled — using local .NET backend instead
 // import { supabase } from "../api/supabaseClient";
 
@@ -53,6 +54,20 @@ export function AuthProvider({ children }) {
         const parsed = JSON.parse(stored);
         setUser(parsed);
         setProfile(parsed);
+
+        // Fetch fresh profile data so fullName is always available
+        const role = parsed.role?.toLowerCase();
+        const userId = parsed.userId;
+        if (userId) {
+          const endpoint =
+            role === "staff" || role === "admin" || role === "superadmin"
+              ? `/staff/user/${userId}`
+              : `/student/user/${userId}`;
+          client
+            .get(endpoint)
+            .then(({ data }) => setProfile((prev) => ({ ...prev, ...data })))
+            .catch(() => {/* keep existing profile if fetch fails */});
+        }
       } catch {
         // ignore malformed data
       }

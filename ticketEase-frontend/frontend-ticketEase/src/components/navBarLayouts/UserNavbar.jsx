@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+import client from "../../api/client";
+
 import {
   AppBar,
   Toolbar,
@@ -45,7 +48,7 @@ const NAV_LINKS = [
     to: "/user/my-tickets",
     label: "My tickets",
     icon: <TicketIcon fontSize="small" />,
-    badge: 4,
+    ticketBadge: true,
   },
   {
     to: "/user/track-status",
@@ -85,13 +88,28 @@ const NOTIFICATIONS = [
 const ACCENT = "#1a56e8";
 const ACCENT_LIGHT = "#eef3fd";
 
-export default function UserNavbar({
-  user = { name: "Juan Santos", initials: "JS", dept: "IT Department" },
-}) {
+export default function UserNavbar() {
   const navigate = useNavigate();
+  const { profile, user } = useAuth();
+
+  const fullName = profile?.fullName || "Student";
+  const initials = fullName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [notifAnchor, setNotifAnchor] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [ticketCount, setTicketCount] = useState(null);
+
+  useEffect(() => {
+    if (!user?.userId) return;
+    client.get("/tickets")
+      .then(({ data }) => setTicketCount(data.length))
+      .catch(() => setTicketCount(null));
+  }, [user]);
 
   const unread = NOTIFICATIONS.filter((n) => n.unread).length;
 
@@ -161,7 +179,7 @@ export default function UserNavbar({
 
         {/* ── Nav Links (desktop) ── */}
         <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 0.5 }}>
-        {NAV_LINKS.map(({ to, label, icon, badge, dot }) => (
+        {NAV_LINKS.map(({ to, label, icon, badge, ticketBadge, dot }) => (
           <NavLink key={to} to={to} style={{ textDecoration: "none" }}>
             {({ isActive }) => (
               <Box
@@ -190,9 +208,9 @@ export default function UserNavbar({
               >
                 {icon}
                 {label}
-                {badge && (
+                {(ticketBadge ? ticketCount : badge) != null && (ticketBadge ? ticketCount : badge) > 0 && (
                   <Chip
-                    label={badge}
+                    label={ticketBadge ? ticketCount : badge}
                     size="small"
                     sx={{
                       height: 18,
@@ -286,25 +304,18 @@ export default function UserNavbar({
                 borderRadius: "8px",
               }}
             >
-              {user.initials}
+              {initials}
             </Avatar>
-            <Box>
-              <Typography
-                sx={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  lineHeight: 1.2,
-                  fontFamily: "'DM Sans', sans-serif",
-                }}
-              >
-                {user.name}
-              </Typography>
-              <Typography
-                sx={{ fontSize: 11, color: "text.disabled", lineHeight: 1.2 }}
-              >
-                {user.dept}
-              </Typography>
-            </Box>
+            <Typography
+              sx={{
+                fontSize: 13,
+                fontWeight: 500,
+                lineHeight: 1.2,
+                fontFamily: "'DM Sans', sans-serif",
+              }}
+            >
+              {fullName}
+            </Typography>
           </Box>
 
           {/* Avatar only (mobile) */}
@@ -323,7 +334,7 @@ export default function UserNavbar({
               ml: 0.5,
             }}
           >
-            {user.initials}
+            {initials}
           </Avatar>
 
           {/* Hamburger (mobile only) */}
@@ -450,15 +461,12 @@ export default function UserNavbar({
           }}
         >
           <Typography sx={{ fontSize: 13.5, fontWeight: 600 }}>
-            {user.name}
-          </Typography>
-          <Typography sx={{ fontSize: 12, color: "text.disabled" }}>
-            {user.dept}
+            {fullName}
           </Typography>
         </Box>
         <MenuItem
           onClick={() => {
-            navigate("/profile");
+            navigate("/user/profile");
             setProfileAnchor(null);
           }}
           sx={{ gap: 1.25, py: 1.125, fontSize: 13.5 }}
@@ -525,7 +533,7 @@ export default function UserNavbar({
 
       {/* Nav links */}
       <List sx={{ pt: 1, px: 1 }}>
-        {NAV_LINKS.map(({ to, label, icon, badge, dot }) => (
+        {NAV_LINKS.map(({ to, label, icon, badge, ticketBadge, dot }) => (
           <NavLink key={to} to={to} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
             {({ isActive }) => (
               <ListItemButton
@@ -541,8 +549,8 @@ export default function UserNavbar({
                 <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: isActive ? 600 : 450, fontFamily: "'DM Sans', sans-serif" }}>
                   {label}
                 </ListItemText>
-                {badge && (
-                  <Chip label={badge} size="small" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: isActive ? ACCENT : ACCENT_LIGHT, color: isActive ? "#fff" : ACCENT, "& .MuiChip-label": { px: 0.75 } }} />
+                {(ticketBadge ? ticketCount : badge) != null && (ticketBadge ? ticketCount : badge) > 0 && (
+                  <Chip label={ticketBadge ? ticketCount : badge} size="small" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: isActive ? ACCENT : ACCENT_LIGHT, color: isActive ? "#fff" : ACCENT, "& .MuiChip-label": { px: 0.75 } }} />
                 )}
                 {dot && <Box sx={{ width: 6, height: 6, bgcolor: "error.main", borderRadius: "50%" }} />}
               </ListItemButton>
@@ -555,7 +563,7 @@ export default function UserNavbar({
 
       {/* Profile actions */}
       <List sx={{ px: 1 }}>
-        <ListItemButton sx={{ borderRadius: "8px", mb: 0.25 }} onClick={() => { navigate("/profile"); setMobileOpen(false); }}>
+        <ListItemButton sx={{ borderRadius: "8px", mb: 0.25 }} onClick={() => { navigate("/user/profile"); setMobileOpen(false); }}>
           <ListItemIcon sx={{ minWidth: 36 }}><ProfileIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14 }}>View profile</ListItemText>
         </ListItemButton>
