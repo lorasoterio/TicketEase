@@ -19,7 +19,7 @@ import {
 import { useTicketForm } from "../../hooks/useTicketForm";
 import {
   validateDocumentRequest,
-  TICKET_CATEGORIES
+  TICKET_TYPES,
 } from "../../utils/ticketHelpers";
 
 // ── MUI Theme (can also be moved to a theme.js file later) ────
@@ -58,7 +58,7 @@ const theme = createTheme({
 const INITIAL_FIELDS = {
   studentId: "",
   fullName: "",
-  documentType: "",
+  ticketType: "",
   subject: "",
   description: "",
   purpose: "",
@@ -167,14 +167,14 @@ export default function RequestTicket() {
                 <Divider />
 
                 {/* Section: Document Details */}
-                <SectionLabel icon={<Description sx={{ color: "secondary.main", fontSize: 18 }} />} label="Document Details" />
+                <SectionLabel icon={<Description sx={{ color: "secondary.main", fontSize: 18 }} />} label="Details of the Request" />
                 <Stack spacing={2.5}>
-                  <FormControl error={!!errors.documentType}>
-                    <InputLabel>Type of Ticket</InputLabel>
-                    <Select value={form.documentType} onChange={handleChange("documentType")} label="Type of Document">
-                      {TICKET_CATEGORIES.map((d) => <MenuItem key={d} value={d}>{d}</MenuItem>)}
+                  <FormControl error={!!errors.ticketType}>
+                    <InputLabel>Ticket Type</InputLabel>
+                    <Select value={form.ticketType} onChange={handleChange("ticketType")} label="Ticket Type">
+                      {TICKET_TYPES.map((t) => <MenuItem key={t} value={t}>{t}</MenuItem>)}
                     </Select>
-                    {errors.documentType && <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>{errors.documentType}</Typography>}
+                    {errors.ticketType && <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>{errors.ticketType}</Typography>}
                   </FormControl>
 
                   <TextField

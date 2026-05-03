@@ -30,13 +30,13 @@ import {
 import { useTicketForm } from "../../hooks/useTicketForm";
 import {
   validateDocumentRequest,
-  TICKET_CATEGORIES,
+  TICKET_TYPES,
 } from "../../utils/ticketHelpers";
 
 const INITIAL_FIELDS = {
   studentId: "",
   fullName: "",
-  documentType: "",
+  ticketType: "",
   subject: "",
   description: "",
 };
@@ -140,28 +140,28 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
 
           <Divider />
 
-          {/* Document Details */}
+          {/* Details of the Request */}
           <SectionLabel
             icon={<Description sx={{ color: "secondary.main", fontSize: 18 }} />}
-            label="Document Details"
+            label="Details of the Request"
           />
           <Stack spacing={2}>
-            <FormControl size="small" error={!!errors.documentType}>
-              <InputLabel>Type of Ticket</InputLabel>
+            <FormControl size="small" error={!!errors.ticketType}>
+              <InputLabel>Ticket Type</InputLabel>
               <Select
-                value={form.documentType}
-                onChange={handleChange("documentType")}
-                label="Type of Ticket"
+                value={form.ticketType}
+                onChange={handleChange("ticketType")}
+                label="Ticket Type"
               >
-                {TICKET_CATEGORIES.map((d) => (
-                  <MenuItem key={d} value={d}>
-                    {d}
+                {TICKET_TYPES.map((t) => (
+                  <MenuItem key={t} value={t}>
+                    {t}
                   </MenuItem>
                 ))}
               </Select>
-              {errors.documentType && (
+              {errors.ticketType && (
                 <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
-                  {errors.documentType}
+                  {errors.ticketType}
                 </Typography>
               )}
             </FormControl>

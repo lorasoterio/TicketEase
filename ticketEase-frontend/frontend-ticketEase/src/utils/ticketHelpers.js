@@ -42,6 +42,11 @@ export const TICKET_CATEGORIES = [
   "Other",
 ];
 
+export const TICKET_TYPES = [
+  "Document Request",
+  "Inquiry",
+];
+
 
 
 // ── Validation Rules ─────────────────────────────────────────
@@ -61,8 +66,8 @@ export function validateDocumentRequest(form) {
     errors.studentId = "Student ID is required.";
   if (!form.fullName?.trim())
     errors.fullName = "Full name is required.";
-  if (!form.documentType)
-    errors.documentType = "Please select a document type.";
+  if (!form.ticketType)
+    errors.ticketType = "Please select a ticket type.";
   if (!form.subject?.trim())
     errors.subject = "Subject is required.";
   if (!form.description?.trim())

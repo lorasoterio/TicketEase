@@ -56,9 +56,11 @@ export function useTicketForm(initialFields, validateFn, onSuccess) {
 
     setLoading(true);
 
+    const ticketTypeMap = { "Document Request": 0, "Inquiry": 1 };
+
     const ticketData = {
       StudentId: user.userId,
-      TicketType: 0, // 0 = DocumentRequest
+      TicketType: ticketTypeMap[form.ticketType] ?? 0,
       Subject: form.subject,
       Description: form.description,
       Priority: 0, // 0 = Normal
