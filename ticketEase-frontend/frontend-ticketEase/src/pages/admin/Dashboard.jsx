@@ -1,41 +1,30 @@
 import React from "react";
-import { Box, Grid, Card, CardContent, Typography } from "@mui/material";
+import { Box, Grid, Card, CardContent, Typography, CircularProgress } from "@mui/material";
 import GoldLine from "../../components/adminuis/GoldLine";
 import StatusChip from "../../components/adminuis/StatusChip";
 import CardTitle from "../../components/adminuis/CardTitle";
 import SimpleBar from "../../components/adminuis/SimpleBar";
 import ColumnChart from "../../components/adminuis/ColumnChart";
+import useAdminDashboard from "../../hooks/admin/useAdminDashboard";
 
 export default function Dashboard() {
-  const stats = [
-    { label: "Total Tickets", value: "248", sub: "↑ 14 this week", color: "primary.main" },
-    { label: "Open", value: "87", sub: "Awaiting action", color: "primary.main" },
-    { label: "Resolved", value: "141", sub: "↑ 8% vs last month", color: "success.main" },
-    { label: "Urgent", value: "20", sub: "Needs attention", color: "error.main" },
-  ];
+  const { loading, error, stats, recentTickets, categories, weekData, activity } = useAdminDashboard();
 
-  const recentTickets = [
-    { id: "#T-2081", subject: "Transcript of Records Request", status: "Urgent" },
-    { id: "#T-2080", subject: "Enrollment Verification Letter", status: "Open" },
-    { id: "#T-2079", subject: "Certificate of Graduation", status: "Pending" },
-    { id: "#T-2078", subject: "Good Moral Certificate", status: "Closed" },
-    { id: "#T-2077", subject: "Diploma Authentication", status: "Open" },
-  ];
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 200 }}>
+        <CircularProgress size={28} />
+      </Box>
+    );
+  }
 
-  const weekData = [
-    { label: "Mon", v: 40, dim: true }, { label: "Tue", v: 60 },
-    { label: "Wed", v: 50, dim: true }, { label: "Thu", v: 75 },
-    { label: "Fri", v: 65, dim: false }, { label: "Sat", v: 30, gold: true },
-    { label: "Sun", v: 15, gold: true },
-  ];
-
-  const activity = [
-    { color: "secondary.main", text: <span>Ticket #T-2081 marked <strong>Urgent</strong> by Admin</span>, time: "2m ago" },
-    { color: "success.main", text: <span>Ticket #T-2075 resolved by <strong>Maria R.</strong></span>, time: "18m ago" },
-    { color: "primary.main", text: <span>New user <strong>Pedro A.</strong> registered</span>, time: "1h ago" },
-    { color: "secondary.main", text: <span>Ticket #T-2070 reassigned to Registrar</span>, time: "2h ago" },
-    { color: "success.main", text: <span>Batch of 5 tickets closed automatically</span>, time: "3h ago" },
-  ];
+  if (error) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Typography color="error.main" sx={{ fontSize: 13 }}>{error}</Typography>
+      </Box>
+    );
+  }
 
   return (
     <Box>
@@ -75,11 +64,14 @@ export default function Dashboard() {
           <Card variant="outlined" sx={{ borderColor: "rgba(26,58,92,0.12)" }}>
             <CardContent>
               <CardTitle>Tickets by Category</CardTitle>
-              <SimpleBar label="Transcript of Records" pct={42} />
-              <SimpleBar label="Enrollment Verification" pct={28} />
-              <SimpleBar label="Certificate Request" pct={18} color="secondary.main" />
-              <SimpleBar label="Authentication" pct={8} color="secondary.main" />
-              <SimpleBar label="Others" pct={4} color="text.secondary" />
+              {categories.map((c, i) => (
+                <SimpleBar
+                  key={i}
+                  label={c.label}
+                  pct={c.pct}
+                  color={i >= 2 ? "secondary.main" : undefined}
+                />
+              ))}
             </CardContent>
           </Card>
         </Grid>
