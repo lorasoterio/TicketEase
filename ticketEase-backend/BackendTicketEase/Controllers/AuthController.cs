@@ -46,6 +46,9 @@ namespace BackendTicketEase.Controllers
             public string Email { get; set; } = string.Empty;
             public string Role { get; set; } = string.Empty;
             public string Token { get; set; } = string.Empty;
+            public string? FullName { get; set; }
+            public string? SchoolStudentId { get; set; }
+            public string? Department { get; set; }
         }
 
         [HttpPost("register/student")]
@@ -154,7 +157,33 @@ namespace BackendTicketEase.Controllers
                 return Unauthorized(new { message = "Invalid credentials." });
 
             var token = _jwtService.GenerateJwt(user);
-            return Ok(new AuthResponse { UserId = user.UserId, Email = user.Email, Role = user.Role.ToString(), Token = token });
+
+            var response = new AuthResponse
+            {
+                UserId = user.UserId,
+                Email = user.Email,
+                Role = user.Role.ToString(),
+                Token = token,
+            };
+
+            if (user.Role == UserRole.Student)
+            {
+                var student = await _context.Set<Student>()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.UserId == user.UserId);
+                response.FullName = student?.FullName;
+                response.SchoolStudentId = student?.SchoolStudentId;
+            }
+            else if (user.Role == UserRole.Staff || user.Role == UserRole.Admin || user.Role == UserRole.SuperAdmin)
+            {
+                var staff = await _context.Set<Staff>()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.UserId == user.UserId);
+                response.FullName = staff?.FullName;
+                response.Department = staff?.Department;
+            }
+
+            return Ok(response);
         }
 
         private static string HashPassword(string password)

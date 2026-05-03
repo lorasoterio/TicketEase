@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+
 import {
   AppBar,
   Toolbar,
@@ -85,10 +87,17 @@ const NOTIFICATIONS = [
 const ACCENT = "#1a56e8";
 const ACCENT_LIGHT = "#eef3fd";
 
-export default function UserNavbar({
-  user = { name: "Juan Santos", initials: "JS", dept: "IT Department" },
-}) {
+export default function UserNavbar() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+
+  const fullName = profile?.fullName || "Student";
+  const initials = fullName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [notifAnchor, setNotifAnchor] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -286,25 +295,18 @@ export default function UserNavbar({
                 borderRadius: "8px",
               }}
             >
-              {user.initials}
+              {initials}
             </Avatar>
-            <Box>
-              <Typography
-                sx={{
-                  fontSize: 13,
-                  fontWeight: 500,
-                  lineHeight: 1.2,
-                  fontFamily: "'DM Sans', sans-serif",
-                }}
-              >
-                {user.name}
-              </Typography>
-              <Typography
-                sx={{ fontSize: 11, color: "text.disabled", lineHeight: 1.2 }}
-              >
-                {user.dept}
-              </Typography>
-            </Box>
+            <Typography
+              sx={{
+                fontSize: 13,
+                fontWeight: 500,
+                lineHeight: 1.2,
+                fontFamily: "'DM Sans', sans-serif",
+              }}
+            >
+              {fullName}
+            </Typography>
           </Box>
 
           {/* Avatar only (mobile) */}
@@ -323,7 +325,7 @@ export default function UserNavbar({
               ml: 0.5,
             }}
           >
-            {user.initials}
+            {initials}
           </Avatar>
 
           {/* Hamburger (mobile only) */}
@@ -450,15 +452,12 @@ export default function UserNavbar({
           }}
         >
           <Typography sx={{ fontSize: 13.5, fontWeight: 600 }}>
-            {user.name}
-          </Typography>
-          <Typography sx={{ fontSize: 12, color: "text.disabled" }}>
-            {user.dept}
+            {fullName}
           </Typography>
         </Box>
         <MenuItem
           onClick={() => {
-            navigate("/profile");
+            navigate("/user/profile");
             setProfileAnchor(null);
           }}
           sx={{ gap: 1.25, py: 1.125, fontSize: 13.5 }}
@@ -555,7 +554,7 @@ export default function UserNavbar({
 
       {/* Profile actions */}
       <List sx={{ px: 1 }}>
-        <ListItemButton sx={{ borderRadius: "8px", mb: 0.25 }} onClick={() => { navigate("/profile"); setMobileOpen(false); }}>
+        <ListItemButton sx={{ borderRadius: "8px", mb: 0.25 }} onClick={() => { navigate("/user/profile"); setMobileOpen(false); }}>
           <ListItemIcon sx={{ minWidth: 36 }}><ProfileIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14 }}>View profile</ListItemText>
         </ListItemButton>

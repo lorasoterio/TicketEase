@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-//import { useAuth } from "../../context/useAuth";
+import { useAuth } from "../../context/useAuth";
+import client from "../../api/client";
 
 export default function useDashboard() {
-  // const { user } = useAuth();
+  const { user } = useAuth();
 
-//  const [tickets, setTickets] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
 
   useEffect(() => {
     if (!user) return;
@@ -16,19 +16,14 @@ export default function useDashboard() {
       setLoading(true);
       setError("");
 
-      /*const { data, error } = await supabase
-        .from("tickets")
-        .select("id, ticket_number, subject, status, submitted_at")
-        .eq("student_id", user.id)
-        .order("submitted_at", { ascending: false });
-
-      if (error) {
-        setError(error.message);
-      } else {
+      try {
+        const { data } = await client.get("/tickets");
         setTickets(data);
-      }*/
-
-      setLoading(false);
+      } catch (err) {
+        setError(err.response?.data?.message ?? err.message ?? "Failed to load tickets.");
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchDashboardData();
@@ -37,17 +32,17 @@ export default function useDashboard() {
   /* ---------- STAT COUNTS ---------- */
   const stats = {
     total:       tickets.length,
-    in_progress: tickets.filter((t) => t.status === "in_progress").length,
-    completed:   tickets.filter((t) => t.status === "resolved" || t.status === "closed").length,
-    pending:     tickets.filter((t) => t.status === "open").length,
+    in_progress: tickets.filter((t) => t.status === "InProgress" || t.status === "Assigned").length,
+    completed:   tickets.filter((t) => t.status === "Completed" || t.status === "Closed").length,
+    pending:     tickets.filter((t) => t.status === "Pending" || t.status === "Open").length,
   };
 
   /* ---------- RECENT TICKETS (last 3) ---------- */
   const recentTickets = tickets.slice(0, 3).map((t) => ({
-    id:      t.ticket_number,
+    id:      t.referenceNumber,
     subject: t.subject,
     status:  formatStatus(t.status),
-    date:    formatDate(t.submitted_at),
+    date:    formatDate(t.createdAt),
   }));
 
   return {
@@ -61,11 +56,15 @@ export default function useDashboard() {
 /* ---------- HELPERS ---------- */
 function formatStatus(status) {
   const map = {
-    open:        "Pending",
-    in_progress: "In progress",
-    resolved:    "Completed",
-    rejected:    "Rejected",
-    closed:      "Completed",
+    Pending:          "Pending",
+    Open:             "Pending",
+    Assigned:         "In progress",
+    InProgress:       "In progress",
+    Responded:        "In progress",
+    ReadyForPickup:   "Ready for pickup",
+    Completed:        "Completed",
+    Closed:           "Completed",
+    Rejected:         "Rejected",
   };
   return map[status] ?? status;
 }

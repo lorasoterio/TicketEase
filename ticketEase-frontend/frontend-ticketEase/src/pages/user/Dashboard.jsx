@@ -22,7 +22,7 @@ export default function StudentDashboard() {
   const { loading, error, stats, recentTickets } = useDashboard();
 
   const initials =
-    profile?.full_name
+    profile?.fullName
       ?.split(" ")
       .map((n) => n[0])
       .join("")
@@ -70,13 +70,13 @@ export default function StudentDashboard() {
               Student Dashboard
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              {profile?.full_name || "Student"} — {profile?.student_id || ""}
+              {profile?.fullName || "Student"} — {profile?.schoolStudentId || ""}
             </Typography>
           </Box>
           <Button
             variant="outlined"
             size="small"
-            onClick={() => navigate("/request-ticket")}
+            onClick={() => navigate("/user/request-ticket")}
             sx={{
               ml: "auto !important",
               fontFamily: "'Source Serif 4', serif",
