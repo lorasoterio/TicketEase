@@ -18,8 +18,6 @@ const IN_PROGRESS_STATUSES = new Set([
   "InProgress",
   "ReadyForPickup",
   "Responded",
-  "Completed",
-  "Closed",
 ]);
 
 const COMPLETED_STATUSES = new Set(["Completed", "Closed"]);
