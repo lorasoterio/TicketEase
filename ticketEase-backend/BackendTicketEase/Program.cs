@@ -20,6 +20,7 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<GenerateRefNumber>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
 builder.Services.AddScoped<IDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
@@ -38,6 +39,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = issuer,
             ValidAudience = audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
+        };
+        options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                var logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILogger<Program>>();
+                logger.LogWarning(
+                    "[JWT] Authentication failed for {Method} {Path} — {Error}",
+                    context.Request.Method,
+                    context.Request.Path,
+                    context.Exception.Message);
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                var logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILogger<Program>>();
+                logger.LogWarning(
+                    "[JWT] 401 Challenge issued for {Method} {Path} — ErrorDescription: {Desc}",
+                    context.Request.Method,
+                    context.Request.Path,
+                    context.ErrorDescription ?? "none");
+                return Task.CompletedTask;
+            }
         };
     });
 

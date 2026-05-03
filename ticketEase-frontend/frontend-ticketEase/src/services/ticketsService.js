@@ -21,7 +21,7 @@ export const submitTicket = async (ticketData) => {
  */
 export const getTicketsByUser = async (userId) => {
   try {
-    const response = await client.get(`/tickets?userId=${userId}`);
+    const response = await client.get(`/tickets?studentId=${userId}`);
     return { data: response.data, error: null };
   } catch (error) {
     return { data: null, error: error.response?.data || error.message };

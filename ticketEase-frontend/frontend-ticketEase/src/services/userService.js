@@ -14,3 +14,13 @@ export const getAllUsers = async () => {
   const response = await client.get("/user");
   return response.data;
 };
+
+export const verifyStudent = async (studentId) => {
+  const response = await client.patch(`/student/${studentId}/verify`);
+  return response.data;
+};
+
+export const unverifyStudent = async (studentId) => {
+  const response = await client.patch(`/student/${studentId}/unverify`);
+  return response.data;
+};

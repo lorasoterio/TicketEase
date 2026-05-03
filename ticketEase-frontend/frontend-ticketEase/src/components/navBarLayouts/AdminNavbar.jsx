@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useAuth } from "../../context/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   AppBar,
@@ -33,6 +34,8 @@ import {
   LogoutOutlined as LogoutIcon,
   MenuOutlined as HamburgerIcon,
   PeopleOutlined as UsersIcon,
+  VerifiedUserOutlined as VerifyIcon,
+  HistoryOutlined as AuditIcon,
 } from "@mui/icons-material";
 
 const NAV_LINKS = [
@@ -40,7 +43,9 @@ const NAV_LINKS = [
   { to: "/admin/queue",        label: "Ticket Queue",  icon: <QueueIcon fontSize="small" />,      badge: 5, badgeSeverity: "error" },
   { to: "/admin/tickets",  label: "All Tickets",   icon: <AllTicketsIcon fontSize="small" /> },
   { to: "/admin/reports",      label: "Reports",       icon: <ReportIcon fontSize="small" /> },
-  { to: "/admin/manage-users",        label: "Manage Users",  icon: <UsersIcon fontSize="small" /> },
+  { to: "/admin/manage-users",        label: "Manage Users",    icon: <UsersIcon fontSize="small" /> },
+  { to: "/admin/verify-students",     label: "Verify Students", icon: <VerifyIcon fontSize="small" /> },
+  { to: "/admin/audit-logs",          label: "Audit Logs",      icon: <AuditIcon fontSize="small" /> },
 ];
 
 const NOTIFICATIONS = [
@@ -55,13 +60,27 @@ const ACCENT       = "#0a6d47";
 const ACCENT_LIGHT = "#ecfdf5";
 const ACCENT_MID   = "#d1fae5";
 
-export default function AdminNavbar({
-  user = { name: "Ms. Aquino", initials: "MA", dept: "Registrar's Office" },
-}) {
+export default function AdminNavbar() {
   const navigate = useNavigate();
+  const { profile } = useAuth();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [notifAnchor,   setNotifAnchor]   = useState(null);
   const [mobileOpen,   setMobileOpen]    = useState(false);
+
+  const user = useMemo(() => {
+    const fullName = profile?.fullName ?? "";
+    const initials = fullName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join("") || "?";
+    return {
+      name: fullName || "Unknown",
+      initials,
+      dept: profile?.department ?? "",
+    };
+  }, [profile]);
 
   const unread = NOTIFICATIONS.filter((n) => n.unread).length;
 
@@ -347,7 +366,7 @@ export default function AdminNavbar({
           <ListItemText primaryTypographyProps={{ fontSize: 13.5 }}>Settings</ListItemText>
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={() => { navigate("/logout"); setProfileAnchor(null); }} sx={{ py: 1.125, color: "error.main" }}>
+        <MenuItem onClick={() => { navigate("/login"); setProfileAnchor(null); }} sx={{ py: 1.125, color: "error.main" }}>
           <ListItemIcon sx={{ minWidth: "auto", mr: 1.25 }}><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 13.5, color: "error.main" }}>Sign out</ListItemText>
         </MenuItem>
@@ -411,7 +430,7 @@ export default function AdminNavbar({
           <ListItemIcon sx={{ minWidth: 36 }}><SettingsIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14 }}>Settings</ListItemText>
         </ListItemButton>
-        <ListItemButton sx={{ borderRadius: "8px", color: "error.main" }} onClick={() => { navigate("/logout"); setMobileOpen(false); }}>
+        <ListItemButton sx={{ borderRadius: "8px", color: "error.main" }} onClick={() => { navigate("/login"); setMobileOpen(false); }}>
           <ListItemIcon sx={{ minWidth: 36 }}><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14, color: "error.main" }}>Sign out</ListItemText>
         </ListItemButton>

@@ -23,6 +23,9 @@ import AdminTicketQueue from "../pages/admin/TicketQueue";
 import Tickets from "../pages/admin/AllTickets";
 import AdminReports from "../pages/admin/Reports";
 import AdminSettings from "../pages/admin/Settings";
+import VerifyStudents from "../pages/admin/VerifyStudents";
+import AdminProfile from "../pages/admin/AdminProfile";
+import AuditLogs from "../pages/admin/AuditLogs";
 
 // SuperAdmin pages
 import SuperAdminDashboard from "../pages/superadmin/Dashboard";
@@ -56,6 +59,9 @@ export default function AppRoutes() {
         <Route path="/admin/manage-users" element={<AdminManageUsers />} />
         <Route path="/admin/reports" element={<AdminReports />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
+        <Route path="/admin/verify-students" element={<VerifyStudents />} />
+        <Route path="/admin/profile" element={<AdminProfile />} />
+        <Route path="/admin/audit-logs" element={<AuditLogs />} />
       </Route>
 
       {/* SuperAdmin routes — wrapped in SuperAdminLayout */}
