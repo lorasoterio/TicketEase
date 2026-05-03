@@ -2,15 +2,15 @@ import { useState, useEffect, useMemo } from "react";
 import client from "../../api/client";
 
 const STATUS_LABEL = {
+  Open: "Pending",
   Pending: "Pending",
-  Assigned: "Assigned",
-  InProgress: "In Progress",
-  ReadyForPickup: "Ready for Pickup",
+  Assigned: "In progress",
+  InProgress: "In progress",
+  ReadyForPickup: "In progress",
+  Responded: "In progress",
   Completed: "Completed",
+  Closed: "Completed",
   Rejected: "Rejected",
-  Open: "Open",
-  Responded: "Responded",
-  Closed: "Closed",
 };
 
 const IN_PROGRESS_STATUSES = new Set([
