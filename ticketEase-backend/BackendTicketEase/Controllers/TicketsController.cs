@@ -151,5 +151,110 @@ namespace BackendTicketEase.Controllers
 
             return NoContent();
         }
+
+        // GET: api/tickets/{id}/messages
+        [HttpGet("{id}/messages")]
+        [Authorize]
+        public async Task<ActionResult> GetTicketMessages(int id)
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+            var isStudent = string.IsNullOrEmpty(roleClaim) ||
+                            string.Equals(roleClaim, nameof(UserRole.Student), StringComparison.OrdinalIgnoreCase);
+
+            var ticket = await _context.Tickets.AsNoTracking()
+                .FirstOrDefaultAsync(t => t.TicketId == id);
+            if (ticket == null) return NotFound();
+
+            if (isStudent && ticket.StudentId != userId)
+                return Forbid();
+
+            var query = _context.TicketMessages
+                .AsNoTracking()
+                .Where(m => m.TicketId == id);
+
+            if (isStudent)
+                query = query.Where(m => !m.IsInternal);
+
+            var messages = await query
+                .OrderBy(m => m.CreatedAt)
+                .Select(m => new
+                {
+                    m.MessageId,
+                    m.TicketId,
+                    m.SenderId,
+                    m.Message,
+                    m.IsInternal,
+                    m.CreatedAt,
+                    SenderName = _context.Students
+                        .Where(s => s.UserId == m.SenderId)
+                        .Select(s => s.FullName)
+                        .FirstOrDefault() ??
+                        _context.Staffs
+                        .Where(s => s.UserId == m.SenderId)
+                        .Select(s => s.FullName)
+                        .FirstOrDefault() ?? "Unknown",
+                    SenderRole = _context.Users
+                        .Where(u => u.UserId == m.SenderId)
+                        .Select(u => u.Role.ToString())
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            return Ok(messages);
+        }
+
+        // POST: api/tickets/{id}/messages
+        [HttpPost("{id}/messages")]
+        [Authorize]
+        public async Task<ActionResult> PostTicketMessage(int id, [FromBody] TicketMessageRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Message))
+                return BadRequest(new { error = "Message cannot be empty." });
+
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var ticket = await _context.Tickets.FindAsync(id);
+            if (ticket == null) return NotFound();
+
+            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+            var isStudent = string.IsNullOrEmpty(roleClaim) ||
+                            string.Equals(roleClaim, nameof(UserRole.Student), StringComparison.OrdinalIgnoreCase);
+
+            if (isStudent && ticket.StudentId != userId)
+                return Forbid();
+
+            var message = new TicketMessage
+            {
+                TicketId = id,
+                SenderId = userId,
+                Message = request.Message,
+                IsInternal = false,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            await _context.TicketMessages.AddAsync(message);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message.MessageId,
+                message.TicketId,
+                message.SenderId,
+                message.Message,
+                message.IsInternal,
+                message.CreatedAt,
+            });
+        }
+    }
+
+    public class TicketMessageRequest
+    {
+        public string Message { get; set; } = "";
     }
 }

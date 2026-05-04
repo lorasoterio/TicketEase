@@ -1,4 +1,5 @@
 using BackendTicketEase.Data;
+using BackendTicketEase.Configuration;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -16,10 +17,17 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configure Supabase options from appsettings
+builder.Services.Configure<SupabaseOptions>(
+    builder.Configuration.GetSection(SupabaseOptions.SectionName));
+
+builder.Services.AddScoped<ISupabaseService, SupabaseService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<GenerateRefNumber>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<ITicketMessageService, TicketMessageService>();
 
 builder.Services.AddScoped<IDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
@@ -39,6 +47,31 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
         };
+        options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                var logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILogger<Program>>();
+                logger.LogWarning(
+                    "[JWT] Authentication failed for {Method} {Path} — {Error}",
+                    context.Request.Method,
+                    context.Request.Path,
+                    context.Exception.Message);
+                return Task.CompletedTask;
+            },
+            OnChallenge = context =>
+            {
+                var logger = context.HttpContext.RequestServices
+                    .GetRequiredService<ILogger<Program>>();
+                logger.LogWarning(
+                    "[JWT] 401 Challenge issued for {Method} {Path} — ErrorDescription: {Desc}",
+                    context.Request.Method,
+                    context.Request.Path,
+                    context.ErrorDescription ?? "none");
+                return Task.CompletedTask;
+            }
+        };
     });
 
 builder.Services.AddCors(options =>
@@ -46,30 +79,40 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp", policy =>
     {
         policy.WithOrigins(
-            "http://localhost:5173", // React app
+            "http://localhost:5173",
             "http://localhost:5096",
-            "https://localhost:7156"// Swagger UI
+            "https://localhost:7156",
+            "https://ticketeaseapp.azurewebsites.net"
         )
         .AllowAnyHeader()
         .AllowAnyMethod();
     });
 });
 
-
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+// Validate Supabase configuration on startup
+using (var scope = app.Services.CreateScope())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
+    var supabaseService = scope.ServiceProvider.GetRequiredService<ISupabaseService>();
+    try
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TicketEase API V1");
-    });
+        supabaseService.ValidateConfiguration();
+    }
+    catch (InvalidOperationException ex)
+    {
+        app.Logger.LogWarning("Supabase configuration validation warning: {Message}", ex.Message);
+    }
 }
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TicketEase API V1");
+});
 
 app.UseCors("AllowReactApp");
 
@@ -91,8 +134,6 @@ app.Use(async (context, next) =>
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-
 
 app.MapControllers();
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, TextField, FormControl, Select, MenuItem, Button, Card, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Stack, Chip } from "@mui/material";
+import { Box, TextField, FormControl, Select, MenuItem, Button, Card, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Stack, Chip, InputLabel, Snackbar } from "@mui/material";
 import GoldLine from "../../components/adminuis/Goldline";
 import StatusChip from "../../components/adminuis/StatusChip";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -7,6 +7,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import useAllTickets from "../../hooks/admin/useAllTickets";
 
 const STATUS_OPTIONS = ["Assigned", "In Progress", "Responded", "Ready for Pickup", "Completed", "Rejected", "Closed"];
+const UPDATE_STATUS_OPTIONS = STATUS_OPTIONS.filter((s) => s !== "Ready for Pickup");
 
 export default function Tickets() {
   const {
@@ -22,9 +23,44 @@ export default function Tickets() {
     setPage,
     totalPages,
     total,
+    refetch,
+    updateStatus,
   } = useAllTickets();
 
   const [viewTicket, setViewTicket] = useState(null);
+  const [updateTicket, setUpdateTicket] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [dateOfPickup, setDateOfPickup] = useState("");
+  const [updating, setUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState(null);
+  const [snackbar, setSnackbar] = useState("");
+
+  const handleOpenUpdate = (raw) => {
+    setUpdateTicket(raw);
+    setSelectedStatus(raw.status ?? "");
+    setDateOfPickup(
+      raw.estimatedCompletion
+        ? new Date(raw.estimatedCompletion).toISOString().split("T")[0]
+        : ""
+    );
+    setUpdateError(null);
+  };
+
+  const handleConfirmUpdate = async () => {
+    if (!updateTicket || !selectedStatus) return;
+    setUpdating(true);
+    setUpdateError(null);
+    const { error: err } = await updateStatus(updateTicket, selectedStatus, dateOfPickup || null);
+    setUpdating(false);
+    if (err) {
+      setUpdateError(typeof err === "string" ? err : "Failed to update status.");
+    } else {
+      setUpdateTicket(null);
+      setDateOfPickup("");
+      setSnackbar("Status updated successfully.");
+      refetch();
+    }
+  };
 
   return (
     <Box>
@@ -88,14 +124,26 @@ export default function Tickets() {
                     <TableCell>{r.date}</TableCell>
                     <TableCell><StatusChip status={r.status} /></TableCell>
                     <TableCell>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        sx={{ fontSize: 10, py: 0.3, px: 1 }}
-                        onClick={() => setViewTicket(r._raw)}
-                      >
-                        View
-                      </Button>
+                      <Box sx={{ display: "flex", gap: 0.6 }}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          sx={{ fontSize: 10, py: 0.3, px: 1 }}
+                          onClick={() => setViewTicket(r._raw)}
+                        >
+                          View
+                        </Button>
+                        {r._raw.ticketType === "DocumentRequest" && (
+                          <Button
+                            size="small"
+                            variant="contained"
+                            sx={{ fontSize: 10, py: 0.3, px: 1 }}
+                            onClick={() => handleOpenUpdate(r._raw)}
+                          >
+                            Update Status
+                          </Button>
+                        )}
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))
@@ -130,6 +178,61 @@ export default function Tickets() {
           </Button>
         </Box>
       </Box>
+
+      {/* ── Update Status Dialog (Document Request only) ── */}
+      <Dialog open={!!updateTicket} onClose={() => { setUpdateTicket(null); setDateOfPickup(""); }} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontSize: 14, fontWeight: 700 }}>Update Ticket Status</DialogTitle>
+        <Divider />
+        <DialogContent sx={{ pt: 2 }}>
+          {updateTicket && (
+            <Stack spacing={2}>
+              <Box>
+                <Typography sx={{ fontSize: 11, color: "text.secondary", mb: 0.4 }}>Ticket</Typography>
+                <Typography sx={{ fontSize: 12, fontWeight: 600 }}>{updateTicket.subject}</Typography>
+                <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{updateTicket.referenceNumber ?? `#T-${updateTicket.ticketId}`}</Typography>
+              </Box>
+              <FormControl size="small" fullWidth>
+                <InputLabel sx={{ fontSize: 12 }}>New Status</InputLabel>
+                <Select
+                  value={selectedStatus}
+                  label="New Status"
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  sx={{ fontSize: 12 }}
+                >
+                  {UPDATE_STATUS_OPTIONS.map((o) => (
+                    <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>{o}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                label="Estimated Completion"
+                type="date"
+                size="small"
+                fullWidth
+                value={dateOfPickup}
+                onChange={(e) => setDateOfPickup(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                helperText="When this date is reached, status will become Ready for Pickup"
+                FormHelperTextProps={{ sx: { fontSize: 10 } }}
+                sx={{ "& .MuiInputBase-input": { fontSize: 12 } }}
+              />
+              {updateError && <Alert severity="error" sx={{ fontSize: 12 }}>{updateError}</Alert>}
+            </Stack>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setUpdateTicket(null); setDateOfPickup(""); }} size="small" sx={{ fontSize: 12 }} disabled={updating}>Cancel</Button>
+          <Button
+            onClick={handleConfirmUpdate}
+            size="small"
+            variant="contained"
+            sx={{ fontSize: 12 }}
+            disabled={updating || !selectedStatus}
+          >
+            {updating ? <CircularProgress size={14} /> : "Confirm"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* ── View Ticket Dialog ───────────────────────── */}
       <Dialog open={!!viewTicket} onClose={() => setViewTicket(null)} maxWidth="sm" fullWidth>
@@ -177,6 +280,14 @@ export default function Tickets() {
           <Button onClick={() => setViewTicket(null)} size="small" sx={{ fontSize: 12 }}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={!!snackbar}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar("")}
+        message={snackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
     </Box>
   );
 }

@@ -21,7 +21,7 @@ export const submitTicket = async (ticketData) => {
  */
 export const getTicketsByUser = async (userId) => {
   try {
-    const response = await client.get(`/tickets?userId=${userId}`);
+    const response = await client.get(`/tickets?studentId=${userId}`);
     return { data: response.data, error: null };
   } catch (error) {
     return { data: null, error: error.response?.data || error.message };
@@ -54,6 +54,25 @@ export const assignTicket = async (ticketId, staffId, ticketData) => {
       ...ticketData,
       assignedStaffId: staffId,
       status: 'Assigned',
+    });
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: error.response?.data || error.message };
+  }
+};
+
+/**
+ * Updates the status of a ticket.
+ * @param {number} ticketId - The ID of the ticket.
+ * @param {string} newStatus - The new status to apply.
+ * @param {Object} ticketData - The full current ticket object (required for PUT).
+ * @returns {Promise<{data: Object, error: Object}>}
+ */
+export const updateTicketStatus = async (ticketId, newStatus, ticketData) => {
+  try {
+    const response = await client.put(`/tickets/${ticketId}`, {
+      ...ticketData,
+      status: newStatus,
     });
     return { data: response.data, error: null };
   } catch (error) {

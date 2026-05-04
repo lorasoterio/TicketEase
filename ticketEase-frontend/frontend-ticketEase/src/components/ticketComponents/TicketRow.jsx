@@ -1,23 +1,28 @@
-import { Box, Stack, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { Box, Stack, Typography, Button } from "@mui/material";
+import { Visibility } from "@mui/icons-material";
 import StatusChip from "./StatusChip";
 
-export default function TicketRow({ ticket }) {
-  const navigate = useNavigate();
-
+export default function TicketRow({ ticket, onView }) {
   return (
     <Box
-      onClick={() => navigate(`/tickets/${ticket.id}`)}
       sx={{
         px: 2,
         py: 1.5,
-        cursor: "pointer",
         transition: "0.15s",
         "&:hover": { bgcolor: "#f8fafc" },
       }}
     >
-      <Stack direction={{ xs: "column", sm: "row" }} spacing={{ xs: 0.5, sm: 1.5 }} alignItems={{ xs: "flex-start", sm: "center" }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ width: { xs: "100%", sm: "auto" } }}>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={{ xs: 0.5, sm: 1.5 }}
+        alignItems={{ xs: "flex-start", sm: "center" }}
+      >
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          sx={{ width: { xs: "100%", sm: "auto" }, flex: 1 }}
+        >
           <StatusChip label={ticket.status} />
 
           <Box sx={{ flex: 1 }}>
@@ -37,17 +42,32 @@ export default function TicketRow({ ticket }) {
           </Box>
         </Stack>
 
-        <Typography
-          sx={{
-            fontSize: "11px",
-            color: "text.secondary",
-            fontFamily: "'Source Serif 4', serif",
-            ml: { xs: 0, sm: "auto" },
-            flexShrink: 0,
-          }}
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          sx={{ flexShrink: 0, ml: { xs: 0, sm: "auto" } }}
         >
-          {ticket.id}
-        </Typography>
+          <Typography
+            sx={{
+              fontSize: "11px",
+              color: "text.secondary",
+              fontFamily: "'Source Serif 4', serif",
+            }}
+          >
+            {ticket.id}
+          </Typography>
+
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<Visibility sx={{ fontSize: 14 }} />}
+            onClick={() => onView?.(ticket)}
+            sx={{ fontSize: "11px", py: 0.3, px: 1, minWidth: 0 }}
+          >
+            View
+          </Button>
+        </Stack>
       </Stack>
     </Box>
   );

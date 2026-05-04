@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { getAllTickets } from "../../services/ticketsService";
+import { getAllTickets, updateTicketStatus } from "../../services/ticketsService";
 import { getAllStudents } from "../../services/userService";
+
+// Maps UI display labels → exact backend enum names
+const STATUS_API_MAP = {
+  "In Progress": "InProgress",
+  "Ready for Pickup": "ReadyForPickup",
+};
 
 const PAGE_SIZE = 7;
 
@@ -84,7 +90,8 @@ export default function useAllTickets() {
       })
       .filter((t) => {
         if (!statusFilter) return true;
-        return (t.status ?? "").toLowerCase() === statusFilter.toLowerCase();
+        const apiStatus = STATUS_API_MAP[statusFilter] || statusFilter;
+        return (t.status ?? "").toLowerCase() === apiStatus.toLowerCase();
       });
   }, [rawTickets, studentMap, search, statusFilter]);
 
@@ -101,6 +108,15 @@ export default function useAllTickets() {
     _raw: t,
   }));
 
+  const updateStatus = useCallback(async (rawTicket, newStatus, pickupDate = null) => {
+    const apiStatus = STATUS_API_MAP[newStatus] || newStatus;
+    const ticketData = {
+      ...rawTicket,
+      estimatedCompletion: pickupDate ? new Date(pickupDate).toISOString() : null,
+    };
+    return updateTicketStatus(rawTicket.ticketId, apiStatus, ticketData);
+  }, []);
+
   return {
     rows,
     studentMap,
@@ -115,5 +131,6 @@ export default function useAllTickets() {
     totalPages,
     total: filtered.length,
     refetch: fetchData,
+    updateStatus,
   };
 }

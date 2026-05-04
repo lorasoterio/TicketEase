@@ -19,6 +19,7 @@ import { useState } from "react";
 import useMyTickets from "../../hooks/user/useMyTickets";
 import TicketRow from "../../components/ticketComponents/TicketRow";
 import TicketRequestForm from "../../components/ticketComponents/TicketRequestForm";
+import TicketDetailModal from "../../components/ticketComponents/TicketDetailModal";
 
 /* same dashboard theme */
 const theme = createTheme({
@@ -32,15 +33,18 @@ const theme = createTheme({
 
 export default function MyTickets() {
   const [showForm, setShowForm] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   const {
     tickets,
     status,
+    ticketType,
     search,
     page,
     setPage,
     pageCount,
     handleSetStatus,
+    handleSetTicketType,
     handleSetSearch,
     refetch,
   } = useMyTickets();
@@ -84,8 +88,22 @@ export default function MyTickets() {
             <TextField
               select
               size="small"
+              value={ticketType}
+              onChange={(e) => handleSetTicketType(e.target.value)}
+              label="Type"
+              sx={{ minWidth: { xs: "100%", sm: 160 } }}
+            >
+              <MenuItem value="All">All Types</MenuItem>
+              <MenuItem value="Document Request">Document Request</MenuItem>
+              <MenuItem value="Inquiry">Inquiry</MenuItem>
+            </TextField>
+
+            <TextField
+              select
+              size="small"
               value={status}
               onChange={(e) => handleSetStatus(e.target.value)}
+              label="Status"
               sx={{ minWidth: { xs: "100%", sm: 160 } }}
             >
               <MenuItem value="All">All Status</MenuItem>
@@ -101,7 +119,7 @@ export default function MyTickets() {
         <Paper sx={{ overflow: "hidden" }}>
           {tickets.map((t, i) => (
             <Box key={t.id}>
-              <TicketRow ticket={t} />
+              <TicketRow ticket={t} onView={setSelectedTicket} />
               {i < tickets.length - 1 && <Divider />}
             </Box>
           ))}
@@ -124,6 +142,12 @@ export default function MyTickets() {
           />
         </Stack>
       </Box>
+
+      {/* Ticket Detail Modal */}
+      <TicketDetailModal
+        ticket={selectedTicket}
+        onClose={() => setSelectedTicket(null)}
+      />
     </ThemeProvider>
   );
 }

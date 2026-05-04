@@ -12,6 +12,7 @@ export default function useMyTickets() {
   const refetch = () => setFetchTrigger((n) => n + 1);
 
   const [status, setStatus] = useState("All");
+  const [ticketType, setTicketType] = useState("All");
   const [search, setSearch] = useState("");
   const [page, setPage]     = useState(1);
 
@@ -49,19 +50,21 @@ export default function useMyTickets() {
   }, [user, fetchTrigger]);
 
   /* ---------- HANDLERS ---------- */
-  const handleSetStatus = (val) => { setStatus(val); setPage(1); };
-  const handleSetSearch = (val) => { setSearch(val);  setPage(1); };
+  const handleSetStatus     = (val) => { setStatus(val);     setPage(1); };
+  const handleSetTicketType = (val) => { setTicketType(val); setPage(1); };
+  const handleSetSearch     = (val) => { setSearch(val);     setPage(1); };
 
   /* ---------- FILTER ---------- */
   const filteredTickets = useMemo(() => {
     return allTickets.filter((t) => {
       const statusMatch = status === "All" || t.status === status;
+      const typeMatch   = ticketType === "All" || t.type === ticketType;
       const searchMatch =
         t.subject.toLowerCase().includes(search.toLowerCase()) ||
         t.id.toLowerCase().includes(search.toLowerCase());
-      return statusMatch && searchMatch;
+      return statusMatch && typeMatch && searchMatch;
     });
-  }, [allTickets, status, search]);
+  }, [allTickets, status, ticketType, search]);
 
   /* ---------- PAGINATION ---------- */
   const pageCount = Math.ceil(filteredTickets.length / PER_PAGE);
@@ -75,12 +78,14 @@ export default function useMyTickets() {
     loading,
     fetchError,
     status,
+    ticketType,
     search,
     page,
     setPage,
     pageCount,
     total: filteredTickets.length,
     handleSetStatus,
+    handleSetTicketType,
     handleSetSearch,
     refetch,
   };

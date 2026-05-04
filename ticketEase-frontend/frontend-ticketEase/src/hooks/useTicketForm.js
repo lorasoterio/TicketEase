@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/useAuth";
 import { submitTicket } from "../services/ticketsService";
 import { getStudentByUserId } from "../services/studentService";
+import { createAuditLog } from "../services/auditLogService";
 
 /**
  * useTicketForm — A reusable custom hook for any ticket submission form.
@@ -72,6 +73,14 @@ export function useTicketForm(initialFields, validateFn, onSuccess) {
     if (error) { setErrors({ submit: "Failed to submit. Please try again." }); return; }
     setTicketNumber(data.referenceNumber);
     setSubmitted(true);
+    createAuditLog({
+      userId: user?.userId ?? null,
+      actionType: "TICKET_SUBMITTED",
+      entityType: "Ticket",
+      entityId: data.ticketId ?? null,
+      oldValues: null,
+      newValues: { referenceNumber: data.referenceNumber, ticketType: form.ticketType, subject: form.subject },
+    });
     if (typeof onSuccess === "function") onSuccess();
   };
   /**
