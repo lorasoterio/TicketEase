@@ -1,15 +1,19 @@
-import React, { useState } from "react";
-import { Box, TextField, FormControl, Select, MenuItem, Button, Card, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Stack, Chip, InputLabel, Snackbar } from "@mui/material";
+import React, { useState, useRef, useEffect, useContext } from "react";
+import { Box, TextField, FormControl, Select, MenuItem, Button, Card, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Stack, Chip, InputLabel, Snackbar, IconButton } from "@mui/material";
 import GoldLine from "../../components/adminuis/Goldline";
 import StatusChip from "../../components/adminuis/StatusChip";
+import { AuthContext } from "../../context/AuthContext";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
+import Send from "@mui/icons-material/Send";
 import useAllTickets from "../../hooks/admin/useAllTickets";
+import useAdminTicketMessages from "../../hooks/admin/useAdminTicketMessages";
 
 const STATUS_OPTIONS = ["Assigned", "In Progress", "Responded", "Ready for Pickup", "Completed", "Rejected", "Closed"];
 const UPDATE_STATUS_OPTIONS = STATUS_OPTIONS.filter((s) => s !== "Ready for Pickup");
 
 export default function Tickets() {
+  const { user } = useContext(AuthContext);
   const {
     rows,
     studentMap,
@@ -34,6 +38,29 @@ export default function Tickets() {
   const [updating, setUpdating] = useState(false);
   const [updateError, setUpdateError] = useState(null);
   const [snackbar, setSnackbar] = useState("");
+
+  // ── View dialog: threaded messages (Inquiry tickets) ──
+  const { messages, loading: msgLoading, sending, error: msgError, sendMessage } =
+    useAdminTicketMessages(viewTicket?.ticketId ?? null);
+  const [draft, setDraft] = useState("");
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+    if (bottomRef.current && messages.length > 0) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (!viewTicket) setDraft("");
+  }, [viewTicket]);
+
+  const handleSendMessage = async () => {
+    const text = draft.trim();
+    if (!text) return;
+    setDraft("");
+    await sendMessage(text);
+  };
 
   const handleOpenUpdate = (raw) => {
     setUpdateTicket(raw);
@@ -133,16 +160,14 @@ export default function Tickets() {
                         >
                           View
                         </Button>
-                        {r._raw.ticketType === "DocumentRequest" && (
-                          <Button
-                            size="small"
-                            variant="contained"
-                            sx={{ fontSize: 10, py: 0.3, px: 1 }}
-                            onClick={() => handleOpenUpdate(r._raw)}
-                          >
-                            Update Status
-                          </Button>
-                        )}
+                        <Button
+                          size="small"
+                          variant="contained"
+                          sx={{ fontSize: 10, py: 0.3, px: 1 }}
+                          onClick={() => handleOpenUpdate(r._raw)}
+                        >
+                          Update Status
+                        </Button>
                       </Box>
                     </TableCell>
                   </TableRow>
@@ -238,42 +263,121 @@ export default function Tickets() {
       <Dialog open={!!viewTicket} onClose={() => setViewTicket(null)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontSize: 14, fontWeight: 700 }}>Ticket Details</DialogTitle>
         <Divider />
-        <DialogContent sx={{ pt: 2 }}>
+        <DialogContent sx={{ p: 0, display: "flex", flexDirection: "column" }}>
           {viewTicket && (
-            <Stack spacing={1.5}>
-              <DetailRow label="Reference #" value={viewTicket.referenceNumber ?? `#T-${viewTicket.ticketId}`} />
-              <DetailRow label="Subject" value={viewTicket.subject || "—"} />
-              <DetailRow label="Type" value={viewTicket.ticketType === "DocumentRequest" ? "Document Request" : (viewTicket.ticketType ?? "—")} />
-              <DetailRow
-                label="Priority"
-                value={
-                  <Chip
-                    label={viewTicket.priority === "High" ? "Urgent" : (viewTicket.priority ?? "Normal")}
-                    size="small"
-                    color={viewTicket.priority === "High" ? "error" : "default"}
-                    sx={{ fontSize: 11 }}
+            <>
+              <Box sx={{ px: 2.5, pt: 2, pb: 1.5 }}>
+                <Stack spacing={1.5}>
+                  <DetailRow label="Reference #" value={viewTicket.referenceNumber ?? `#T-${viewTicket.ticketId}`} />
+                  <DetailRow label="Subject" value={viewTicket.subject || "—"} />
+                  <DetailRow label="Type" value={viewTicket.ticketType === "DocumentRequest" ? "Document Request" : (viewTicket.ticketType ?? "—")} />
+                  <DetailRow
+                    label="Priority"
+                    value={
+                      <Chip
+                        label={viewTicket.priority === "High" ? "Urgent" : (viewTicket.priority ?? "Normal")}
+                        size="small"
+                        color={viewTicket.priority === "High" ? "error" : "default"}
+                        sx={{ fontSize: 11 }}
+                      />
+                    }
                   />
-                }
-              />
-              <DetailRow label="Status" value={<StatusChip status={viewTicket.status} />} />
-              <DetailRow label="Requestor" value={studentMap[viewTicket.studentId] ?? "—"} />
-              <DetailRow
-                label="Date Submitted"
-                value={new Date(viewTicket.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-              />
-              {viewTicket.estimatedCompletion && (
-                <DetailRow
-                  label="Est. Completion"
-                  value={new Date(viewTicket.estimatedCompletion).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                />
+                  <DetailRow label="Status" value={<StatusChip status={viewTicket.status} />} />
+                  <DetailRow label="Requestor" value={studentMap[viewTicket.studentId] ?? "—"} />
+                  <DetailRow
+                    label="Date Submitted"
+                    value={new Date(viewTicket.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                  />
+                  {viewTicket.estimatedCompletion && (
+                    <DetailRow
+                      label="Est. Completion"
+                      value={new Date(viewTicket.estimatedCompletion).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                    />
+                  )}
+                  {viewTicket.description && (
+                    <Box>
+                      <Typography sx={{ fontSize: 11, color: "text.secondary", mb: 0.4 }}>Description</Typography>
+                      <Typography sx={{ fontSize: 12 }}>{viewTicket.description}</Typography>
+                    </Box>
+                  )}
+                </Stack>
+              </Box>
+
+              {/* ── Message thread (Inquiry tickets only) ── */}
+              {viewTicket.ticketType === "Inquiry" && (
+                <>
+                  <Divider />
+                  <Box sx={{ px: 2, pt: 1.5, pb: 0.5 }}>
+                    <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.secondary", letterSpacing: 0.5 }}>
+                      MESSAGE THREAD
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      px: 2,
+                      py: 1,
+                      overflowY: "auto",
+                      maxHeight: 260,
+                      minHeight: 100,
+                    }}
+                  >
+                    {msgLoading && (
+                      <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                        <CircularProgress size={20} />
+                      </Box>
+                    )}
+                    {msgError && (
+                      <Alert severity="error" sx={{ fontSize: 11, mb: 1 }}>{msgError}</Alert>
+                    )}
+                    {!msgLoading && messages.length === 0 && !msgError && (
+                      <Typography sx={{ fontSize: 12, color: "text.secondary", textAlign: "center", mt: 2 }}>
+                        No messages yet. Start the conversation below.
+                      </Typography>
+                    )}
+                    {messages.map((m) => (
+                      <AdminMessageBubble key={m.messageId} msg={m} currentUserId={user?.userId} />
+                    ))}
+                    <div ref={bottomRef} />
+                  </Box>
+                  <Divider />
+                  <Stack direction="row" spacing={1} sx={{ p: 1.5, alignItems: "flex-end" }}>
+                    <TextField
+                      multiline
+                      maxRows={4}
+                      size="small"
+                      fullWidth
+                      placeholder="Type a response…"
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      disabled={sending}
+                      sx={{ "& .MuiInputBase-input": { fontSize: 12 } }}
+                    />
+                    <IconButton
+                      onClick={handleSendMessage}
+                      disabled={sending || !draft.trim()}
+                      sx={{
+                        bgcolor: "#1a3a5c",
+                        color: "#fff",
+                        "&:hover": { bgcolor: "#16324f" },
+                        "&.Mui-disabled": { bgcolor: "#ccc", color: "#fff" },
+                      }}
+                    >
+                      {sending ? (
+                        <CircularProgress size={18} sx={{ color: "#fff" }} />
+                      ) : (
+                        <Send fontSize="small" />
+                      )}
+                    </IconButton>
+                  </Stack>
+                </>
               )}
-              {viewTicket.description && (
-                <Box>
-                  <Typography sx={{ fontSize: 11, color: "text.secondary", mb: 0.4 }}>Description</Typography>
-                  <Typography sx={{ fontSize: 12 }}>{viewTicket.description}</Typography>
-                </Box>
-              )}
-            </Stack>
+            </>
           )}
         </DialogContent>
         <DialogActions>
@@ -298,5 +402,33 @@ function DetailRow({ label, value }) {
       <Typography sx={{ fontSize: 11, color: "text.secondary", minWidth: 110 }}>{label}</Typography>
       <Typography sx={{ fontSize: 12, fontWeight: 500 }} component="div">{value}</Typography>
     </Box>
+  );
+}
+
+function AdminMessageBubble({ msg, currentUserId }) {
+  const isMine = msg.senderId === currentUserId;
+  const time = msg.createdAt
+    ? new Date(msg.createdAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })
+    : "";
+  return (
+    <Stack direction="column" alignItems={isMine ? "flex-end" : "flex-start"} sx={{ mb: 1.5 }}>
+      <Typography sx={{ fontSize: 10, color: "text.secondary", mb: 0.3, px: 0.5 }}>
+        {isMine ? "You" : msg.senderName ?? "Unknown"} · {time}
+      </Typography>
+      <Box
+        sx={{
+          maxWidth: "75%",
+          px: 1.5,
+          py: 1,
+          borderRadius: isMine ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+          bgcolor: isMine ? "#1a3a5c" : "#f0f4f8",
+          color: isMine ? "#fff" : "text.primary",
+        }}
+      >
+        <Typography sx={{ fontSize: 12, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+          {msg.message}
+        </Typography>
+      </Box>
+    </Stack>
   );
 }

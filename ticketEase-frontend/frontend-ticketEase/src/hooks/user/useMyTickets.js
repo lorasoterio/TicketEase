@@ -20,6 +20,7 @@ export default function useMyTickets() {
 
   /* ---------- FETCH FROM BACKEND ---------- */
   useEffect(() => {
+    console.log("[useMyTickets] Current user ID:", user?.userId ?? "not logged in");
     if (!user?.userId) return;
 
     const fetchTickets = async () => {

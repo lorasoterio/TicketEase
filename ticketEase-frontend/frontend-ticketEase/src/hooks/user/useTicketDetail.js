@@ -55,5 +55,5 @@ export default function useTicketDetail(ticketId) {
     }
   };
 
-  return { detail, messages, loading, sending, error, sendMessage, refetch: fetchAll };
+  return { detail, messages, loading, sending, error, sendMessage, refetch: fetchAll, currentUserId: user?.userId };
 }

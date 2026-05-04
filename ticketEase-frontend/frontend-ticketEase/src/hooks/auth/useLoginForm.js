@@ -42,7 +42,7 @@ export function useLoginForm() {
     try {
       const data = await loginUser(form);
 
-      localStorage.setItem("user", JSON.stringify(data));
+      sessionStorage.setItem("user", JSON.stringify(data));
       setUser(data);
       setProfile(data);
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { getAllTickets, updateTicketStatus } from "../../services/ticketsService";
 import { getAllStudents } from "../../services/userService";
+import { useAuth } from "../../context/useAuth";
 
 // Maps UI display labels → exact backend enum names
 const STATUS_API_MAP = {
@@ -26,6 +27,7 @@ function mapTicketType(type) {
 }
 
 export default function useAllTickets() {
+  const { user } = useAuth();
   const [rawTickets, setRawTickets] = useState([]);
   const [studentMap, setStudentMap] = useState({});
   const [loading, setLoading] = useState(true);
@@ -36,6 +38,7 @@ export default function useAllTickets() {
   const [page, setPage] = useState(1);
 
   const fetchData = useCallback(async () => {
+    console.log("[useAllTickets] Current user ID:", user?.userId ?? "not logged in");
     setLoading(true);
     setError(null);
     try {
@@ -64,7 +67,7 @@ export default function useAllTickets() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     fetchData();

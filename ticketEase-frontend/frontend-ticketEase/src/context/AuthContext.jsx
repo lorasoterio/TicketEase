@@ -46,9 +46,9 @@ export function AuthProvider({ children }) {
   }, []);
   */
 
-  // Load user from localStorage (set by local .NET backend login)
+  // Load user from sessionStorage (tab-isolated; set by local .NET backend login)
   useEffect(() => {
-    const stored = localStorage.getItem("user");
+    const stored = sessionStorage.getItem("user");
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
@@ -58,6 +58,7 @@ export function AuthProvider({ children }) {
         // Fetch fresh profile data so fullName is always available
         const role = parsed.role?.toLowerCase();
         const userId = parsed.userId;
+        console.log("[AuthContext] Logged-in user ID:", userId ?? "undefined", "| role:", parsed.role ?? "undefined");
         if (userId) {
           const endpoint =
             role === "staff" || role === "admin" || role === "superadmin"

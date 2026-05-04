@@ -32,7 +32,7 @@ function formatDate(ts) {
 
 /* ─── single chat bubble ─── */
 function MessageBubble({ msg, currentUserId }) {
-  const isMine = msg.senderId === currentUserId;
+  const isMine = currentUserId != null && Number(msg.senderId) === Number(currentUserId);
   return (
     <Stack
       direction="column"
@@ -67,8 +67,7 @@ function MessageBubble({ msg, currentUserId }) {
 export default function TicketDetailModal({ ticket, onClose }) {
   const open = Boolean(ticket);
   const ticketId = ticket?.ticketId ?? null;
-
-  const { detail, messages, loading, sending, error, sendMessage } =
+  const { detail, messages, loading, sending, error, sendMessage, currentUserId } =
     useTicketDetail(ticketId);
 
   const [draft, setDraft] = useState("");
@@ -239,7 +238,7 @@ export default function TicketDetailModal({ ticket, onClose }) {
                   )}
 
                   {messages.map((m) => (
-                    <MessageBubble key={m.messageId} msg={m} />
+                    <MessageBubble key={m.messageId} msg={m} currentUserId={currentUserId} />
                   ))}
                   <div ref={bottomRef} />
                 </Box>
