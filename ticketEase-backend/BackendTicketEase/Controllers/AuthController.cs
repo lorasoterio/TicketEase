@@ -20,13 +20,15 @@ namespace BackendTicketEase.Controllers
         private readonly IStudentService _studentService;
         private readonly IStaffService _staffService;
         private readonly JwtService _jwtService;
+        private readonly IAuditLogService _auditLogService;
 
-        public AuthController(AppDbContext context, IStudentService studentService, IStaffService staffService, JwtService jwtService)
+        public AuthController(AppDbContext context, IStudentService studentService, IStaffService staffService, JwtService jwtService, IAuditLogService auditLogService)
         {
             _context = context;
             _studentService = studentService;
             _staffService = staffService;
             _jwtService = jwtService;
+            _auditLogService = auditLogService;
         }
 
         public class AuthRequest
@@ -79,6 +81,7 @@ namespace BackendTicketEase.Controllers
                 Message = result.Message
             };
 
+            await _auditLogService.LogAsync(result.User.UserId, "Register", "User", result.User.UserId, null, new { result.User.Email, Role = "Student" });
             return CreatedAtAction(null, response);
         }
 
@@ -108,6 +111,7 @@ namespace BackendTicketEase.Controllers
                 Message = result.Message
             };
 
+            await _auditLogService.LogAsync(result.User.UserId, "Register", "User", result.User.UserId, null, new { result.User.Email, Role = "Staff" });
             return CreatedAtAction(null, response);
         }
 
@@ -140,6 +144,7 @@ namespace BackendTicketEase.Controllers
             _context.Set<User>().Add(user);
             await _context.SaveChangesAsync();
 
+            await _auditLogService.LogAsync(user.UserId, "Register", "User", user.UserId, null, new { user.Email, Role = user.Role.ToString() });
             return CreatedAtAction(null, new AuthResponse { UserId = user.UserId, Email = user.Email, Role = user.Role.ToString() });
         }
 
@@ -183,6 +188,7 @@ namespace BackendTicketEase.Controllers
                 response.Department = staff?.Department;
             }
 
+            await _auditLogService.LogAsync(user.UserId, "Login", "User", user.UserId);
             return Ok(response);
         }
 

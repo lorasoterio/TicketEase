@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { Box, TextField, FormControl, Select, MenuItem, Button, Card, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Stack, Chip, InputLabel, Snackbar, IconButton } from "@mui/material";
 import GoldLine from "../../components/adminuis/Goldline";
 import StatusChip from "../../components/adminuis/StatusChip";
@@ -9,8 +9,7 @@ import Send from "@mui/icons-material/Send";
 import useAllTickets from "../../hooks/admin/useAllTickets";
 import useAdminTicketMessages from "../../hooks/admin/useAdminTicketMessages";
 
-const STATUS_OPTIONS = ["Assigned", "In Progress", "Responded", "Ready for Pickup", "Completed", "Rejected", "Closed"];
-const UPDATE_STATUS_OPTIONS = STATUS_OPTIONS.filter((s) => s !== "Ready for Pickup");
+const STATUS_OPTIONS = ["Assigned", "In Progress", "Responded", "Ready for Pickup", "Rejected", "Closed"];
 
 export default function Tickets() {
   const { user } = useContext(AuthContext);
@@ -38,6 +37,23 @@ export default function Tickets() {
   const [updating, setUpdating] = useState(false);
   const [updateError, setUpdateError] = useState(null);
   const [snackbar, setSnackbar] = useState("");
+
+  // Dynamically filter status options based on ticket type and estimated completion date
+  const updateStatusOptions = useMemo(() => {
+    if (!updateTicket) return [];
+    const isDocReq = updateTicket.ticketType === "DocumentRequest" || updateTicket.ticketType === 0;
+    const isInquiry = updateTicket.ticketType === "Inquiry" || updateTicket.ticketType === 1;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const pickupDate = dateOfPickup ? new Date(dateOfPickup) : null;
+    if (pickupDate) pickupDate.setHours(0, 0, 0, 0);
+    const pickupDateReached = pickupDate !== null && today >= pickupDate;
+    return STATUS_OPTIONS.filter((s) => {
+      if (s === "Responded") return isInquiry;
+      if (s === "Ready for Pickup") return isDocReq && pickupDateReached;
+      return true;
+    });
+  }, [updateTicket, dateOfPickup]);
 
   // ── View dialog: threaded messages (Inquiry tickets) ──
   const { messages, loading: msgLoading, sending, error: msgError, sendMessage } =
@@ -224,23 +240,25 @@ export default function Tickets() {
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   sx={{ fontSize: 12 }}
                 >
-                  {UPDATE_STATUS_OPTIONS.map((o) => (
+                  {updateStatusOptions.map((o) => (
                     <MenuItem key={o} value={o} sx={{ fontSize: 12 }}>{o}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
-              <TextField
-                label="Estimated Completion"
-                type="date"
-                size="small"
-                fullWidth
-                value={dateOfPickup}
-                onChange={(e) => setDateOfPickup(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                helperText="When this date is reached, status will become Ready for Pickup"
-                FormHelperTextProps={{ sx: { fontSize: 10 } }}
-                sx={{ "& .MuiInputBase-input": { fontSize: 12 } }}
-              />
+              {(updateTicket?.ticketType === "DocumentRequest" || updateTicket?.ticketType === 0) && (
+                <TextField
+                  label="Estimated Completion"
+                  type="date"
+                  size="small"
+                  fullWidth
+                  value={dateOfPickup}
+                  onChange={(e) => setDateOfPickup(e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  helperText="'Ready for Pickup' becomes available once this date is reached"
+                  FormHelperTextProps={{ sx: { fontSize: 10 } }}
+                  sx={{ "& .MuiInputBase-input": { fontSize: 12 } }}
+                />
+              )}
               {updateError && <Alert severity="error" sx={{ fontSize: 12 }}>{updateError}</Alert>}
             </Stack>
           )}

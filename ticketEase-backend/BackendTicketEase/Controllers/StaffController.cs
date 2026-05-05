@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackendTicketEase.Data;
 using BackendTicketEase.Models;
@@ -13,11 +14,13 @@ namespace BackendTicketEase.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IStaffService _staffService;
+        private readonly IAuditLogService _auditLogService;
 
-        public StaffController(AppDbContext context, IStaffService staffService)
+        public StaffController(AppDbContext context, IStaffService staffService, IAuditLogService auditLogService)
         {
             _context = context;
             _staffService = staffService;
+            _auditLogService = auditLogService;
         }
 
         [HttpGet]
@@ -163,6 +166,8 @@ namespace BackendTicketEase.Controllers
                 UserEmail = createdStaff.User.Email
             };
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var cpid) ? cpid : staff.UserId;
+            await _auditLogService.LogAsync(actorId, "Create", "Staff", staff.StaffId, null, new { staffDto.FullName, staffDto.Position, staffDto.Department });
             return CreatedAtAction(nameof(GetStaff), new { id = staff.StaffId }, staffDto);
         }
 
@@ -176,6 +181,8 @@ namespace BackendTicketEase.Controllers
                 return BadRequest(new { message = result.Message });
             }
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var upid) ? upid : (int?)null;
+            await _auditLogService.LogAsync(actorId, "Update", "Staff", id, null, new { request.FullName, request.Position, request.Department, request.ContactNumber, request.IsActive });
             return NoContent();
         }
 
@@ -194,6 +201,8 @@ namespace BackendTicketEase.Controllers
 
             await _context.SaveChangesAsync();
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var apid) ? apid : staff.UserId;
+            await _auditLogService.LogAsync(actorId, "Update", "Staff", id, new { IsActive = false }, new { IsActive = true });
             return NoContent();
         }
 
@@ -207,6 +216,8 @@ namespace BackendTicketEase.Controllers
                 return NotFound(new { message = result.Message });
             }
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var dpid) ? dpid : (int?)null;
+            await _auditLogService.LogAsync(actorId, "Update", "Staff", id, new { IsActive = true }, new { IsActive = false });
             return NoContent();
         }
 
@@ -220,6 +231,8 @@ namespace BackendTicketEase.Controllers
                 return NotFound(new { message = result.Message });
             }
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var delPid) ? delPid : (int?)null;
+            await _auditLogService.LogAsync(actorId, "Delete", "Staff", id, null, null);
             return NoContent();
         }
 

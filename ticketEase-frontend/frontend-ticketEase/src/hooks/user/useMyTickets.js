@@ -99,11 +99,9 @@ function formatStatus(status) {
     Assigned:       "Pending",
     InProgress:     "In progress",
     ReadyForPickup: "In progress",
-    Completed:      "Completed",
     Rejected:       "Rejected",
-    Open:           "Pending",
     Responded:      "In progress",
-    Closed:         "Completed",
+    Closed:         "Closed",
   };
   return map[status] ?? status;
 }

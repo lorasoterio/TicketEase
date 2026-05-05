@@ -33,8 +33,8 @@ export default function useDashboard() {
   const stats = {
     total:       tickets.length,
     in_progress: tickets.filter((t) => t.status === "InProgress" || t.status === "Assigned").length,
-    completed:   tickets.filter((t) => t.status === "Completed" || t.status === "Closed").length,
-    pending:     tickets.filter((t) => t.status === "Pending" || t.status === "Open").length,
+    completed:   tickets.filter((t) => t.status === "Closed").length,
+    pending:     tickets.filter((t) => t.status === "Pending").length,
   };
 
   /* ---------- RECENT TICKETS (last 3) ---------- */
@@ -57,13 +57,11 @@ export default function useDashboard() {
 function formatStatus(status) {
   const map = {
     Pending:          "Pending",
-    Open:             "Pending",
     Assigned:         "In progress",
     InProgress:       "In progress",
     Responded:        "In progress",
     ReadyForPickup:   "Ready for pickup",
-    Completed:        "Completed",
-    Closed:           "Completed",
+    Closed:           "Closed",
     Rejected:         "Rejected",
   };
   return map[status] ?? status;

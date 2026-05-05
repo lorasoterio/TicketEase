@@ -108,7 +108,7 @@ export default function StudentDashboard() {
 
           <Grid item xs={6} sm={3}>
             <StatCard
-              label="Completed"
+              label="Closed"
               value={stats.completed}
               color="#1e7e34"
             />

@@ -18,11 +18,13 @@ namespace BackendTicketEase.Controllers
     {
         private readonly AppDbContext _context;
         private readonly GenerateRefNumber _refNumberService;
+        private readonly IAuditLogService _auditLogService;
 
-        public TicketsController(AppDbContext context, GenerateRefNumber refNumberService)
+        public TicketsController(AppDbContext context, GenerateRefNumber refNumberService, IAuditLogService auditLogService)
         {
             _context = context;
             _refNumberService = refNumberService;
+            _auditLogService = auditLogService;
         }
 
         // GET: api/tickets
@@ -98,6 +100,8 @@ namespace BackendTicketEase.Controllers
             await _context.Tickets.AddAsync(ticket);
             await _context.SaveChangesAsync();
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var cpid) ? cpid : ticket.StudentId;
+            await _auditLogService.LogAsync(actorId, "Create", "Ticket", ticket.TicketId, null, new { ticket.TicketType, ticket.Subject, ticket.Priority, ticket.Status });
             return CreatedAtAction(nameof(GetTicket), new { id = ticket.TicketId }, ticket);
         }
 
@@ -112,6 +116,24 @@ namespace BackendTicketEase.Controllers
             if (existing == null)
                 return NotFound();
 
+            // Validate status constraints based on ticket type
+            if (ticket.Status == TicketStatus.Responded && existing.TicketType != TicketType.Inquiry)
+                return BadRequest(new { message = "'Responded' status is only applicable to Inquiry tickets." });
+
+            if (ticket.Status == TicketStatus.ReadyForPickup)
+            {
+                if (existing.TicketType != TicketType.DocumentRequest)
+                    return BadRequest(new { message = "'Ready for Pickup' status is only applicable to Document Request tickets." });
+
+                var effectiveEta = ticket.EstimatedCompletion.HasValue
+                    ? ticket.EstimatedCompletion.Value.ToUniversalTime()
+                    : existing.EstimatedCompletion;
+
+                if (!effectiveEta.HasValue || DateTime.UtcNow.Date < effectiveEta.Value.Date)
+                    return BadRequest(new { message = "'Ready for Pickup' can only be set on or after the estimated completion date." });
+            }
+
+            var oldSnapshot = new { existing.TicketType, existing.Subject, existing.Priority, existing.Status, existing.AssignedStaffId };
             // Update allowed fields
             existing.StudentId = ticket.StudentId;
             existing.TicketType = ticket.TicketType;
@@ -135,6 +157,8 @@ namespace BackendTicketEase.Controllers
             _context.Tickets.Update(existing);
             await _context.SaveChangesAsync();
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var upid) ? upid : existing.StudentId;
+            await _auditLogService.LogAsync(actorId, "Update", "Ticket", id, oldSnapshot, new { existing.TicketType, existing.Subject, existing.Priority, existing.Status, existing.AssignedStaffId });
             return NoContent();
         }
 
@@ -146,9 +170,12 @@ namespace BackendTicketEase.Controllers
             if (existing == null)
                 return NotFound();
 
+            var snapshot = new { existing.TicketType, existing.Subject, existing.Priority, existing.Status, existing.StudentId };
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var dpid) ? dpid : existing.StudentId;
             _context.Tickets.Remove(existing);
             await _context.SaveChangesAsync();
 
+            await _auditLogService.LogAsync(actorId, "Delete", "Ticket", existing.TicketId, snapshot, null);
             return NoContent();
         }
 
@@ -241,6 +268,7 @@ namespace BackendTicketEase.Controllers
             await _context.TicketMessages.AddAsync(message);
             await _context.SaveChangesAsync();
 
+            await _auditLogService.LogAsync(userId, "Create", "TicketMessage", message.MessageId, null, new { message.TicketId, message.Message });
             return Ok(new
             {
                 message.MessageId,

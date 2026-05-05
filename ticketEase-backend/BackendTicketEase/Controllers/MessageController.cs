@@ -11,10 +11,12 @@ namespace BackendTicketEase.Controllers
     public class MessageController : ControllerBase
     {
         private readonly ITicketMessageService _ticketMessageService;
+        private readonly IAuditLogService _auditLogService;
 
-        public MessageController(ITicketMessageService ticketMessageService)
+        public MessageController(ITicketMessageService ticketMessageService, IAuditLogService auditLogService)
         {
             _ticketMessageService = ticketMessageService;
+            _auditLogService = auditLogService;
         }
 
         [HttpGet("ticket/{ticketId}")]
@@ -71,6 +73,7 @@ namespace BackendTicketEase.Controllers
                 return BadRequest(new { message = result.Message });
             }
 
+            await _auditLogService.LogAsync(userId, "Create", "TicketMessage", result.TicketMessage?.MessageId, null, new { TicketId = ticketId, result.TicketMessage?.Message });
             return Ok(result.TicketMessage);
         }
     }

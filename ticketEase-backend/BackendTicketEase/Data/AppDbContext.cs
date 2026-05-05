@@ -93,18 +93,14 @@ namespace BackendTicketEase.Data
                              v == TicketStatus.Responded ? "Responded" :
                              v == TicketStatus.Pending ? "Pending" :
                              v == TicketStatus.Assigned ? "Assigned" :
-                             v == TicketStatus.Completed ? "Completed" :
                              v == TicketStatus.Rejected ? "Rejected" :
-                             v == TicketStatus.Open ? "Open" :
                              v == TicketStatus.Closed ? "Closed" :
                              v.ToString().Replace("InProgress", "In Progress").Replace("ReadyForPickup", "Ready for Pickup"),
                         s => s == "In Progress" ? TicketStatus.InProgress :
                              s == "Ready for Pickup" ? TicketStatus.ReadyForPickup :
                              s == "Responded" ? TicketStatus.Responded :
                              s == "Assigned" ? TicketStatus.Assigned :
-                             s == "Completed" ? TicketStatus.Completed :
                              s == "Rejected" ? TicketStatus.Rejected :
-                             s == "Open" ? TicketStatus.Open :
                              s == "Closed" ? TicketStatus.Closed :
                              TicketStatus.Pending
                     )

@@ -1,17 +1,15 @@
 import { useState, useEffect, useMemo } from "react";
 import client from "../../api/client";
 
-// Ordered by enum value (0–8) — matches backend TicketStatus enum
+// Ordered by enum value (0–6) — matches backend TicketStatus enum
 const STATUS_BY_NUMBER = [
   "Pending",        // 0
   "Assigned",       // 1
   "InProgress",     // 2
   "ReadyForPickup", // 3
-  "Completed",      // 4
-  "Rejected",       // 5
-  "Open",           // 6
-  "Responded",      // 7
-  "Closed",         // 8
+  "Rejected",       // 4
+  "Responded",      // 5
+  "Closed",         // 6
 ];
 
 // Normalizes numeric or string status → canonical string key
@@ -26,9 +24,7 @@ const STATUS_LABEL = {
   Assigned:       "Assigned",
   InProgress:     "In Progress",
   ReadyForPickup: "Ready for Pickup",
-  Completed:      "Completed",
   Rejected:       "Rejected",
-  Open:           "Open",
   Responded:      "Responded",
   Closed:         "Closed",
 };
@@ -36,12 +32,10 @@ const STATUS_LABEL = {
 // Rank determines how far along the ticket is in the workflow
 const STATUS_RANK = {
   Pending:        0,
-  Open:           0,
   Assigned:       1,
   InProgress:     2,
   ReadyForPickup: 3,
   Responded:      3,
-  Completed:      4,
   Closed:         4,
 };
 
@@ -81,7 +75,7 @@ function buildTimeline(ticket) {
   if (rejected) {
     steps.push({ label: "Rejected",  date: updatedDate, done: true });
   } else {
-    steps.push({ label: "Completed", date: rank >= 4 ? updatedDate : null, done: rank >= 4 });
+    steps.push({ label: "Closed",    date: rank >= 4 ? updatedDate : null, done: rank >= 4 });
   }
 
   return steps;

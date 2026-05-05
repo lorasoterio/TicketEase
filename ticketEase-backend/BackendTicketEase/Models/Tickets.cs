@@ -67,9 +67,7 @@ namespace BackendTicketEase.Models
         Assigned,
         InProgress,
         ReadyForPickup,
-        Completed,
         Rejected,
-        Open,
         Responded,
         Closed
     }

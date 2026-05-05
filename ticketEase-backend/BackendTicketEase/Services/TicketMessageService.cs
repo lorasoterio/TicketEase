@@ -22,7 +22,7 @@ namespace BackendTicketEase.Services
             if (ticket == null)
                 return (false, "Ticket not found.", Enumerable.Empty<TicketMessageDto>());
 
-            if (ticket.Status == TicketStatus.Closed || ticket.Status == TicketStatus.Completed)
+            if (ticket.Status == TicketStatus.Closed)
                 return (false, "Message thread is no longer accessible for this ticket.", Enumerable.Empty<TicketMessageDto>());
 
             var isStudent = IsStudent(role);
@@ -74,7 +74,7 @@ namespace BackendTicketEase.Services
             if (ticket == null)
                 return (false, "Ticket not found.", null);
 
-            if (ticket.Status == TicketStatus.Closed || ticket.Status == TicketStatus.Completed)
+            if (ticket.Status == TicketStatus.Closed)
                 return (false, "Message thread is no longer accessible for this ticket.", null);
 
             var isStudent = IsStudent(role);
@@ -114,7 +114,7 @@ namespace BackendTicketEase.Services
 
             if (isStudent && ticket.TicketType == TicketType.Inquiry)
             {
-                ticket.Status = TicketStatus.Completed;
+                ticket.Status = TicketStatus.Closed;
                 ticket.UpdatedAt = DateTime.UtcNow;
             }
 

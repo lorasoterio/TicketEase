@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackendTicketEase.Data;
 using BackendTicketEase.Models;
@@ -13,11 +14,13 @@ namespace BackendTicketEase.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IStudentService _studentService;
+        private readonly IAuditLogService _auditLogService;
 
-        public StudentController(AppDbContext context, IStudentService studentService)
+        public StudentController(AppDbContext context, IStudentService studentService, IAuditLogService auditLogService)
         {
             _context = context;
             _studentService = studentService;
+            _auditLogService = auditLogService;
         }
 
         [HttpGet]
@@ -212,6 +215,8 @@ namespace BackendTicketEase.Controllers
                 UserEmail = createdStudent.User.Email
             };
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var cpid) ? cpid : student.UserId;
+            await _auditLogService.LogAsync(actorId, "Create", "Student", student.StudentId, null, new { studentDto.FullName, studentDto.SchoolStudentId, studentDto.CourseProgram });
             return CreatedAtAction(nameof(GetStudent), new { id = student.StudentId }, studentDto);
         }
 
@@ -225,6 +230,8 @@ namespace BackendTicketEase.Controllers
                 return BadRequest(new { message = result.Message });
             }
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var upid) ? upid : (int?)null;
+            await _auditLogService.LogAsync(actorId, "Update", "Student", id, null, new { request.FullName, request.CourseProgram, request.YearLevel, request.ContactNumber });
             return NoContent();
         }
 
@@ -238,6 +245,8 @@ namespace BackendTicketEase.Controllers
                 return NotFound(new { message = result.Message });
             }
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var vpid) ? vpid : (int?)null;
+            await _auditLogService.LogAsync(actorId, "Update", "Student", id, new { IsVerified = false }, new { IsVerified = true });
             return NoContent();
         }
 
@@ -256,6 +265,8 @@ namespace BackendTicketEase.Controllers
 
             await _context.SaveChangesAsync();
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var uvpid) ? uvpid : student.UserId;
+            await _auditLogService.LogAsync(actorId, "Update", "Student", id, new { IsVerified = true }, new { IsVerified = false });
             return NoContent();
         }
 
@@ -269,6 +280,8 @@ namespace BackendTicketEase.Controllers
                 return NotFound(new { message = result.Message });
             }
 
+            int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var delPid) ? delPid : (int?)null;
+            await _auditLogService.LogAsync(actorId, "Delete", "Student", id, null, null);
             return NoContent();
         }
 

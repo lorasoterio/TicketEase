@@ -1,18 +1,16 @@
 import { useState, useEffect, useCallback } from "react";
 import { getAllTickets } from "../../services/ticketsService";
 
-const OPEN_STATUSES = ["Open", "Pending", "Assigned", "InProgress", "Responded"];
-const RESOLVED_STATUSES = ["Completed", "Closed"];
+const OPEN_STATUSES = ["Pending", "Assigned", "InProgress", "ReadyForPickup", "Responded"];
+const RESOLVED_STATUSES = ["Closed"];
 
 function mapStatus(status) {
   const map = {
     Pending: "Pending",
-    Open: "Open",
     Assigned: "Open",
     InProgress: "Open",
     Responded: "Open",
     ReadyForPickup: "Pending",
-    Completed: "Closed",
     Closed: "Closed",
     Rejected: "Closed",
   };
