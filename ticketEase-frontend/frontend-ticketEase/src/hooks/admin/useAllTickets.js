@@ -62,10 +62,15 @@ export default function useAllTickets() {
       );
       setRawTickets(assigned);
 
-      // Build userId → fullName map from students list
+      // Build userId → { fullName, schoolStudentId, yearLevel } map
       const map = {};
       (students || []).forEach((s) => {
-        if (s.userId != null) map[s.userId] = s.fullName || "—";
+        if (s.userId != null)
+          map[s.userId] = {
+            fullName: s.fullName || "—",
+            schoolStudentId: s.schoolStudentId || "—",
+            yearLevel: s.yearLevel || "—",
+          };
       });
       setStudentMap(map);
     } catch (err) {
@@ -90,7 +95,7 @@ export default function useAllTickets() {
         if (!search) return true;
         const q = search.toLowerCase();
         const refNum = (t.referenceNumber ?? `#${t.ticketId}`).toLowerCase();
-        const requestor = (studentMap[t.studentId] ?? "").toLowerCase();
+        const requestor = (studentMap[t.studentId]?.fullName ?? "").toLowerCase();
         return (
           refNum.includes(q) ||
           (t.subject ?? "").toLowerCase().includes(q) ||
@@ -110,7 +115,7 @@ export default function useAllTickets() {
   const rows = paginated.map((t) => ({
     id: t.referenceNumber ?? `#T-${t.ticketId}`,
     subject: t.subject ?? "—",
-    requestor: studentMap[t.studentId] ?? "—",
+    requestor: studentMap[t.studentId]?.fullName ?? "—",
     type: mapTicketType(t.ticketType),
     date: formatDate(t.createdAt),
     status: t.status ?? "—",

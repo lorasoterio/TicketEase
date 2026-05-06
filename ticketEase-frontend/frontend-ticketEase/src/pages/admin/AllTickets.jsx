@@ -301,7 +301,9 @@ export default function Tickets() {
                     }
                   />
                   <DetailRow label="Status" value={<StatusChip status={viewTicket.status} />} />
-                  <DetailRow label="Requestor" value={studentMap[viewTicket.studentId] ?? "—"} />
+                  <DetailRow label="Requestor" value={studentMap[viewTicket.studentId]?.fullName ?? "—"} />
+                  <DetailRow label="School ID" value={studentMap[viewTicket.studentId]?.schoolStudentId ?? "—"} />
+                  <DetailRow label="Year / Level" value={studentMap[viewTicket.studentId]?.yearLevel ?? "—"} />
                   <DetailRow
                     label="Date Submitted"
                     value={new Date(viewTicket.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}

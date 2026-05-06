@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { getAllTickets, assignTicket } from "../../services/ticketsService";
+import { getAllStudents } from "../../services/userService";
 
 /**
  * Formats a UTC date string into a relative "time ago" string.
@@ -47,6 +48,7 @@ export function priorityLabel(priority) {
  */
 export default function useTicketQueue() {
   const [allPending, setAllPending] = useState([]);
+  const [studentMap, setStudentMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -57,7 +59,11 @@ export default function useTicketQueue() {
   const fetchTickets = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const { data, error: err } = await getAllTickets();
+    const [ticketsResult, students] = await Promise.all([
+      getAllTickets(),
+      getAllStudents().catch(() => []),
+    ]);
+    const { data, error: err } = ticketsResult;
     if (err) {
       setError(typeof err === "string" ? err : "Failed to load tickets.");
     } else {
@@ -65,6 +71,16 @@ export default function useTicketQueue() {
       const pending = (data || []).filter((t) => t.status === "Pending");
       setAllPending(pending);
     }
+    const map = {};
+    (students || []).forEach((s) => {
+      if (s.userId != null)
+        map[s.userId] = {
+          fullName: s.fullName || "—",
+          schoolStudentId: s.schoolStudentId || "—",
+          yearLevel: s.yearLevel || "—",
+        };
+    });
+    setStudentMap(map);
     setLoading(false);
   }, []);
 
@@ -76,9 +92,13 @@ export default function useTicketQueue() {
     .filter((t) => {
       if (!search) return true;
       const q = search.toLowerCase();
+      const studentName = (studentMap[t.studentId]?.fullName ?? "").toLowerCase();
+      const schoolId = (studentMap[t.studentId]?.schoolStudentId ?? "").toLowerCase();
       return (
         t.subject?.toLowerCase().includes(q) ||
-        t.referenceNumber?.toLowerCase().includes(q)
+        t.referenceNumber?.toLowerCase().includes(q) ||
+        studentName.includes(q) ||
+        schoolId.includes(q)
       );
     })
     .filter((t) => {
@@ -103,6 +123,7 @@ export default function useTicketQueue() {
 
   return {
     tickets,
+    studentMap,
     loading,
     error,
     search,

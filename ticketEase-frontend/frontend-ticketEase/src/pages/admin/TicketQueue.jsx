@@ -11,7 +11,7 @@ import { getAllStaff } from "../../services/userService";
 
 export default function Queue() {
   const {
-    tickets, loading, error,
+    tickets, studentMap, loading, error,
     search, setSearch,
     priorityFilter, setPriorityFilter,
     typeFilter, setTypeFilter,
@@ -193,6 +193,9 @@ export default function Queue() {
               <DetailRow label="Reference #" value={`#${viewTicket.referenceNumber}`} />
               <DetailRow label="Subject" value={viewTicket.subject || "—"} />
               <DetailRow label="Type" value={viewTicket.ticketType} />
+              <DetailRow label="Requestor" value={studentMap[viewTicket.studentId]?.fullName ?? "—"} />
+              <DetailRow label="School ID" value={studentMap[viewTicket.studentId]?.schoolStudentId ?? "—"} />
+              <DetailRow label="Year / Level" value={studentMap[viewTicket.studentId]?.yearLevel ?? "—"} />
               <DetailRow
                 label="Priority"
                 value={
