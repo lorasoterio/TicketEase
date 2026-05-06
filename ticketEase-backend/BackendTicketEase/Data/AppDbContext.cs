@@ -19,6 +19,7 @@ namespace BackendTicketEase.Data
         public DbSet<TicketAssignment> TicketAssignments { get; set; }
         public DbSet<StatusHistory> StatusHistories { get; set; }
         public DbSet<TicketMessage> TicketMessages { get; set; }
+      
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -215,6 +216,9 @@ namespace BackendTicketEase.Data
 
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
+
+            
+            
         }
     }
 }

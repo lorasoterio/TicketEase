@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../../context/useAuth";
 import { getAllTickets } from "../../services/ticketsService";
 
 const OPEN_STATUSES = ["Pending", "Assigned", "InProgress", "ReadyForPickup", "Responded"];
@@ -62,9 +63,12 @@ function buildWeekData(tickets) {
 }
 
 export default function useAdminDashboard() {
+  const { user } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const isStaff = (user?.role ?? "").toLowerCase() === "staff";
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -72,13 +76,18 @@ export default function useAdminDashboard() {
     try {
       const { data, error: err } = await getAllTickets();
       if (err) throw new Error(typeof err === "string" ? err : "Failed to load tickets.");
-      setTickets(data || []);
+      const allTickets = data || [];
+      // Staff only see tickets assigned to them
+      const filtered = isStaff
+        ? allTickets.filter((t) => t.assignedStaffId === user.userId)
+        : allTickets;
+      setTickets(filtered);
     } catch (e) {
       setError(e.message ?? "Failed to load tickets.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isStaff, user?.userId]);
 
   useEffect(() => {
     fetchData();

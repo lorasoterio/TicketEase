@@ -27,26 +27,30 @@ import {
   DashboardOutlined as DashboardIcon,
   InboxOutlined as QueueIcon,
   ListAltOutlined as AllTicketsIcon,
-  BarChartOutlined as ReportIcon,
   NotificationsOutlined as BellIcon,
   PersonOutline as ProfileIcon,
   SettingsOutlined as SettingsIcon,
   LogoutOutlined as LogoutIcon,
   MenuOutlined as HamburgerIcon,
-  PeopleOutlined as UsersIcon,
   VerifiedUserOutlined as VerifyIcon,
-  HistoryOutlined as AuditIcon,
 } from "@mui/icons-material";
 
-const NAV_LINKS = [
-  { to: "/admin/dashboard",    label: "Dashboard",     icon: <DashboardIcon fontSize="small" /> },
-  { to: "/admin/queue",        label: "Ticket Queue",  icon: <QueueIcon fontSize="small" />,      badge: 5, badgeSeverity: "error" },
-  { to: "/admin/tickets",  label: "All Tickets",   icon: <AllTicketsIcon fontSize="small" /> },
-  { to: "/admin/reports",      label: "Reports",       icon: <ReportIcon fontSize="small" /> },
-  { to: "/admin/manage-users",        label: "Manage Users",    icon: <UsersIcon fontSize="small" /> },
-  { to: "/admin/verify-students",     label: "Verify Students", icon: <VerifyIcon fontSize="small" /> },
-  { to: "/admin/audit-logs",          label: "Audit Logs",      icon: <AuditIcon fontSize="small" /> },
-];
+const NAV_LINKS_BY_ROLE = {
+  admin: [
+    { to: "/admin/dashboard",       label: "Dashboard",       icon: <DashboardIcon fontSize="small" /> },
+    { to: "/admin/queue",           label: "Ticket Queue",    icon: <QueueIcon fontSize="small" />, badge: 5, badgeSeverity: "error" },
+    { to: "/admin/tickets",         label: "All Tickets",     icon: <AllTicketsIcon fontSize="small" /> },
+    { to: "/admin/verify-students", label: "Verify Students", icon: <VerifyIcon fontSize="small" /> },
+  ],
+  staff: [
+    { to: "/admin/tickets", label: "All Tickets", icon: <AllTicketsIcon fontSize="small" /> },
+  ],
+};
+
+function getNavLinks(role) {
+  const normalized = role?.toLowerCase();
+  return NAV_LINKS_BY_ROLE[normalized] ?? NAV_LINKS_BY_ROLE.staff;
+}
 
 const NOTIFICATIONS = [
   { id: 1, text: "New ticket submitted by Ana Cruz (#1064).", time: "5m ago",  unread: true },
@@ -81,6 +85,8 @@ export default function AdminNavbar() {
       dept: profile?.department ?? "",
     };
   }, [profile]);
+
+  const navLinks = useMemo(() => getNavLinks(profile?.role), [profile?.role]);
 
   const unread = NOTIFICATIONS.filter((n) => n.unread).length;
 
@@ -153,7 +159,7 @@ export default function AdminNavbar() {
 
         {/* ── Nav Links (desktop) ── */}
         <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 0.5 }}>
-        {NAV_LINKS.map(({ to, label, icon, badge, dot }) => (
+        {navLinks.map(({ to, label, icon, badge, dot }) => (
           <NavLink key={to} to={to} style={{ textDecoration: "none" }}>
             {({ isActive }) => (
               <Box
@@ -392,7 +398,7 @@ export default function AdminNavbar() {
 
       {/* Nav links */}
       <List sx={{ pt: 1, px: 1 }}>
-        {NAV_LINKS.map(({ to, label, icon, badge, dot }) => (
+        {navLinks.map(({ to, label, icon, badge, dot }) => (
           <NavLink key={to} to={to} style={{ textDecoration: "none" }} onClick={() => setMobileOpen(false)}>
             {({ isActive }) => (
               <ListItemButton

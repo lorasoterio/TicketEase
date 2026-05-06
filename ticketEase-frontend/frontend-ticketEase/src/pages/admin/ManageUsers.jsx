@@ -10,7 +10,7 @@ import {
 import GoldLine from "../../components/adminuis/GoldLine";
 import StatusChip from "../../components/adminuis/StatusChip";
 import CardTitle from "../../components/adminuis/CardTitle";
-import { getAllStaff, getAllStudents } from "../../services/userService";
+import { getAllStaff } from "../../services/userService";
 import { useStaffRegisterForm } from "../../hooks/auth/useStaffRegisterForm";
 
 const ROLES = [
@@ -65,33 +65,23 @@ export default function RegisterUser() {
   useEffect(() => {
     async function fetchRecentUsers() {
       try {
-        const [staff, students] = await Promise.all([getAllStaff(), getAllStudents()]);
+        const staff = await getAllStaff();
 
         const staffMapped = staff.map((s) => ({
           id: `staff-${s.staffId}`,
           initials: getInitials(s.fullName),
           name: s.fullName,
-          meta: `${s.department} · Staff · ${timeAgo(s.createdAt)}`,
+          meta: `${s.department} · ${s.role ?? "Staff"} · ${timeAgo(s.createdAt)}`,
           isStaff: true,
           status: s.isActive ? "Active" : "Inactive",
           createdAt: s.createdAt,
         }));
 
-        const studentsMapped = students.map((s) => ({
-          id: `student-${s.studentId}`,
-          initials: getInitials(s.fullName),
-          name: s.fullName,
-          meta: `${s.courseProgram} · Student · ${timeAgo(s.createdAt)}`,
-          isStaff: false,
-          status: s.isVerified ? "Active" : "Inactive",
-          createdAt: s.createdAt,
-        }));
-
-        const combined = [...staffMapped, ...studentsMapped]
+        const sorted = staffMapped
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .slice(0, 5);
 
-        setRecentUsers(combined);
+        setRecentUsers(sorted);
       } catch {
         setRecentUsers([]);
       } finally {

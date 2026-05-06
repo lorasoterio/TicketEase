@@ -29,6 +29,10 @@ import AuditLogs from "../pages/admin/AuditLogs";
 
 // SuperAdmin pages
 import SuperAdminDashboard from "../pages/superadmin/Dashboard";
+import SuperAdminManageAdmins from "../pages/admin/ManageUsers";
+import SuperAdminActivityLog from "../pages/admin/AuditLogs";
+import SuperAdminStudents from "../pages/admin/VerifyStudents";
+import SuperAdminAllTickets from "../pages/admin/AllTickets";
 
 export default function AppRoutes() {
   return (
@@ -67,6 +71,10 @@ export default function AppRoutes() {
       {/* SuperAdmin routes — wrapped in SuperAdminLayout */}
       <Route element={<SuperAdminLayout />}>
         <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
+        <Route path="/superadmin/manage-admins" element={<SuperAdminManageAdmins />} />
+        <Route path="/superadmin/students" element={<SuperAdminStudents />} />
+        <Route path="/superadmin/all-tickets" element={<SuperAdminAllTickets />} />
+        <Route path="/superadmin/activity-log" element={<SuperAdminActivityLog />} />
       </Route>
     </Routes>
   );

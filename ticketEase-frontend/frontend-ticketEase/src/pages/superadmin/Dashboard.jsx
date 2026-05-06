@@ -1,8 +1,13 @@
+import { useState, useEffect } from "react";
 import {
   ThemeProvider, createTheme, CssBaseline, Box, Paper,
-  Typography, Stack, Divider, Button, Grid,
+  Typography, Stack, Divider, Button, Grid, CircularProgress,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
+import { getAllTickets } from "../../services/ticketsService";
+import { getAllStaff, getAllStudents } from "../../services/userService";
+import { getAuditLogs } from "../../services/auditLogService";
 
 const theme = createTheme({
   palette: {
@@ -32,21 +37,109 @@ function StatCard({ label, value, color }) {
   );
 }
 
-const MOCK_ADMINS = [
-  { name: "Ms. Aquino",    dept: "Registrar",      status: "Active" },
-  { name: "Mr. Dela Cruz", dept: "Finance Office",  status: "Active" },
-];
-
-const MOCK_LOGS = [
-  { action: "Ticket #1064 approved",   actor: "Ms. Aquino",  time: "Today 10:42 AM" },
-  { action: "New student registered",  actor: "System",       time: "Today 9:15 AM" },
-  { action: "Admin account created",   actor: "Super admin",  time: "Yesterday 4:02 PM" },
-  { action: "Ticket #1049 rejected",   actor: "Mr. Dela Cruz", time: "Yesterday 2:30 PM" },
-];
+function formatLogTime(dateStr) {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const isToday = date.toDateString() === now.toDateString();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+  const time = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  if (isToday) return `Today ${time}`;
+  if (isYesterday) return `Yesterday ${time}`;
+  return `${date.toLocaleDateString()} ${time}`;
+}
 
 export default function SuperAdminDashboard() {
   const { profile } = useAuth();
-  const initials    = profile?.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "SA";
+  const navigate = useNavigate();
+  const initials = profile?.full_name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "SA";
+
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalStudents: 0,
+    adminAccounts: 0,
+    activeTickets: 0,
+    ticketsThisMonth: 0,
+    resolutionRate: "—",
+    avgProcessingTime: "—",
+  });
+  const [staffList, setStaffList] = useState([]);
+  const [activityLogs, setActivityLogs] = useState([]);
+
+  useEffect(() => {
+    async function fetchDashboardData() {
+      setLoading(true);
+      try {
+        const [ticketsResult, staffResult, studentsResult, logsResult] = await Promise.allSettled([
+          getAllTickets(),
+          getAllStaff(),
+          getAllStudents(),
+          getAuditLogs(),
+        ]);
+
+        // ── Tickets ──────────────────────────────────────────────
+        const tickets = ticketsResult.status === "fulfilled" && ticketsResult.value.data
+          ? ticketsResult.value.data
+          : [];
+
+        const activeStatuses = ["Pending", "Assigned", "In Progress", "Responded", "Ready for Pickup"];
+        const activeTickets = tickets.filter(t => activeStatuses.includes(t.status)).length;
+
+        const now = new Date();
+        const ticketsThisMonth = tickets.filter(t => {
+          const d = new Date(t.createdAt);
+          return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        }).length;
+
+        const closedTickets = tickets.filter(t => t.status === "Closed");
+        const resolutionRate = tickets.length > 0
+          ? `${Math.round((closedTickets.length / tickets.length) * 100)}%`
+          : "—";
+
+        const avgProcessingTime = closedTickets.length > 0
+          ? (() => {
+              const avg = closedTickets.reduce((sum, t) => {
+                const days = (new Date(t.updatedAt) - new Date(t.createdAt)) / (1000 * 60 * 60 * 24);
+                return sum + days;
+              }, 0) / closedTickets.length;
+              return `${avg.toFixed(1)} days`;
+            })()
+          : "—";
+
+        // ── Staff ─────────────────────────────────────────────────
+        const staff = staffResult.status === "fulfilled" && Array.isArray(staffResult.value)
+          ? staffResult.value
+          : [];
+        const adminAccounts = staff.length;
+        setStaffList(staff.slice(0, 5));
+
+        // ── Students ──────────────────────────────────────────────
+        const students = studentsResult.status === "fulfilled" && Array.isArray(studentsResult.value)
+          ? studentsResult.value
+          : [];
+
+        // ── Audit logs ────────────────────────────────────────────
+        const logs = logsResult.status === "fulfilled" && logsResult.value.data
+          ? logsResult.value.data
+          : [];
+        setActivityLogs(logs.slice(0, 4));
+
+        setStats({
+          totalStudents: students.length,
+          adminAccounts,
+          activeTickets,
+          ticketsThisMonth,
+          resolutionRate,
+          avgProcessingTime,
+        });
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchDashboardData();
+  }, []);
 
   return (
     <ThemeProvider theme={theme}>
@@ -70,89 +163,118 @@ export default function SuperAdminDashboard() {
           </Box>
         </Stack>
 
-        {/* Stat Cards */}
-        <Grid container spacing={1.5} sx={{ mb: 3 }}>
-          <Grid item xs={6} sm={3}><StatCard label="Total students"     value="1,248" /></Grid>
-          <Grid item xs={6} sm={3}><StatCard label="Admin accounts"     value="6" /></Grid>
-          <Grid item xs={6} sm={3}><StatCard label="Active tickets"     value="34"  color="#1a56db" /></Grid>
-          <Grid item xs={6} sm={3}><StatCard label="Tickets this month" value="187" /></Grid>
-        </Grid>
-
-        {/* Two column — Account Management + Activity Log */}
-        <Grid container spacing={1.5} sx={{ mb: 3 }}>
-
-          {/* Account Management */}
-          <Grid item xs={12} sm={6}>
-            <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
-              <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
-                <Typography variant="body1" fontWeight={600}>Account Management</Typography>
-              </Box>
-              {MOCK_ADMINS.map((a, i) => (
-                <Box key={a.name}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.5 }}>
-                    <Box>
-                      <Typography variant="body2" fontWeight={500}>{a.name}</Typography>
-                      <Typography sx={{ fontSize: "11px", color: "text.secondary", fontFamily: "'Source Serif 4', serif" }}>
-                        {a.dept} — {a.status}
-                      </Typography>
-                    </Box>
-                    <Button size="small" sx={{ fontSize: "11px", fontFamily: "'Source Serif 4', serif" }}>Edit</Button>
-                  </Stack>
-                  {i < MOCK_ADMINS.length - 1 && <Divider />}
-                </Box>
-              ))}
-              <Divider />
-              <Box sx={{ px: 2, py: 1.5 }}>
-                <Button fullWidth size="small" variant="outlined"
-                  sx={{ fontSize: "12px", fontFamily: "'Source Serif 4', serif", borderColor: "#1a3a5c", color: "#1a3a5c" }}>
-                  + Add admin account ↗
-                </Button>
-              </Box>
-            </Paper>
-          </Grid>
-
-          {/* Activity Log */}
-          <Grid item xs={12} sm={6}>
-            <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
-              <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
-                <Typography variant="body1" fontWeight={600}>Activity Log</Typography>
-              </Box>
-              {MOCK_LOGS.map((log, i) => (
-                <Box key={i}>
-                  <Box sx={{ px: 2, py: 1.2 }}>
-                    <Typography variant="body2" fontWeight={500}>{log.action}</Typography>
-                    <Typography sx={{ fontSize: "11px", color: "text.secondary", fontFamily: "'Source Serif 4', serif" }}>
-                      {log.actor} · {log.time}
-                    </Typography>
-                  </Box>
-                  {i < MOCK_LOGS.length - 1 && <Divider />}
-                </Box>
-              ))}
-            </Paper>
-          </Grid>
-
-        </Grid>
-
-        {/* System Monitoring */}
-        <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
-          <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
-            <Typography variant="body1" fontWeight={600}>System Monitoring</Typography>
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+            <CircularProgress size={32} sx={{ color: "#1a3a5c" }} />
           </Box>
-          <Grid container>
-            <Grid item xs={12} sm={4} sx={{ p: 2, borderRight: { sm: "1px solid" }, borderColor: { sm: "divider" } }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Ticket resolution rate</Typography>
-              <Typography sx={{ fontSize: "18px", fontWeight: 600, color: "#1e7e34", fontFamily: "'Playfair Display', serif" }}>91%</Typography>
+        ) : (
+          <>
+            {/* Stat Cards */}
+            <Grid container spacing={1.5} sx={{ mb: 3 }}>
+              <Grid item xs={6} sm={3}><StatCard label="Total students"     value={stats.totalStudents.toLocaleString()} /></Grid>
+              <Grid item xs={6} sm={3}><StatCard label="Admin accounts"     value={stats.adminAccounts} /></Grid>
+              <Grid item xs={6} sm={3}><StatCard label="Active tickets"     value={stats.activeTickets} color="#1a56db" /></Grid>
+              <Grid item xs={6} sm={3}><StatCard label="Tickets this month" value={stats.ticketsThisMonth} /></Grid>
             </Grid>
-            <Grid item xs={12} sm={4} sx={{ p: 2, borderRight: { sm: "1px solid" }, borderColor: { sm: "divider" } }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Avg. processing time</Typography>
-              <Typography sx={{ fontSize: "18px", fontWeight: 600, fontFamily: "'Playfair Display', serif" }}>1.8 days</Typography>
+
+            {/* Two column — Account Management + Activity Log */}
+            <Grid container spacing={1.5} sx={{ mb: 3 }}>
+
+              {/* Account Management */}
+              <Grid item xs={12} sm={6}>
+                <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
+                  <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
+                    <Typography variant="body1" fontWeight={600}>Account Management</Typography>
+                  </Box>
+                  {staffList.length === 0 ? (
+                    <Box sx={{ px: 2, py: 2 }}>
+                      <Typography variant="body2" color="text.secondary">No admin accounts found.</Typography>
+                    </Box>
+                  ) : (
+                    staffList.map((a, i) => (
+                      <Box key={a.staffId ?? i}>
+                        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.5 }}>
+                          <Box>
+                            <Typography variant="body2" fontWeight={500}>{a.fullName}</Typography>
+                            <Typography sx={{ fontSize: "11px", color: "text.secondary", fontFamily: "'Source Serif 4', serif" }}>
+                              {a.department} — {a.isActive ? "Active" : "Inactive"}
+                            </Typography>
+                          </Box>
+                          <Button
+                            size="small"
+                            sx={{ fontSize: "11px", fontFamily: "'Source Serif 4', serif" }}
+                            onClick={() => navigate("/superadmin/manage-admins")}
+                          >
+                            Edit
+                          </Button>
+                        </Stack>
+                        {i < staffList.length - 1 && <Divider />}
+                      </Box>
+                    ))
+                  )}
+                  <Divider />
+                  <Box sx={{ px: 2, py: 1.5 }}>
+                    <Button
+                      fullWidth size="small" variant="outlined"
+                      sx={{ fontSize: "12px", fontFamily: "'Source Serif 4', serif", borderColor: "#1a3a5c", color: "#1a3a5c" }}
+                      onClick={() => navigate("/superadmin/manage-admins")}
+                    >
+                      + Add admin account ↗
+                    </Button>
+                  </Box>
+                </Paper>
+              </Grid>
+
+              {/* Activity Log */}
+              <Grid item xs={12} sm={6}>
+                <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
+                  <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
+                    <Typography variant="body1" fontWeight={600}>Activity Log</Typography>
+                  </Box>
+                  {activityLogs.length === 0 ? (
+                    <Box sx={{ px: 2, py: 2 }}>
+                      <Typography variant="body2" color="text.secondary">No recent activity.</Typography>
+                    </Box>
+                  ) : (
+                    activityLogs.map((log, i) => (
+                      <Box key={log.logId ?? i}>
+                        <Box sx={{ px: 2, py: 1.2 }}>
+                          <Typography variant="body2" fontWeight={500}>{log.actionType}</Typography>
+                          <Typography sx={{ fontSize: "11px", color: "text.secondary", fontFamily: "'Source Serif 4', serif" }}>
+                            {log.userEmail} · {formatLogTime(log.createdAt)}
+                          </Typography>
+                        </Box>
+                        {i < activityLogs.length - 1 && <Divider />}
+                      </Box>
+                    ))
+                  )}
+                </Paper>
+              </Grid>
+
             </Grid>
-            <Grid item xs={12} sm={4} sx={{ p: 2 }}>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>System status</Typography>
-              <Typography sx={{ fontSize: "18px", fontWeight: 600, color: "#1e7e34", fontFamily: "'Playfair Display', serif" }}>Online</Typography>
-            </Grid>
-          </Grid>
-        </Paper>
+
+            {/* System Monitoring */}
+            <Paper elevation={0} sx={{ border: "1px solid", borderColor: "divider", borderRadius: 2, overflow: "hidden" }}>
+              <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid", borderColor: "divider" }}>
+                <Typography variant="body1" fontWeight={600}>System Monitoring</Typography>
+              </Box>
+              <Grid container>
+                <Grid item xs={12} sm={4} sx={{ p: 2, borderRight: { sm: "1px solid" }, borderColor: { sm: "divider" } }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Ticket resolution rate</Typography>
+                  <Typography sx={{ fontSize: "18px", fontWeight: 600, color: "#1e7e34", fontFamily: "'Playfair Display', serif" }}>{stats.resolutionRate}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={4} sx={{ p: 2, borderRight: { sm: "1px solid" }, borderColor: { sm: "divider" } }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>Avg. processing time</Typography>
+                  <Typography sx={{ fontSize: "18px", fontWeight: 600, fontFamily: "'Playfair Display', serif" }}>{stats.avgProcessingTime}</Typography>
+                </Grid>
+                <Grid item xs={12} sm={4} sx={{ p: 2 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>System status</Typography>
+                  <Typography sx={{ fontSize: "18px", fontWeight: 600, color: "#1e7e34", fontFamily: "'Playfair Display', serif" }}>Online</Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+          </>
+        )}
 
       </Box>
     </ThemeProvider>

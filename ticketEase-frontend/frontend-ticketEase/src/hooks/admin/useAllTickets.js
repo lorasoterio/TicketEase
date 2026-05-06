@@ -50,9 +50,15 @@ export default function useAllTickets() {
       const { data: ticketList, error: ticketErr } = ticketsResult;
       if (ticketErr) throw new Error(typeof ticketErr === "string" ? ticketErr : "Failed to load tickets.");
 
-      // Only show tickets that have been assigned to a staff member and are past Pending
+      const isStaff = (user?.role ?? "").toLowerCase() === "staff";
+
+      // Only show tickets that have been assigned to a staff member and are past Pending.
+      // If the logged-in user is staff, restrict to only tickets assigned to them.
       const assigned = (ticketList || []).filter(
-        (t) => t.assignedStaffId != null && (t.status ?? "").toLowerCase() !== "pending"
+        (t) =>
+          t.assignedStaffId != null &&
+          (t.status ?? "").toLowerCase() !== "pending" &&
+          (!isStaff || t.assignedStaffId === user.userId)
       );
       setRawTickets(assigned);
 

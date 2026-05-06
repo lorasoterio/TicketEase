@@ -28,7 +28,6 @@ import {
   PeopleOutline as StudentsIcon,
   ListAltOutlined as AllTicketsIcon,
   HistoryOutlined as LogIcon,
-  TuneOutlined as SystemIcon,
   NotificationsOutlined as BellIcon,
   PersonOutline as ProfileIcon,
   SettingsOutlined as SettingsIcon,
@@ -39,11 +38,10 @@ import {
 
 const NAV_LINKS = [
   { to: "/superadmin/dashboard",     label: "Dashboard",      icon: <DashboardIcon fontSize="small" /> },
-  { to: "/superadmin/manage-admins", label: "Manage admins",  icon: <ManageAdminsIcon fontSize="small" /> },
+  { to: "/superadmin/manage-admins", label: "Manage Users",  icon: <ManageAdminsIcon fontSize="small" /> },
   { to: "/superadmin/students",      label: "Students",       icon: <StudentsIcon fontSize="small" /> },
   { to: "/superadmin/all-tickets",   label: "All tickets",    icon: <AllTicketsIcon fontSize="small" /> },
   { to: "/superadmin/activity-log",  label: "Activity log",   icon: <LogIcon fontSize="small" /> },
-  { to: "/superadmin/system",        label: "System",         icon: <SystemIcon fontSize="small" /> },
 ];
 
 const NOTIFICATIONS = [
@@ -331,14 +329,6 @@ export default function SuperAdminNavbar({
           <ListItemIcon sx={{ minWidth: "auto", mr: 1.25 }}><ProfileIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 13.5 }}>View profile</ListItemText>
         </MenuItem>
-        <MenuItem onClick={() => { navigate("/superadmin/system"); setProfileAnchor(null); }} sx={{ py: 1.125 }}>
-          <ListItemIcon sx={{ minWidth: "auto", mr: 1.25 }}><SystemIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primaryTypographyProps={{ fontSize: 13.5 }}>System settings</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={() => { navigate("/superadmin/activity-log"); setProfileAnchor(null); }} sx={{ py: 1.125 }}>
-          <ListItemIcon sx={{ minWidth: "auto", mr: 1.25 }}><LogIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primaryTypographyProps={{ fontSize: 13.5 }}>Activity log</ListItemText>
-        </MenuItem>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={() => { navigate("/logout"); setProfileAnchor(null); }} sx={{ py: 1.125, color: "error.main" }}>
           <ListItemIcon sx={{ minWidth: "auto", mr: 1.25 }}><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
@@ -395,10 +385,6 @@ export default function SuperAdminNavbar({
         <ListItemButton sx={{ borderRadius: "8px", mb: 0.25 }} onClick={() => { navigate("/superadmin/profile"); setMobileOpen(false); }}>
           <ListItemIcon sx={{ minWidth: 36 }}><ProfileIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14 }}>View profile</ListItemText>
-        </ListItemButton>
-        <ListItemButton sx={{ borderRadius: "8px", mb: 0.25 }} onClick={() => { navigate("/superadmin/system"); setMobileOpen(false); }}>
-          <ListItemIcon sx={{ minWidth: 36 }}><SystemIcon fontSize="small" /></ListItemIcon>
-          <ListItemText primaryTypographyProps={{ fontSize: 14 }}>System settings</ListItemText>
         </ListItemButton>
         <ListItemButton sx={{ borderRadius: "8px", color: "error.main" }} onClick={() => { navigate("/logout"); setMobileOpen(false); }}>
           <ListItemIcon sx={{ minWidth: 36 }}><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
