@@ -1,13 +1,17 @@
 import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
-import { Box, TextField, FormControl, Select, MenuItem, Button, Card, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Stack, Chip, InputLabel, Snackbar, IconButton } from "@mui/material";
+import { Box, TextField, FormControl, Select, MenuItem, Button, Card, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Stack, Chip, InputLabel, Snackbar, IconButton, List, ListItem, ListItemText, ListItemIcon, Tooltip } from "@mui/material";
 import GoldLine from "../../components/adminuis/Goldline";
 import StatusChip from "../../components/adminuis/StatusChip";
 import { AuthContext } from "../../context/AuthContext";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import Send from "@mui/icons-material/Send";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import DownloadIcon from "@mui/icons-material/Download";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import useAllTickets from "../../hooks/admin/useAllTickets";
 import useAdminTicketMessages from "../../hooks/admin/useAdminTicketMessages";
+import useTicketAttachments from "../../hooks/admin/useTicketAttachments";
 
 const STATUS_OPTIONS = ["Assigned", "In Progress", "Responded", "Ready for Pickup", "Rejected", "Closed"];
 
@@ -58,6 +62,8 @@ export default function Tickets() {
   // ── View dialog: threaded messages (Inquiry tickets) ──
   const { messages, loading: msgLoading, sending, error: msgError, sendMessage } =
     useAdminTicketMessages(viewTicket?.ticketId ?? null);
+  const { attachments: viewAttachments, loading: attachLoading } =
+    useTicketAttachments(viewTicket?.ticketId ?? null);
   const [draft, setDraft] = useState("");
   const bottomRef = useRef(null);
 
@@ -318,6 +324,54 @@ export default function Tickets() {
                       <Typography sx={{ fontSize: 12 }}>{viewTicket.description}</Typography>
                     </Box>
                   )}
+                  <Box>
+                    <Typography sx={{ fontSize: 11, color: "text.secondary", mb: 0.4 }}>Attachments</Typography>
+                    {attachLoading ? (
+                      <CircularProgress size={16} />
+                    ) : viewAttachments.length === 0 ? (
+                      <Typography sx={{ fontSize: 12, color: "text.secondary" }}>No attachments.</Typography>
+                    ) : (
+                      <List dense disablePadding>
+                        {viewAttachments.map((a) => (
+                          <ListItem key={a.attachmentId} disablePadding sx={{ gap: 0.5 }}>
+                            <ListItemIcon sx={{ minWidth: 24 }}>
+                              <AttachFileIcon sx={{ fontSize: 14, color: "text.secondary" }} />
+                            </ListItemIcon>
+                            <ListItemText
+                              primary={a.fileName}
+                              primaryTypographyProps={{ fontSize: 12, noWrap: true, title: a.fileName }}
+                              secondary={a.fileType}
+                              secondaryTypographyProps={{ fontSize: 10 }}
+                              sx={{ flex: 1, minWidth: 0 }}
+                            />
+                            <Tooltip title="Open in new tab">
+                              <Button
+                                size="small"
+                                component="a"
+                                href={a.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                sx={{ minWidth: 0, p: 0.5 }}
+                              >
+                                <OpenInNewIcon sx={{ fontSize: 15 }} />
+                              </Button>
+                            </Tooltip>
+                            <Tooltip title="Download">
+                              <Button
+                                size="small"
+                                component="a"
+                                href={a.fileUrl}
+                                download={a.fileName}
+                                sx={{ minWidth: 0, p: 0.5 }}
+                              >
+                                <DownloadIcon sx={{ fontSize: 15 }} />
+                              </Button>
+                            </Tooltip>
+                          </ListItem>
+                        ))}
+                      </List>
+                    )}
+                  </Box>
                 </Stack>
               </Box>
 

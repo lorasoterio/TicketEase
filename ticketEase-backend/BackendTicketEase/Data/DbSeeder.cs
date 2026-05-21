@@ -18,9 +18,16 @@ namespace BackendTicketEase.Data
                 return;
             }
 
-            var exists = await context.Users.AnyAsync(u => u.Email == email);
-            if (exists)
+            var existingUser = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (existingUser is not null)
             {
+                existingUser.PasswordHash = HashPassword(password);
+                existingUser.Role = UserRole.SuperAdmin;
+                existingUser.IsActive = true;
+                existingUser.UpdatedAt = DateTime.UtcNow;
+
+                await context.SaveChangesAsync();
+                logger.LogInformation("Updated SuperAdmin account from configuration: {Email}", email);
                 return;
             }
 

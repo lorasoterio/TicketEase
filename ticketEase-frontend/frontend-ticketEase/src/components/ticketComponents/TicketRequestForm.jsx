@@ -2,6 +2,7 @@
 // Just the form — no page wrapper, no ThemeProvider.
 // Drop this inside any page that needs a "request ticket" form.
 
+import { useRef, useState } from "react";
 import {
   Box,
   Paper,
@@ -25,6 +26,8 @@ import {
   Badge,
   Send,
   CheckCircle,
+  AttachFile,
+  Close,
 } from "@mui/icons-material";
 
 import { useTicketForm } from "../../hooks/useTicketForm";
@@ -55,8 +58,21 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
     handleReset,
   } = useTicketForm(INITIAL_FIELDS, validateDocumentRequest, onSuccess);
 
+  const [attachment, setAttachment] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0] ?? null;
+    setAttachment(file);
+    // reset so the same file can be re-selected after removal
+    e.target.value = "";
+  };
+
+  const handleRemoveFile = () => setAttachment(null);
+
   const handleReset_ = () => {
     handleReset();
+    setAttachment(null);
     onSubmitted?.();
   };
 
@@ -194,6 +210,37 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
               multiline
               rows={3}
             />
+
+            {/* Attachment */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              hidden
+              onChange={handleFileChange}
+            />
+            <Box>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AttachFile sx={{ fontSize: 18 }} />}
+                onClick={() => fileInputRef.current?.click()}
+                sx={{ borderStyle: "dashed", color: "text.secondary", borderColor: "divider" }}
+              >
+                {attachment ? "Change File" : "Attach File"}
+              </Button>
+              {attachment && (
+                <Chip
+                  label={attachment.name}
+                  size="small"
+                  onDelete={handleRemoveFile}
+                  deleteIcon={<Close />}
+                  sx={{ ml: 1, maxWidth: 220 }}
+                />
+              )}
+              <Typography variant="caption" display="block" color="text.disabled" sx={{ mt: 0.5 }}>
+                Optional — Max 10 MB
+              </Typography>
+            </Box>
           </Stack>
 
           {/* Submit */}

@@ -3,10 +3,15 @@ import {
   Box, TextField, FormControl, Select, MenuItem, Paper, Typography,
   Button, Stack, InputAdornment, CircularProgress, Alert,
   Dialog, DialogTitle, DialogContent, DialogActions, Divider, Chip,
+  List, ListItem, ListItemText, ListItemIcon, Tooltip,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import AttachFileIcon from "@mui/icons-material/AttachFile";
+import DownloadIcon from "@mui/icons-material/Download";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import GoldLine from "../../components/adminuis/GoldLine";
 import useTicketQueue, { timeAgo, priorityLabel } from "../../hooks/admin/useTicketQueue";
+import useTicketAttachments from "../../hooks/admin/useTicketAttachments";
 import { getAllStaff } from "../../services/userService";
 
 export default function Queue() {
@@ -20,6 +25,7 @@ export default function Queue() {
 
   // ── View dialog ──────────────────────────────────────────────
   const [viewTicket, setViewTicket] = useState(null);
+  const { attachments: viewAttachments, loading: attachLoading } = useTicketAttachments(viewTicket?.ticketId ?? null);
 
   // ── Assign dialog ─────────────────────────────────────────────
   const [assignTarget, setAssignTarget] = useState(null);
@@ -212,6 +218,54 @@ export default function Queue() {
                   <Typography sx={{ fontSize: 12 }}>{viewTicket.description}</Typography>
                 </Box>
               )}
+              <Box>
+                <Typography sx={{ fontSize: 11, color: "text.secondary", mb: 0.4 }}>Attachments</Typography>
+                {attachLoading ? (
+                  <CircularProgress size={16} />
+                ) : viewAttachments.length === 0 ? (
+                  <Typography sx={{ fontSize: 12, color: "text.secondary" }}>No attachments.</Typography>
+                ) : (
+                  <List dense disablePadding>
+                    {viewAttachments.map((a) => (
+                      <ListItem key={a.attachmentId} disablePadding sx={{ gap: 0.5 }}>
+                        <ListItemIcon sx={{ minWidth: 24 }}>
+                          <AttachFileIcon sx={{ fontSize: 14, color: "text.secondary" }} />
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={a.fileName}
+                          primaryTypographyProps={{ fontSize: 12, noWrap: true, title: a.fileName }}
+                          secondary={a.fileType}
+                          secondaryTypographyProps={{ fontSize: 10 }}
+                          sx={{ flex: 1, minWidth: 0 }}
+                        />
+                        <Tooltip title="Open in new tab">
+                          <Button
+                            size="small"
+                            component="a"
+                            href={a.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{ minWidth: 0, p: 0.5 }}
+                          >
+                            <OpenInNewIcon sx={{ fontSize: 15 }} />
+                          </Button>
+                        </Tooltip>
+                        <Tooltip title="Download">
+                          <Button
+                            size="small"
+                            component="a"
+                            href={a.fileUrl}
+                            download={a.fileName}
+                            sx={{ minWidth: 0, p: 0.5 }}
+                          >
+                            <DownloadIcon sx={{ fontSize: 15 }} />
+                          </Button>
+                        </Tooltip>
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </Box>
             </Stack>
           )}
         </DialogContent>
