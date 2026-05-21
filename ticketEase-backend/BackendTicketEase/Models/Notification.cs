@@ -21,6 +21,16 @@ namespace BackendTicketEase.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public string? DeliveryStatus { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string EventType { get; set; } = "";
+
+        [Required]
+        [MaxLength(20)]
+        public string Channel { get; set; } = "";
+
         // Navigation Property
         [ForeignKey("UserId")]
         [JsonIgnore]

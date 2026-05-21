@@ -9,7 +9,10 @@ export const registerUser = async (data) => {
       email: data.email,
       password: data.password,
       schoolStudentId: data.schoolStudentId,
-      fullName: data.fullName,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      middleName: data.middleName,
+      suffix: data.suffix,
       courseProgram: data.courseProgram,
       yearLevel: data.yearLevel,
       contactNumber: data.contactNumber,
@@ -31,10 +34,11 @@ export const registerStaff = async (data) => {
     const response = await client.post("/auth/register/staff", {
       email: data.email,
       password: data.password,
-      fullName: data.fullName,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      middleName: data.middleName,
+      suffix: data.suffix,
       position: data.position,
-      department: data.department,
-      contactNumber: data.contactNumber,
     });
     return response.data;
   } catch (err) {

@@ -131,26 +131,47 @@ export default function AdminRegisterPage() {
                   Personal Information
                 </Typography>
 
-                <TextField
-                  label="Full Name"
-                  autoComplete="name"
-                  value={form.fullName}
-                  onChange={handleChange("fullName")}
-                  error={!!errors.fullName}
-                  helperText={errors.fullName}
-                  placeholder="e.g. Maria Santos"
-                  InputProps={{ startAdornment: <InputAdornment position="start"><Person sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
-                />
-                <TextField
-                  label="Contact Number"
-                  autoComplete="tel"
-                  value={form.contactNumber}
-                  onChange={handleChange("contactNumber")}
-                  error={!!errors.contactNumber}
-                  helperText={errors.contactNumber}
-                  placeholder="e.g. 09171234567"
-                  InputProps={{ startAdornment: <InputAdornment position="start"><Phone sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
-                />
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                  <TextField
+                    label="First Name"
+                    autoComplete="given-name"
+                    value={form.firstName}
+                    onChange={handleChange("firstName")}
+                    error={!!errors.firstName}
+                    helperText={errors.firstName}
+                    placeholder="e.g. Maria"
+                    InputProps={{ startAdornment: <InputAdornment position="start"><Person sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+                  />
+                  <TextField
+                    label="Last Name"
+                    autoComplete="family-name"
+                    value={form.lastName}
+                    onChange={handleChange("lastName")}
+                    error={!!errors.lastName}
+                    helperText={errors.lastName}
+                    placeholder="e.g. Santos"
+                  />
+                </Stack>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                  <TextField
+                    label="Middle Name"
+                    autoComplete="additional-name"
+                    value={form.middleName}
+                    onChange={handleChange("middleName")}
+                    error={!!errors.middleName}
+                    helperText={errors.middleName}
+                    placeholder="e.g. Cruz"
+                  />
+                  <TextField
+                    label="Suffix"
+                    value={form.suffix}
+                    onChange={handleChange("suffix")}
+                    error={!!errors.suffix}
+                    helperText={errors.suffix}
+                    placeholder="e.g. Jr., Sr., III"
+                  />
+                </Stack>
+                {/* Contact Number field removed as requested */}
 
                 {/* Work Info Section */}
                 <Typography variant="body1" sx={{ fontWeight: 600, color: "primary.main", borderBottom: "1px solid", borderColor: "divider", pb: 0.5 }}>
