@@ -86,7 +86,16 @@ export default function UserNavbar() {
   const navigate = useNavigate();
   const { profile, user } = useAuth();
 
-  const fullName = profile?.fullName || "Student";
+  const fullName = profile
+    ? [
+        profile.firstName,
+        profile.middleName,
+        profile.lastName,
+        profile.suffix
+      ]
+        .filter((part) => part && part.trim() !== "")
+        .join(" ")
+    : "Student";
   const initials = fullName
     .split(" ")
     .map((n) => n[0])

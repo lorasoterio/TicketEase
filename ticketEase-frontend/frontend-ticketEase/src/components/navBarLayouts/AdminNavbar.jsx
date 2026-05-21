@@ -72,7 +72,16 @@ export default function AdminNavbar() {
   const [mobileOpen,   setMobileOpen]    = useState(false);
 
   const user = useMemo(() => {
-    const fullName = profile?.fullName ?? "";
+    const fullName = profile
+    ? [
+        profile.firstName,
+        profile.middleName,
+        profile.lastName,
+        profile.suffix
+      ]
+        .filter((part) => part && part.trim() !== "")
+        .join(" ")
+    : "Student";
     const initials = fullName
       .split(" ")
       .filter(Boolean)
