@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   Box, Grid, Card, CardContent, Typography, TextField, Button,
   MenuItem, Paper, Stack, Avatar, CircularProgress,
-  Alert, Collapse, InputAdornment, Divider,
+  Alert, Collapse, InputAdornment, Divider, Dialog, DialogTitle, DialogContent, DialogActions,
 } from "@mui/material";
 import {
   Person, Email, Lock, Badge, Business, Phone, AdminPanelSettings,
@@ -47,10 +47,13 @@ function timeAgo(dateStr) {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export default function RegisterUser() {
+export default function ManageUsers() {
+
   const [recentUsers, setRecentUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   const {
     form, errors, serverError, success, loading: formLoading,
@@ -69,8 +72,8 @@ export default function RegisterUser() {
 
         const staffMapped = staff.map((s) => ({
           id: `staff-${s.staffId}`,
-          initials: getInitials(s.fullName),
-          name: s.fullName,
+          initials: getInitials(s.firstName + " " + s.lastName),
+          name: s.firstName + " " + s.lastName,
           meta: `${s.department} · ${s.role ?? "Staff"} · ${timeAgo(s.createdAt)}`,
           isStaff: true,
           status: s.isActive ? "Active" : "Inactive",
@@ -96,24 +99,25 @@ export default function RegisterUser() {
       <GoldLine />
       <Grid container spacing={2.5}>
         <Grid item xs={6}>
-          <Card variant="outlined" sx={{ borderColor: "rgba(26,58,92,0.12)", mb: 1.5 }}>
-            <CardContent>
-              <CardTitle>New User Registration</CardTitle>
-
+          <Button variant="contained" color="primary" onClick={() => setModalOpen(true)} sx={{ mb: 2 }}>
+            Add User
+          </Button>
+          <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
+            <DialogTitle>New User Registration</DialogTitle>
+            <DialogContent>
               <Box
                 component="form"
                 onSubmit={(e) => { e.preventDefault(); handleRegister(); }}
                 noValidate
+                sx={{ mt: 1 }}
               >
-                <Stack spacing={2} sx={{ mt: 1 }}>
-
+                <Stack spacing={2}>
                   <Collapse in={!!serverError}>
                     <Alert severity="error">{serverError}</Alert>
                   </Collapse>
                   <Collapse in={success}>
                     <Alert severity="success">Account created successfully.</Alert>
                   </Collapse>
-
                   {/* Role */}
                   <Typography variant="caption" sx={{ fontWeight: 600, color: "primary.main", borderBottom: "1px solid", borderColor: "divider", pb: 0.5, display: "block" }}>
                     Account Role
@@ -126,26 +130,50 @@ export default function RegisterUser() {
                   >
                     {ROLES.map((r) => <MenuItem key={r.value} value={r.value}>{r.label}</MenuItem>)}
                   </TextField>
-
                   {/* Personal Info */}
                   <Typography variant="caption" sx={{ fontWeight: 600, color: "primary.main", borderBottom: "1px solid", borderColor: "divider", pb: 0.5, display: "block" }}>
                     Personal Information
                   </Typography>
-                  <TextField
-                    size="small" label="Full Name" autoComplete="name"
-                    value={form.fullName} onChange={handleChange("fullName")}
-                    error={!!errors.fullName} helperText={errors.fullName}
-                    placeholder="e.g. Maria Santos"
-                    InputProps={{ startAdornment: <InputAdornment position="start"><Person sx={{ color: "text.disabled", fontSize: 18 }} /></InputAdornment> }}
-                  />
-                  <TextField
-                    size="small" label="Contact Number" autoComplete="tel"
-                    value={form.contactNumber} onChange={handleChange("contactNumber")}
-                    error={!!errors.contactNumber} helperText={errors.contactNumber}
-                    placeholder="e.g. 09171234567"
-                    InputProps={{ startAdornment: <InputAdornment position="start"><Phone sx={{ color: "text.disabled", fontSize: 18 }} /></InputAdornment> }}
-                  />
-
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                    <TextField
+                      label="First Name"
+                      autoComplete="given-name"
+                      value={form.firstName}
+                      onChange={handleChange("firstName")}
+                      error={!!errors.firstName}
+                      helperText={errors.firstName}
+                      placeholder="e.g. Maria"
+                      InputProps={{ startAdornment: <InputAdornment position="start"><Person sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+                    />
+                    <TextField
+                      label="Last Name"
+                      autoComplete="family-name"
+                      value={form.lastName}
+                      onChange={handleChange("lastName")}
+                      error={!!errors.lastName}
+                      helperText={errors.lastName}
+                      placeholder="e.g. Santos"
+                    />
+                  </Stack>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                    <TextField
+                      label="Middle Name"
+                      autoComplete="additional-name"
+                      value={form.middleName}
+                      onChange={handleChange("middleName")}
+                      error={!!errors.middleName}
+                      helperText={errors.middleName}
+                      placeholder="e.g. Cruz"
+                    />
+                    <TextField
+                      label="Suffix"
+                      value={form.suffix}
+                      onChange={handleChange("suffix")}
+                      error={!!errors.suffix}
+                      helperText={errors.suffix}
+                      placeholder="e.g. Jr., Sr., III"
+                    />
+                  </Stack>
                   {/* Work Info */}
                   <Typography variant="caption" sx={{ fontWeight: 600, color: "primary.main", borderBottom: "1px solid", borderColor: "divider", pb: 0.5, display: "block" }}>
                     Work Information
@@ -157,15 +185,6 @@ export default function RegisterUser() {
                     placeholder="e.g. Registrar Officer"
                     InputProps={{ startAdornment: <InputAdornment position="start"><Badge sx={{ color: "text.disabled", fontSize: 18 }} /></InputAdornment> }}
                   />
-                  <TextField
-                    select size="small" label="Department"
-                    value={form.department} onChange={handleChange("department")}
-                    error={!!errors.department} helperText={errors.department}
-                    InputProps={{ startAdornment: <InputAdornment position="start"><Business sx={{ color: "text.disabled", fontSize: 18 }} /></InputAdornment> }}
-                  >
-                    {DEPARTMENTS.map((dept) => <MenuItem key={dept} value={dept}>{dept}</MenuItem>)}
-                  </TextField>
-
                   {/* Credentials */}
                   <Typography variant="caption" sx={{ fontWeight: 600, color: "primary.main", borderBottom: "1px solid", borderColor: "divider", pb: 0.5, display: "block" }}>
                     Account Credentials
@@ -189,35 +208,42 @@ export default function RegisterUser() {
                     error={!!errors.confirmPassword} helperText={errors.confirmPassword}
                     InputProps={{ startAdornment: <InputAdornment position="start"><Lock sx={{ color: "text.disabled", fontSize: 18 }} /></InputAdornment> }}
                   />
-
-                  <Box sx={{ display: "flex", gap: 1, pt: 0.5 }}>
-                    <Button type="submit" variant="contained" color="primary" size="small" disabled={formLoading}>
-                      {formLoading ? "Creating…" : "Create Account"}
-                    </Button>
-                  </Box>
-
                 </Stack>
               </Box>
-            </CardContent>
-          </Card>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setModalOpen(false)} color="secondary">Cancel</Button>
+              <Button onClick={handleRegister} color="primary" variant="contained" disabled={formLoading} type="submit">
+                {formLoading ? "Creating…" : "Create Account"}
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Grid>
         <Grid item xs={6}>
           <Box sx={{ borderLeft: "3px solid #c9993a", pl: 1.2, mb: 1.5 }}>
             <Typography variant="h6" sx={{ fontSize: 12, color: "primary.main" }}>Recently Registered</Typography>
             <Typography sx={{ fontSize: 11, color: "text.secondary" }}>Last 5 accounts created</Typography>
           </Box>
+          <TextField
+            size="small"
+            placeholder="Search users by name..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            sx={{ mb: 1 }}
+            fullWidth
+          />
           {loading ? (
             <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
               <CircularProgress size={24} />
             </Box>
           ) : (
             <Stack spacing={1}>
-              {recentUsers.length === 0 ? (
+              {recentUsers.filter(u => u.name.toLowerCase().includes(search.toLowerCase())).length === 0 ? (
                 <Typography sx={{ fontSize: 12, color: "text.secondary", textAlign: "center", py: 2 }}>
                   No users registered yet.
                 </Typography>
               ) : (
-                recentUsers.map((u) => (
+                recentUsers.filter(u => u.name.toLowerCase().includes(search.toLowerCase())).map((u) => (
                   <Paper key={u.id} variant="outlined" sx={{ display: "flex", alignItems: "center", gap: 1.2, p: "10px 12px", borderColor: "rgba(26,58,92,0.12)" }}>
                     <Avatar sx={{ width: 32, height: 32, fontSize: 12, fontWeight: 700, bgcolor: u.isStaff ? "primary.main" : "secondary.main", color: u.isStaff ? "#fff" : "primary.dark" }}>{u.initials}</Avatar>
                     <Box sx={{ flex: 1 }}>
