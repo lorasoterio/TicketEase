@@ -9,11 +9,12 @@ namespace BackendTicketEase.Services
             string email, 
             string password,
             string schoolStudentId,
-            string fullName,
-            string courseProgram,
-            string yearLevel,
-            string contactNumber,
-            string address);
+            string firstName,
+            string lastName,
+            string middleName,
+            string suffix,
+            string strand,
+            string gradeLevel);
 
         Task<(bool Success, string Message, StudentDto? StudentDto)> GetStudentByIdAsync(int studentId);
         Task<(bool Success, string Message, StudentDto? StudentDto)> GetStudentByUserIdAsync(int userId);

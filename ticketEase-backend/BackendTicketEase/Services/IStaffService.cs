@@ -8,10 +8,11 @@ namespace BackendTicketEase.Services
         Task<(bool Success, string Message, Staff? Staff, User? User)> RegisterStaffAsync(
             string email,
             string password,
-            string fullName,
-            string position,
-            string department,
-            string contactNumber);
+            string firstName,
+            string lastName,
+            string middleName,
+            string suffix,
+            string position);
 
         Task<(bool Success, string Message, StaffDto? StaffDto)> GetStaffByIdAsync(int staffId);
         Task<(bool Success, string Message, StaffDto? StaffDto)> GetStaffByUserIdAsync(int userId);

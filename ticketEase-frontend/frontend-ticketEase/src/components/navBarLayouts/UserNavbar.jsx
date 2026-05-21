@@ -55,12 +55,6 @@ const NAV_LINKS = [
     label: "Track status",
     icon: <TrackIcon fontSize="small" />,
   },
-  {
-    to: "/user/messages",
-    label: "Messages",
-    icon: <MessageIcon fontSize="small" />,
-    dot: true,
-  },
 ];
 
 const NOTIFICATIONS = [

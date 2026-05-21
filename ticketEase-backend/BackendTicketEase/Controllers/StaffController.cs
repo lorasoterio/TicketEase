@@ -70,29 +70,6 @@ namespace BackendTicketEase.Controllers
             return Ok(result.Staff);
         }
 
-        [HttpGet("department/{department}")]
-        public async Task<ActionResult<IEnumerable<StaffDto>>> GetStaffByDepartment(string department)
-        {
-            var staff = await _context.Staffs
-                .Include(s => s.User)
-                .Where(s => s.Department.Contains(department))
-                .Select(s => new StaffDto
-                {
-                    StaffId = s.StaffId,
-                    UserId = s.UserId,
-                    FullName = s.FullName,
-                    Position = s.Position,
-                    Department = s.Department,
-                    ContactNumber = s.ContactNumber,
-                    IsActive = s.IsActive,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    UserEmail = s.User.Email
-                })
-                .ToListAsync();
-
-            return Ok(staff);
-        }
 
         [HttpGet("position/{position}")]
         public async Task<ActionResult<IEnumerable<StaffDto>>> GetStaffByPosition(string position)
@@ -104,10 +81,11 @@ namespace BackendTicketEase.Controllers
                 {
                     StaffId = s.StaffId,
                     UserId = s.UserId,
-                    FullName = s.FullName,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    MiddleName = s.MiddleName,
+                    Suffix = s.Suffix,
                     Position = s.Position,
-                    Department = s.Department,
-                    ContactNumber = s.ContactNumber,
                     IsActive = s.IsActive,
                     CreatedAt = s.CreatedAt,
                     UpdatedAt = s.UpdatedAt,
@@ -136,10 +114,11 @@ namespace BackendTicketEase.Controllers
             var staff = new Staff
             {
                 UserId = request.UserId,
-                FullName = request.FullName ?? "",
+                FirstName = request.FirstName ?? "",
+                LastName = request.LastName ?? "",
+                MiddleName = request.MiddleName ?? "",
+                Suffix = request.Suffix ?? "",
                 Position = request.Position ?? "",
-                Department = request.Department ?? "",
-                ContactNumber = request.ContactNumber ?? "",
                 IsActive = request.IsActive ?? true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -156,10 +135,11 @@ namespace BackendTicketEase.Controllers
             {
                 StaffId = createdStaff!.StaffId,
                 UserId = createdStaff.UserId,
-                FullName = createdStaff.FullName,
+                FirstName = createdStaff.FirstName,
+                LastName = createdStaff.LastName,
+                MiddleName = createdStaff.MiddleName,
+                Suffix = createdStaff.Suffix,
                 Position = createdStaff.Position,
-                Department = createdStaff.Department,
-                ContactNumber = createdStaff.ContactNumber,
                 IsActive = createdStaff.IsActive,
                 CreatedAt = createdStaff.CreatedAt,
                 UpdatedAt = createdStaff.UpdatedAt,
@@ -167,7 +147,7 @@ namespace BackendTicketEase.Controllers
             };
 
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var cpid) ? cpid : staff.UserId;
-            await _auditLogService.LogAsync(actorId, "Create", "Staff", staff.StaffId, null, new { staffDto.FullName, staffDto.Position, staffDto.Department });
+            await _auditLogService.LogAsync(actorId, "Create", "Staff", staff.StaffId, null, new { staffDto.FirstName, staffDto.LastName, staffDto.MiddleName, staffDto.Suffix, staffDto.Position });
             return CreatedAtAction(nameof(GetStaff), new { id = staff.StaffId }, staffDto);
         }
 
@@ -182,7 +162,7 @@ namespace BackendTicketEase.Controllers
             }
 
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var upid) ? upid : (int?)null;
-            await _auditLogService.LogAsync(actorId, "Update", "Staff", id, null, new { request.FullName, request.Position, request.Department, request.ContactNumber, request.IsActive });
+            await _auditLogService.LogAsync(actorId, "Update", "Staff", id, null, new { request.FirstName, request.LastName, request.MiddleName, request.Suffix, request.Position, request.IsActive });
             return NoContent();
         }
 

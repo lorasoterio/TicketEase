@@ -91,11 +91,7 @@ namespace BackendTicketEase.Controllers
             ticket.CreatedAt = DateTime.UtcNow;
             ticket.UpdatedAt = DateTime.UtcNow;
 
-            // Normalize EstimatedCompletion to UTC if provided
-            if (ticket.EstimatedCompletion.HasValue)
-            {
-                ticket.EstimatedCompletion = ticket.EstimatedCompletion.Value.ToUniversalTime();
-            }
+            // Remarks is already initialized in the model, no need for EstimatedCompletion
 
             await _context.Tickets.AddAsync(ticket);
             await _context.SaveChangesAsync();
@@ -124,13 +120,6 @@ namespace BackendTicketEase.Controllers
             {
                 if (existing.TicketType != TicketType.DocumentRequest)
                     return BadRequest(new { message = "'Ready for Pickup' status is only applicable to Document Request tickets." });
-
-                var effectiveEta = ticket.EstimatedCompletion.HasValue
-                    ? ticket.EstimatedCompletion.Value.ToUniversalTime()
-                    : existing.EstimatedCompletion;
-
-                if (!effectiveEta.HasValue || DateTime.UtcNow.Date < effectiveEta.Value.Date)
-                    return BadRequest(new { message = "'Ready for Pickup' can only be set on or after the estimated completion date." });
             }
 
             var oldSnapshot = new { existing.TicketType, existing.Subject, existing.Priority, existing.Status, existing.AssignedStaffId };
@@ -142,17 +131,10 @@ namespace BackendTicketEase.Controllers
             existing.Priority = ticket.Priority;
             existing.Status = ticket.Status;
             existing.AssignedStaffId = ticket.AssignedStaffId;
+            existing.Remarks = ticket.Remarks;
             existing.UpdatedAt = DateTime.UtcNow;
 
-            // Normalize EstimatedCompletion to UTC if provided
-            if (ticket.EstimatedCompletion.HasValue)
-            {
-                existing.EstimatedCompletion = ticket.EstimatedCompletion.Value.ToUniversalTime();
-            }
-            else
-            {
-                existing.EstimatedCompletion = null;
-            }
+            // No EstimatedCompletion field anymore
 
             _context.Tickets.Update(existing);
             await _context.SaveChangesAsync();
@@ -216,14 +198,26 @@ namespace BackendTicketEase.Controllers
                     m.Message,
                     m.IsInternal,
                     m.CreatedAt,
-                    SenderName = _context.Students
+                    SenderName = (_context.Students
                         .Where(s => s.UserId == m.SenderId)
-                        .Select(s => s.FullName)
-                        .FirstOrDefault() ??
+                        .Select(s =>
+                            (s.FirstName +
+                            (string.IsNullOrEmpty(s.MiddleName) ? "" : " " + s.MiddleName) +
+                            (string.IsNullOrEmpty(s.LastName) ? "" : " " + s.LastName) +
+                            (string.IsNullOrEmpty(s.Suffix) ? "" : ", " + s.Suffix)
+                            ).Trim())
+                        .FirstOrDefault()
+                        ??
                         _context.Staffs
-                        .Where(s => s.UserId == m.SenderId)
-                        .Select(s => s.FullName)
-                        .FirstOrDefault() ?? "Unknown",
+                        .Where(st => st.UserId == m.SenderId)
+                        .Select(st =>
+                            (st.FirstName +
+                            (string.IsNullOrEmpty(st.MiddleName) ? "" : " " + st.MiddleName) +
+                            (string.IsNullOrEmpty(st.LastName) ? "" : " " + st.LastName) +
+                            (string.IsNullOrEmpty(st.Suffix) ? "" : ", " + st.Suffix)
+                            ).Trim())
+                        .FirstOrDefault()
+                        ?? "Unknown"),
                     SenderRole = _context.Users
                         .Where(u => u.UserId == m.SenderId)
                         .Select(u => u.Role.ToString())

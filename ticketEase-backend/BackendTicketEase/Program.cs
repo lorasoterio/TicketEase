@@ -28,6 +28,7 @@ builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<ITicketMessageService, TicketMessageService>();
+builder.Services.AddScoped<IAttachmentService, AttachmentService>();
 
 builder.Services.AddScoped<IDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
@@ -106,6 +107,13 @@ using (var scope = app.Services.CreateScope())
     {
         app.Logger.LogWarning("Supabase configuration validation warning: {Message}", ex.Message);
     }
+}
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+    await DbSeeder.SeedSuperAdminAsync(db, app.Configuration, app.Logger);
 }
 
 app.UseSwagger();

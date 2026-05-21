@@ -1,13 +1,14 @@
-﻿using System;
+﻿using BackendTicketEase.Data;
+using BackendTicketEase.DTOs;
+using BackendTicketEase.Models;
+using BackendTicketEase.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BackendTicketEase.Data;
-using BackendTicketEase.Models;
-using BackendTicketEase.DTOs;
-using BackendTicketEase.Services;
 
 
 namespace BackendTicketEase.Controllers
@@ -48,9 +49,13 @@ namespace BackendTicketEase.Controllers
             public string Email { get; set; } = string.Empty;
             public string Role { get; set; } = string.Empty;
             public string Token { get; set; } = string.Empty;
-            public string? FullName { get; set; }
+            public string? FirstName { get; set; }
+            public string? LastName { get; set; }
+
+            public string? MiddleName { get; set; }
+            public string? Suffix { get; set; }
             public string? SchoolStudentId { get; set; }
-            public string? Department { get; set; }
+            public string? Position { get; set; }
         }
 
         [HttpPost("register/student")]
@@ -60,11 +65,12 @@ namespace BackendTicketEase.Controllers
                 request.Email,
                 request.Password,
                 request.SchoolStudentId,
-                request.FullName,
-                request.CourseProgram,
-                request.YearLevel,
-                request.ContactNumber,
-                request.Address
+                request.FirstName,
+                request.LastName,
+                request.MiddleName,
+                request.Suffix,
+                request.Strand,
+                request.GradeLevel
             );
 
             if (!result.Success)
@@ -91,10 +97,11 @@ namespace BackendTicketEase.Controllers
             var result = await _staffService.RegisterStaffAsync(
                 request.Email,
                 request.Password,
-                request.FullName,
-                request.Position,
-                request.Department,
-                request.ContactNumber
+                request.FirstName,
+                request.LastName,
+                request.MiddleName,
+                request.Suffix,
+                request.Position
             );
 
             if (!result.Success)
@@ -176,7 +183,10 @@ namespace BackendTicketEase.Controllers
                 var student = await _context.Set<Student>()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(s => s.UserId == user.UserId);
-                response.FullName = student?.FullName;
+                response.FirstName = student?.FirstName;
+                response.LastName = student?.LastName;
+                response.MiddleName = student?.MiddleName;
+                response.Suffix = student?.Suffix;
                 response.SchoolStudentId = student?.SchoolStudentId;
             }
             else if (user.Role == UserRole.Staff || user.Role == UserRole.Admin || user.Role == UserRole.SuperAdmin)
@@ -184,8 +194,11 @@ namespace BackendTicketEase.Controllers
                 var staff = await _context.Set<Staff>()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(s => s.UserId == user.UserId);
-                response.FullName = staff?.FullName;
-                response.Department = staff?.Department;
+                response.FirstName = staff?.FirstName;
+                response.LastName = staff?.LastName;
+                response.MiddleName = staff?.MiddleName;
+                response.Suffix = staff?.Suffix;
+                response.Position = staff?.Position;
             }
 
             await _auditLogService.LogAsync(user.UserId, "Login", "User", user.UserId);

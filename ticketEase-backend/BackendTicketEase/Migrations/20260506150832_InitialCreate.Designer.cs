@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BackendTicketEase.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260426074440_InitialCreate")]
+    [Migration("20260506150832_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -24,6 +24,53 @@ namespace BackendTicketEase.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("BackendTicketEase.Models.Attachment", b =>
+                {
+                    b.Property<int>("AttachmentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("AttachmentId"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("FileType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("MessageId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TicketId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UploadedBy")
+                        .HasColumnType("integer");
+
+                    b.HasKey("AttachmentId");
+
+                    b.HasIndex("MessageId");
+
+                    b.HasIndex("TicketId");
+
+                    b.HasIndex("UploadedBy");
+
+                    b.ToTable("Attachments", (string)null);
+                });
 
             modelBuilder.Entity("BackendTicketEase.Models.AuditLog", b =>
                 {
@@ -421,6 +468,32 @@ namespace BackendTicketEase.Migrations
                     b.HasKey("UserId");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("BackendTicketEase.Models.Attachment", b =>
+                {
+                    b.HasOne("BackendTicketEase.Models.TicketMessage", "Message")
+                        .WithMany()
+                        .HasForeignKey("MessageId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BackendTicketEase.Models.Ticket", "Ticket")
+                        .WithMany()
+                        .HasForeignKey("TicketId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BackendTicketEase.Models.User", "UploadedByUser")
+                        .WithMany()
+                        .HasForeignKey("UploadedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Message");
+
+                    b.Navigation("Ticket");
+
+                    b.Navigation("UploadedByUser");
                 });
 
             modelBuilder.Entity("BackendTicketEase.Models.AuditLog", b =>

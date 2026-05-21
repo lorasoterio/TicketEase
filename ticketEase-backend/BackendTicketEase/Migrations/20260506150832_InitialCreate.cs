@@ -258,6 +258,58 @@ namespace BackendTicketEase.Migrations
                         onDelete: ReferentialAction.Restrict);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Attachments",
+                columns: table => new
+                {
+                    AttachmentId = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    FileUrl = table.Column<string>(type: "text", nullable: false),
+                    FileName = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    FileType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    UploadedBy = table.Column<int>(type: "integer", nullable: false),
+                    TicketId = table.Column<int>(type: "integer", nullable: false),
+                    MessageId = table.Column<int>(type: "integer", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Attachments", x => x.AttachmentId);
+                    table.ForeignKey(
+                        name: "FK_Attachments_TicketMessages_MessageId",
+                        column: x => x.MessageId,
+                        principalTable: "TicketMessages",
+                        principalColumn: "MessageId",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Attachments_Tickets_TicketId",
+                        column: x => x.TicketId,
+                        principalTable: "Tickets",
+                        principalColumn: "TicketId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Attachments_Users_UploadedBy",
+                        column: x => x.UploadedBy,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Attachments_MessageId",
+                table: "Attachments",
+                column: "MessageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Attachments_TicketId",
+                table: "Attachments",
+                column: "TicketId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Attachments_UploadedBy",
+                table: "Attachments",
+                column: "UploadedBy");
+
             migrationBuilder.CreateIndex(
                 name: "IX_AuditLogs_UserId",
                 table: "AuditLogs",
@@ -329,6 +381,9 @@ namespace BackendTicketEase.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "Attachments");
+
             migrationBuilder.DropTable(
                 name: "AuditLogs");
 

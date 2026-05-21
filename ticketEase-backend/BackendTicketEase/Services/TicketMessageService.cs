@@ -55,8 +55,12 @@ namespace BackendTicketEase.Services
                     SenderId = m.SenderId,
                     SenderRole = u.Role.ToString(),
                     SenderName = u.Role == UserRole.Student
-                        ? _context.Students.Where(s => s.UserId == m.SenderId).Select(s => s.FullName).FirstOrDefault() ?? "Unknown"
-                        : _context.Staffs.Where(s => s.UserId == m.SenderId).Select(s => s.FullName).FirstOrDefault() ?? "Unknown",
+                        ? (_context.Students.Where(s => s.UserId == m.SenderId)
+                            .Select(s => (s.FirstName + (string.IsNullOrEmpty(s.MiddleName) ? "" : " " + s.MiddleName) + " " + s.LastName + (string.IsNullOrEmpty(s.Suffix) ? "" : ", " + s.Suffix)).Trim())
+                            .FirstOrDefault() ?? "Unknown")
+                        : (_context.Staffs.Where(s => s.UserId == m.SenderId)
+                            .Select(s => (s.FirstName + (string.IsNullOrEmpty(s.MiddleName) ? "" : " " + s.MiddleName) + " " + s.LastName + (string.IsNullOrEmpty(s.Suffix) ? "" : ", " + s.Suffix)).Trim())
+                            .FirstOrDefault() ?? "Unknown"),
                     Message = m.Message,
                     CreatedAt = m.CreatedAt,
                 }
@@ -123,8 +127,12 @@ namespace BackendTicketEase.Services
             var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == userId);
             var senderRole = user?.Role.ToString() ?? string.Empty;
             var senderName = senderRole == nameof(UserRole.Student)
-                ? await _context.Students.AsNoTracking().Where(s => s.UserId == userId).Select(s => s.FullName).FirstOrDefaultAsync() ?? "Unknown"
-                : await _context.Staffs.AsNoTracking().Where(s => s.UserId == userId).Select(s => s.FullName).FirstOrDefaultAsync() ?? "Unknown";
+                ? await _context.Students.AsNoTracking().Where(s => s.UserId == userId)
+                    .Select(s => (s.FirstName + (string.IsNullOrEmpty(s.MiddleName) ? "" : " " + s.MiddleName) + " " + s.LastName + (string.IsNullOrEmpty(s.Suffix) ? "" : ", " + s.Suffix)).Trim())
+                    .FirstOrDefaultAsync() ?? "Unknown"
+                : await _context.Staffs.AsNoTracking().Where(s => s.UserId == userId)
+                    .Select(s => (s.FirstName + (string.IsNullOrEmpty(s.MiddleName) ? "" : " " + s.MiddleName) + " " + s.LastName + (string.IsNullOrEmpty(s.Suffix) ? "" : ", " + s.Suffix)).Trim())
+                    .FirstOrDefaultAsync() ?? "Unknown";
 
             var dto = new TicketMessageDto
             {

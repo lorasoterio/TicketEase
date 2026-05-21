@@ -14,11 +14,13 @@ namespace BackendTicketEase.Data
         public DbSet<Student> Students { get; set; }
         public DbSet<Staff> Staffs { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
+        public DbSet<Attachment> Attachments { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<TicketAssignment> TicketAssignments { get; set; }
         public DbSet<StatusHistory> StatusHistories { get; set; }
         public DbSet<TicketMessage> TicketMessages { get; set; }
+        public DbSet<DocumentType> DocumentTypes { get; set; }
       
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -217,8 +219,51 @@ namespace BackendTicketEase.Data
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
-            
-            
+            // Attachment Configuration
+            modelBuilder.Entity<Attachment>(entity =>
+            {
+                entity.ToTable("Attachments");
+                entity.HasKey(e => e.AttachmentId);
+
+                entity.Property(e => e.FileUrl).IsRequired();
+                entity.Property(e => e.FileName).HasMaxLength(255).IsRequired();
+                entity.Property(e => e.FileType).HasMaxLength(100).IsRequired();
+
+                entity.HasOne(e => e.UploadedByUser)
+                      .WithMany()
+                      .HasForeignKey(e => e.UploadedBy)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Ticket)
+                      .WithMany()
+                      .HasForeignKey(e => e.TicketId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Message)
+                      .WithMany()
+                      .HasForeignKey(e => e.MessageId)
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            // DocumentType Configuration
+            modelBuilder.Entity<DocumentType>(entity =>
+            {
+                entity.ToTable("DocumentTypes");
+                entity.HasKey(e => e.DocumentTypeId);
+
+                entity.Property(e => e.Name)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(e => e.Description)
+                      .HasMaxLength(255);
+
+                entity.Property(e => e.UpdatedAt)
+                      .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                      .ValueGeneratedOnAddOrUpdate();
+            });
         }
     }
 }
