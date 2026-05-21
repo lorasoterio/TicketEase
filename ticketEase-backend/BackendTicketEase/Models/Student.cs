@@ -25,7 +25,9 @@ namespace BackendTicketEase.Models
         public string Strand { get; set; } = "";
 
         [StringLength(20)]
-        public string YearLevel { get; set; } = "";
+        public string GradeLevel { get; set; } = "";
+
+        public bool IsGraduate { get; set; } = false;
 
         public bool IsVerified { get; set; } = false;
 

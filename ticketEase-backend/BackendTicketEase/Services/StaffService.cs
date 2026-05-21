@@ -18,10 +18,11 @@ namespace BackendTicketEase.Services
         public async Task<(bool Success, string Message, Staff? Staff, User? User)> RegisterStaffAsync(
             string email,
             string password,
-            string fullName,
-            string position,
-            string department,
-            string contactNumber)
+            string firstName,
+            string lastName,
+            string middleName,
+            string suffix,
+            string position)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -58,10 +59,11 @@ namespace BackendTicketEase.Services
                 var staff = new Staff
                 {
                     UserId = user.UserId,
-                    FullName = fullName ?? "",
+                    FirstName = firstName ?? "",
+                    LastName = lastName ?? "",
+                    MiddleName = middleName ?? "",
+                    Suffix = suffix,
                     Position = position ?? "",
-                    Department = department ?? "",
-                    ContactNumber = contactNumber ?? "",
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -119,10 +121,11 @@ namespace BackendTicketEase.Services
                 {
                     StaffId = s.StaffId,
                     UserId = s.UserId,
-                    FullName = s.FullName,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    MiddleName = s.MiddleName,
+                    Suffix = s.Suffix,
                     Position = s.Position,
-                    Department = s.Department,
-                    ContactNumber = s.ContactNumber,
                     IsActive = s.IsActive,
                     CreatedAt = s.CreatedAt,
                     UpdatedAt = s.UpdatedAt,
@@ -142,10 +145,11 @@ namespace BackendTicketEase.Services
                 {
                     StaffId = s.StaffId,
                     UserId = s.UserId,
-                    FullName = s.FullName,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    MiddleName = s.MiddleName,
+                    Suffix = s.Suffix,
                     Position = s.Position,
-                    Department = s.Department,
-                    ContactNumber = s.ContactNumber,
                     IsActive = s.IsActive,
                     CreatedAt = s.CreatedAt,
                     UpdatedAt = s.UpdatedAt,
@@ -165,10 +169,11 @@ namespace BackendTicketEase.Services
                 {
                     StaffId = s.StaffId,
                     UserId = s.UserId,
-                    FullName = s.FullName,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    MiddleName = s.MiddleName,
+                    Suffix = s.Suffix,
                     Position = s.Position,
-                    Department = s.Department,
-                    ContactNumber = s.ContactNumber,
                     IsActive = s.IsActive,
                     CreatedAt = s.CreatedAt,
                     UpdatedAt = s.UpdatedAt,
@@ -188,17 +193,20 @@ namespace BackendTicketEase.Services
                 return (false, $"Staff with ID {staffId} not found.");
             }
 
-            if (!string.IsNullOrWhiteSpace(request.FullName))
-                staff.FullName = request.FullName;
+            if (!string.IsNullOrWhiteSpace(request.FirstName))
+                staff.FirstName = request.FirstName;
+
+            if (!string.IsNullOrWhiteSpace(request.LastName))
+                staff.LastName = request.LastName;
+
+            if (!string.IsNullOrWhiteSpace(request.MiddleName))
+                staff.MiddleName = request.MiddleName;
+
+            if (!string.IsNullOrWhiteSpace(request.Suffix))
+                staff.Suffix = request.Suffix;
 
             if (!string.IsNullOrWhiteSpace(request.Position))
                 staff.Position = request.Position;
-
-            if (!string.IsNullOrWhiteSpace(request.Department))
-                staff.Department = request.Department;
-
-            if (!string.IsNullOrWhiteSpace(request.ContactNumber))
-                staff.ContactNumber = request.ContactNumber;
 
             if (request.IsActive.HasValue)
                 staff.IsActive = request.IsActive.Value;
@@ -248,10 +256,11 @@ namespace BackendTicketEase.Services
             {
                 StaffId = staff.StaffId,
                 UserId = staff.UserId,
-                FullName = staff.FullName,
+                FirstName = staff.FirstName,
+                LastName = staff.LastName,
+                MiddleName = staff.MiddleName,
+                Suffix = staff.Suffix,
                 Position = staff.Position,
-                Department = staff.Department,
-                ContactNumber = staff.ContactNumber,
                 IsActive = staff.IsActive,
                 CreatedAt = staff.CreatedAt,
                 UpdatedAt = staff.UpdatedAt,

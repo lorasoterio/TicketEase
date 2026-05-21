@@ -65,11 +65,12 @@ namespace BackendTicketEase.Controllers
                 request.Email,
                 request.Password,
                 request.SchoolStudentId,
-                request.FullName,
-                request.CourseProgram,
-                request.YearLevel,
-                request.ContactNumber,
-                request.Address
+                request.FirstName,
+                request.LastName,
+                request.MiddleName,
+                request.Suffix,
+                request.Strand,
+                request.GradeLevel
             );
 
             if (!result.Success)
@@ -96,10 +97,11 @@ namespace BackendTicketEase.Controllers
             var result = await _staffService.RegisterStaffAsync(
                 request.Email,
                 request.Password,
-                request.FullName,
-                request.Position,
-                request.Department,
-                request.ContactNumber
+                request.FirstName,
+                request.LastName,
+                request.MiddleName,
+                request.Suffix,
+                request.Position
             );
 
             if (!result.Success)

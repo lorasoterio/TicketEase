@@ -1,8 +1,9 @@
-using System.Security.Cryptography;
-using Microsoft.EntityFrameworkCore;
 using BackendTicketEase.Data;
 using BackendTicketEase.DTOs;
 using BackendTicketEase.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Collections;
+using System.Security.Cryptography;
 
 namespace BackendTicketEase.Services
 {
@@ -19,11 +20,12 @@ namespace BackendTicketEase.Services
             string email,
             string password,
             string schoolStudentId,
-            string fullName,
-            string courseProgram,
-            string yearLevel,
-            string contactNumber,
-            string address)
+            string firstName,
+            string lastName,
+            string middleName,
+            string suffix,
+            string strand,
+            string gradeLevel)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -72,11 +74,12 @@ namespace BackendTicketEase.Services
                 {
                     UserId = user.UserId,
                     SchoolStudentId = schoolStudentId ?? "",
-                    FullName = fullName ?? "",
-                    CourseProgram = courseProgram ?? "",
-                    YearLevel = yearLevel ?? "",
-                    ContactNumber = contactNumber ?? "",
-                    Address = address ?? "",
+                    FirstName = firstName ?? "",
+                    LastName = lastName ?? "",
+                    MiddleName = middleName ?? "",
+                    Suffix = suffix ?? "",
+                    Strand = strand ?? "",
+                    GradeLevel = gradeLevel ?? "",
                     IsVerified = false,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -135,11 +138,12 @@ namespace BackendTicketEase.Services
                     StudentId = s.StudentId,
                     UserId = s.UserId,
                     SchoolStudentId = s.SchoolStudentId,
-                    FullName = s.FullName,
-                    CourseProgram = s.CourseProgram,
-                    YearLevel = s.YearLevel,
-                    ContactNumber = s.ContactNumber,
-                    Address = s.Address,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    MiddleName = s.MiddleName,
+                    Suffix = s.Suffix,
+                    Strand = s.Strand,
+                    GradeLevel = s.GradeLevel,
                     IsVerified = s.IsVerified,
                     CreatedAt = s.CreatedAt,
                     UpdatedAt = s.UpdatedAt,
@@ -160,11 +164,12 @@ namespace BackendTicketEase.Services
                     StudentId = s.StudentId,
                     UserId = s.UserId,
                     SchoolStudentId = s.SchoolStudentId,
-                    FullName = s.FullName,
-                    CourseProgram = s.CourseProgram,
-                    YearLevel = s.YearLevel,
-                    ContactNumber = s.ContactNumber,
-                    Address = s.Address,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    MiddleName = s.MiddleName,
+                    Suffix = s.Suffix,
+                    Strand = s.Strand,
+                    GradeLevel = s.GradeLevel,
                     IsVerified = s.IsVerified,
                     CreatedAt = s.CreatedAt,
                     UpdatedAt = s.UpdatedAt,
@@ -185,11 +190,12 @@ namespace BackendTicketEase.Services
                     StudentId = s.StudentId,
                     UserId = s.UserId,
                     SchoolStudentId = s.SchoolStudentId,
-                    FullName = s.FullName,
-                    CourseProgram = s.CourseProgram,
-                    YearLevel = s.YearLevel,
-                    ContactNumber = s.ContactNumber,
-                    Address = s.Address,
+                    FirstName = s.FirstName,
+                    LastName = s.LastName,
+                    MiddleName = s.MiddleName,
+                    Suffix = s.Suffix,
+                    Strand = s.Strand,
+                    GradeLevel = s.GradeLevel,
                     IsVerified = s.IsVerified,
                     CreatedAt = s.CreatedAt,
                     UpdatedAt = s.UpdatedAt,
@@ -237,20 +243,23 @@ namespace BackendTicketEase.Services
                 student.SchoolStudentId = request.SchoolStudentId;
             }
 
-            if (!string.IsNullOrWhiteSpace(request.FullName))
-                student.FullName = request.FullName;
+            if (!string.IsNullOrWhiteSpace(request.FirstName))
+                student.FirstName = request.FirstName;
 
-            if (!string.IsNullOrWhiteSpace(request.CourseProgram))
-                student.CourseProgram = request.CourseProgram;
+            if (!string.IsNullOrWhiteSpace(request.LastName))
+                student.LastName = request.LastName;
 
-            if (!string.IsNullOrWhiteSpace(request.YearLevel))
-                student.YearLevel = request.YearLevel;
+            if (!string.IsNullOrWhiteSpace(request.MiddleName))
+                student.MiddleName = request.MiddleName;
 
-            if (!string.IsNullOrWhiteSpace(request.ContactNumber))
-                student.ContactNumber = request.ContactNumber;
+            if (!string.IsNullOrWhiteSpace(request.Suffix))
+                student.Suffix = request.Suffix;
 
-            if (!string.IsNullOrWhiteSpace(request.Address))
-                student.Address = request.Address;
+            if (!string.IsNullOrWhiteSpace(request.Strand))
+                student.Strand = request.Strand;
+
+            if (!string.IsNullOrWhiteSpace(request.GradeLevel))
+                student.GradeLevel = request.GradeLevel;
 
             if (request.IsVerified.HasValue)
                 student.IsVerified = request.IsVerified.Value;
@@ -258,6 +267,7 @@ namespace BackendTicketEase.Services
             student.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
 
             return (true, "Student updated successfully.");
         }
@@ -284,11 +294,12 @@ namespace BackendTicketEase.Services
                 StudentId = student.StudentId,
                 UserId = student.UserId,
                 SchoolStudentId = student.SchoolStudentId,
-                FullName = student.FullName,
-                CourseProgram = student.CourseProgram,
-                YearLevel = student.YearLevel,
-                ContactNumber = student.ContactNumber,
-                Address = student.Address,
+                FirstName = student.FirstName,
+                LastName = student.LastName,
+                MiddleName = student.MiddleName,
+                Suffix = student.Suffix,
+                Strand = student.Strand,
+                GradeLevel = student.GradeLevel,
                 IsVerified = student.IsVerified,
                 CreatedAt = student.CreatedAt,
                 UpdatedAt = student.UpdatedAt,

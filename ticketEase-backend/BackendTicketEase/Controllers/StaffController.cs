@@ -162,7 +162,7 @@ namespace BackendTicketEase.Controllers
             }
 
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var upid) ? upid : (int?)null;
-            await _auditLogService.LogAsync(actorId, "Update", "Staff", id, null, new { request.FullName, request.Position, request.Department, request.ContactNumber, request.IsActive });
+            await _auditLogService.LogAsync(actorId, "Update", "Staff", id, null, new { request.FirstName, request.LastName, request.MiddleName, request.Suffix, request.Position, request.IsActive });
             return NoContent();
         }
 

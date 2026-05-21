@@ -30,7 +30,7 @@ namespace BackendTicketEase.Models
 
         public TicketStatus Status { get; set; } = TicketStatus.Pending;
 
-        public DateTime? EstimatedCompletion { get; set; }
+        public string Remarks { get; set; } = string.Empty;
 
         // FK to Users.user_id (staff assigned)
         public int? AssignedStaffId { get; set; }
