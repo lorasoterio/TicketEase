@@ -46,7 +46,7 @@ namespace BackendTicketEase.Services
             var messages = await (
                 from m in _context.TicketMessages.AsNoTracking()
                 join u in _context.Users.AsNoTracking() on m.SenderId equals u.UserId
-                where m.TicketId == ticketId && !m.IsInternal
+                where m.TicketId == ticketId
                 orderby m.CreatedAt
                 select new TicketMessageDto
                 {
@@ -90,7 +90,7 @@ namespace BackendTicketEase.Services
                     return (false, "You are not allowed to respond to this thread.", null);
 
                 var assignedStaffHasMessaged = await _context.TicketMessages
-                    .AnyAsync(m => m.TicketId == ticketId && m.SenderId == ticket.AssignedStaffId && !m.IsInternal);
+                    .AnyAsync(m => m.TicketId == ticketId && m.SenderId == ticket.AssignedStaffId);
 
                 if (!assignedStaffHasMessaged)
                     return (false, "You can respond only after assigned staff sends a message.", null);
@@ -110,7 +110,6 @@ namespace BackendTicketEase.Services
                 TicketId = ticketId,
                 SenderId = userId,
                 Message = message.Trim(),
-                IsInternal = false,
                 CreatedAt = DateTime.UtcNow,
             };
 

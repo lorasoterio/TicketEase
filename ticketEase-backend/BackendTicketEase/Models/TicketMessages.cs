@@ -20,7 +20,6 @@ namespace BackendTicketEase.Models
         [Required]
         public string Message { get; set; } = "";
 
-        public bool IsInternal { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

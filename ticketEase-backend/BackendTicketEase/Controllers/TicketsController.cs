@@ -185,9 +185,6 @@ namespace BackendTicketEase.Controllers
                 .AsNoTracking()
                 .Where(m => m.TicketId == id);
 
-            if (isStudent)
-                query = query.Where(m => !m.IsInternal);
-
             var messages = await query
                 .OrderBy(m => m.CreatedAt)
                 .Select(m => new
@@ -196,7 +193,6 @@ namespace BackendTicketEase.Controllers
                     m.TicketId,
                     m.SenderId,
                     m.Message,
-                    m.IsInternal,
                     m.CreatedAt,
                     SenderName = (_context.Students
                         .Where(s => s.UserId == m.SenderId)
@@ -255,7 +251,6 @@ namespace BackendTicketEase.Controllers
                 TicketId = id,
                 SenderId = userId,
                 Message = request.Message,
-                IsInternal = false,
                 CreatedAt = DateTime.UtcNow,
             };
 
@@ -269,7 +264,6 @@ namespace BackendTicketEase.Controllers
                 message.TicketId,
                 message.SenderId,
                 message.Message,
-                message.IsInternal,
                 message.CreatedAt,
             });
         }
