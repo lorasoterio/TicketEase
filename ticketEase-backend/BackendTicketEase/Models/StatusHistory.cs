@@ -5,7 +5,7 @@ using System.Text.Json.Serialization;
 
 namespace BackendTicketEase.Models
 {
-    [Table("StatusHistory")]
+    [Table("TicketStatusHistory")]
     public class StatusHistory
     {
         [Key]

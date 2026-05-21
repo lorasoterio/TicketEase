@@ -18,7 +18,7 @@ namespace BackendTicketEase.Data
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<TicketAssignment> TicketAssignments { get; set; }
-        public DbSet<StatusHistory> StatusHistories { get; set; }
+        public DbSet<StatusHistory> TicketStatusHistory { get; set; }
         public DbSet<TicketMessage> TicketMessages { get; set; }
         public DbSet<DocumentType> DocumentTypes { get; set; }
       
@@ -181,10 +181,10 @@ namespace BackendTicketEase.Data
                 entity.Property(e => e.AssignedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
-            // StatusHistory Configuration
+            // TicketStatusHistory Configuration
             modelBuilder.Entity<StatusHistory>(entity =>
             {
-                entity.ToTable("StatusHistory");
+                entity.ToTable("TicketStatusHistory");
                 entity.HasKey(e => e.StatusHistoryId);
 
                 entity.HasOne(e => e.Ticket)
