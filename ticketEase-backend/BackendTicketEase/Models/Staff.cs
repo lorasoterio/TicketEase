@@ -13,16 +13,13 @@ namespace BackendTicketEase.Models
         public int UserId { get; set; }
 
         [StringLength(100)]
-        public string FullName { get; set; } = "";
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
+        public string MiddleName { get; set; } = "";
+        public string Suffix { get; set; } = "";
 
         [StringLength(50)]
         public string Position { get; set; } = "";
-
-        [StringLength(50)]
-        public string Department { get; set; } = "";
-
-        [StringLength(20)]
-        public string ContactNumber { get; set; } = "";
 
         public bool IsActive { get; set; } = true;
 

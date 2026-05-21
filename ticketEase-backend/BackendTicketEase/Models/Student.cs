@@ -16,18 +16,16 @@ namespace BackendTicketEase.Models
         public string SchoolStudentId { get; set; } = "";
 
         [StringLength(100)]
-        public string FullName { get; set; } = "";
+        public string FirstName { get; set; } = "";
+        public string LastName { get; set; } = "";
+        public string MiddleName { get; set; } = "";
+        public string Suffix { get; set; } = "";
 
         [StringLength(100)]
-        public string CourseProgram { get; set; } = "";
+        public string Strand { get; set; } = "";
 
         [StringLength(20)]
         public string YearLevel { get; set; } = "";
-
-        [StringLength(20)]
-        public string ContactNumber { get; set; } = "";
-
-        public string Address { get; set; } = "";
 
         public bool IsVerified { get; set; } = false;
 

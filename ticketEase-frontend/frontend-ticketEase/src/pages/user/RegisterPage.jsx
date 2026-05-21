@@ -132,7 +132,7 @@ export default function UserRegisterPage() {
                 InputProps={{ startAdornment: <InputAdornment position="start"><School sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
               />
               <TextField
-                label="Course / Program"
+                label="Strand"
                 value={form.courseProgram}
                 onChange={handleChange("courseProgram")}
                 error={!!errors.courseProgram}

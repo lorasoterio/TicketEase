@@ -20,6 +20,7 @@ namespace BackendTicketEase.Data
         public DbSet<TicketAssignment> TicketAssignments { get; set; }
         public DbSet<StatusHistory> StatusHistories { get; set; }
         public DbSet<TicketMessage> TicketMessages { get; set; }
+        public DbSet<DocumentType> DocumentTypes { get; set; }
       
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -246,8 +247,23 @@ namespace BackendTicketEase.Data
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
-            
-            
+            // DocumentType Configuration
+            modelBuilder.Entity<DocumentType>(entity =>
+            {
+                entity.ToTable("DocumentTypes");
+                entity.HasKey(e => e.DocumentTypeId);
+
+                entity.Property(e => e.Name)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(e => e.Description)
+                      .HasMaxLength(255);
+
+                entity.Property(e => e.UpdatedAt)
+                      .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                      .ValueGeneratedOnAddOrUpdate();
+            });
         }
     }
 }
