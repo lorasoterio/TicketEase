@@ -1,7 +1,7 @@
 import {
   ThemeProvider, createTheme, CssBaseline, Box, Paper,
   Typography, TextField, Button, Stack, Alert, Collapse,
-  InputAdornment, Divider, MenuItem,
+  InputAdornment, Divider, MenuItem, Checkbox, FormControlLabel,
 } from "@mui/material";
 import {
   School, Person, Email, Lock, HowToReg,
@@ -87,35 +87,47 @@ export default function UserRegisterPage() {
                 Personal Information
               </Typography>
 
-              <TextField
-                label="Full Name"
-                value={form.fullName}
-                onChange={handleChange("fullName")}
-                error={!!errors.fullName}
-                helperText={errors.fullName}
-                placeholder="e.g. Juan dela Cruz"
-                InputProps={{ startAdornment: <InputAdornment position="start"><Person sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
-              />
-              <TextField
-                label="Contact Number"
-                value={form.contactNumber}
-                onChange={handleChange("contactNumber")}
-                error={!!errors.contactNumber}
-                helperText={errors.contactNumber}
-                placeholder="e.g. 09171234567"
-                InputProps={{ startAdornment: <InputAdornment position="start"><Phone sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
-              />
-              <TextField
-                label="Address"
-                value={form.address}
-                onChange={handleChange("address")}
-                error={!!errors.address}
-                helperText={errors.address}
-                placeholder="e.g. 123 Rizal St., Manila"
-                multiline
-                rows={2}
-                InputProps={{ startAdornment: <InputAdornment position="start" sx={{ mt: "6px", alignSelf: "flex-start" }}><Home sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
-              />
+
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <TextField
+                  label="First Name"
+                  value={form.firstName || ""}
+                  onChange={handleChange("firstName")}
+                  error={!!errors.firstName}
+                  helperText={errors.firstName}
+                  placeholder="e.g. Juan"
+                  InputProps={{ startAdornment: <InputAdornment position="start"><Person sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+                />
+                <TextField
+                  label="Last Name"
+                  value={form.lastName || ""}
+                  onChange={handleChange("lastName")}
+                  error={!!errors.lastName}
+                  helperText={errors.lastName}
+                  placeholder="e.g. Dela Cruz"
+                />
+              </Stack>
+              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                <TextField
+                  label="Middle Name"
+                  value={form.middleName || ""}
+                  onChange={handleChange("middleName")}
+                  error={!!errors.middleName}
+                  helperText={errors.middleName}
+                  placeholder="e.g. Santos"
+                />
+                <TextField
+                  label="Suffix (optional)"
+                  value={form.suffix || ""}
+                  onChange={handleChange("suffix")}
+                  error={!!errors.suffix}
+                  helperText={errors.suffix}
+                  placeholder="e.g. Jr., III, IV"
+                />
+              </Stack>
+
+              
+
 
               {/* Academic Info Section */}
               <Typography variant="body1" sx={{ fontWeight: 600, color: "primary.main", borderBottom: "1px solid", borderColor: "divider", pb: 0.5 }}>
@@ -137,9 +149,10 @@ export default function UserRegisterPage() {
                 onChange={handleChange("courseProgram")}
                 error={!!errors.courseProgram}
                 helperText={errors.courseProgram}
-                placeholder="e.g. BS Computer Science"
+                placeholder="e.g. STEM, ABM, HUMSS"
                 InputProps={{ startAdornment: <InputAdornment position="start"><MenuBook sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
               />
+
               <TextField
                 select
                 label="Year Level"
@@ -155,6 +168,19 @@ export default function UserRegisterPage() {
                   </MenuItem>
                 ))}
               </TextField>
+
+              {/* Graduate Checkbox */}
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={!!form.isGraduate}
+                    onChange={e => handleChange("isGraduate")({ target: { value: e.target.checked } })}
+                    color="primary"
+                  />
+                }
+                label="I am a graduate"
+                sx={{ fontFamily: "'Source Serif 4', serif", ml: 0.5 }}
+              />
 
               {/* Account Info Section */}
               <Typography variant="body1" sx={{ fontWeight: 600, color: "primary.main", borderBottom: "1px solid", borderColor: "divider", pb: 0.5 }}>

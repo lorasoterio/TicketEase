@@ -3,7 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../services/authServices";
 
 const INITIAL_FIELDS = {
-  fullName: "",
+  firstName: "",
+  lastName: "",
+  middleName: "",
+  suffix: "",
   schoolStudentId: "",
   courseProgram: "",
   yearLevel: "",
@@ -16,7 +19,9 @@ const INITIAL_FIELDS = {
 
 function validate(form) {
   const errors = {};
-  if (!form.fullName.trim()) errors.fullName = "Full name is required.";
+  if (!form.firstName.trim()) errors.firstName = "First name is required.";
+  if (!form.lastName.trim()) errors.lastName = "Last name is required.";
+  if (!form.middleName.trim()) errors.middleName = "Middle name is required.";
   if (!form.schoolStudentId.trim()) errors.schoolStudentId = "Student ID is required.";
   if (!form.courseProgram.trim()) errors.courseProgram = "Course/Program is required.";
   if (!form.yearLevel.trim()) errors.yearLevel = "Year level is required.";
