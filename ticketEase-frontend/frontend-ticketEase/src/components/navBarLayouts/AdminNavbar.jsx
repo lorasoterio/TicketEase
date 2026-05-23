@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { logoutUser } from "../../services/logout";
 import { useAuth } from "../../context/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
@@ -381,7 +382,7 @@ export default function AdminNavbar() {
           <ListItemText primaryTypographyProps={{ fontSize: 13.5 }}>Settings</ListItemText>
         </MenuItem>
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={() => { navigate("/login"); setProfileAnchor(null); }} sx={{ py: 1.125, color: "error.main" }}>
+        <MenuItem onClick={async () => { await logoutUser(); navigate("/login"); setProfileAnchor(null); }} sx={{ py: 1.125, color: "error.main" }}>
           <ListItemIcon sx={{ minWidth: "auto", mr: 1.25 }}><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 13.5, color: "error.main" }}>Sign out</ListItemText>
         </MenuItem>
@@ -445,7 +446,7 @@ export default function AdminNavbar() {
           <ListItemIcon sx={{ minWidth: 36 }}><SettingsIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14 }}>Settings</ListItemText>
         </ListItemButton>
-        <ListItemButton sx={{ borderRadius: "8px", color: "error.main" }} onClick={() => { navigate("/login"); setMobileOpen(false); }}>
+        <ListItemButton sx={{ borderRadius: "8px", color: "error.main" }} onClick={async () => { await logoutUser(); navigate("/login"); setMobileOpen(false); }}>
           <ListItemIcon sx={{ minWidth: 36 }}><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14, color: "error.main" }}>Sign out</ListItemText>
         </ListItemButton>
