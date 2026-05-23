@@ -3,10 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { registerStaff } from "../../services/authServices";
 
 const INITIAL_FIELDS = {
-  fullName: "",
+  firstName:"",
+  lastName: "",
+  middleName: "",
+  suffix: "",
   position: "",
-  department: "",
-  contactNumber: "",
   role: "Staff",
   email: "",
   password: "",
@@ -15,10 +16,10 @@ const INITIAL_FIELDS = {
 
 function validate(form) {
   const errors = {};
-  if (!form.fullName.trim()) errors.fullName = "Full name is required.";
+  if (!form.firstName.trim()) errors.firstName = "First name is required.";
+  if (!form.lastName.trim()) errors.lastName = "Last name is required.";
+  if (!form.middleName.trim()) errors.middleName = "Middle name is required.";
   if (!form.position.trim()) errors.position = "Position is required.";
-  if (!form.department.trim()) errors.department = "Department is required.";
-  if (!form.contactNumber.trim()) errors.contactNumber = "Contact number is required.";
   if (!form.role) errors.role = "Role is required.";
   if (!form.email.trim()) errors.email = "Email is required.";
   if (!form.password) errors.password = "Password is required.";

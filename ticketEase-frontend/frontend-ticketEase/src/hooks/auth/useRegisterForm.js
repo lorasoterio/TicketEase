@@ -8,10 +8,8 @@ const INITIAL_FIELDS = {
   middleName: "",
   suffix: "",
   schoolStudentId: "",
-  courseProgram: "",
-  yearLevel: "",
-  contactNumber: "",
-  address: "",
+  strand: "",
+  gradeLevel: "",
   email: "",
   password: "",
   confirmPassword: "",
@@ -23,10 +21,8 @@ function validate(form) {
   if (!form.lastName.trim()) errors.lastName = "Last name is required.";
   if (!form.middleName.trim()) errors.middleName = "Middle name is required.";
   if (!form.schoolStudentId.trim()) errors.schoolStudentId = "Student ID is required.";
-  if (!form.courseProgram.trim()) errors.courseProgram = "Course/Program is required.";
-  if (!form.yearLevel.trim()) errors.yearLevel = "Year level is required.";
-  if (!form.contactNumber.trim()) errors.contactNumber = "Contact number is required.";
-  if (!form.address.trim()) errors.address = "Address is required.";
+  if (!form.strand.trim()) errors.strand = "Strand is required.";
+  if (!form.gradeLevel.trim()) errors.gradeLevel = "Grade level is required.";
   if (!form.email.trim()) errors.email = "Email is required.";
   if (!form.password) errors.password = "Password is required.";
   else if (form.password.length < 6)

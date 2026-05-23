@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logoutUser } from "../../services/logout";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import client from "../../api/client";
@@ -86,7 +87,16 @@ export default function UserNavbar() {
   const navigate = useNavigate();
   const { profile, user } = useAuth();
 
-  const fullName = profile?.fullName || "Student";
+  const fullName = profile
+    ? [
+        profile.firstName,
+        profile.middleName,
+        profile.lastName,
+        profile.suffix
+      ]
+        .filter((part) => part && part.trim() !== "")
+        .join(" ")
+    : "Student";
   const initials = fullName
     .split(" ")
     .map((n) => n[0])
@@ -491,7 +501,7 @@ export default function UserNavbar() {
         <MenuItem
           onClick={async () => {
             setProfileAnchor(null);
-            //await supabase.auth.signOut();
+            await logoutUser();
             navigate("/login");
           }}
           sx={{ gap: 1.25, py: 1.125, color: "error.main" }}
@@ -565,7 +575,7 @@ export default function UserNavbar() {
           <ListItemIcon sx={{ minWidth: 36 }}><SettingsIcon fontSize="small" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14 }}>Settings</ListItemText>
         </ListItemButton>
-        <ListItemButton sx={{ borderRadius: "8px", color: "error.main" }} onClick={() => { navigate("/login"); setMobileOpen(false); }}>
+        <ListItemButton sx={{ borderRadius: "8px", color: "error.main" }} onClick={async () => { await logoutUser(); navigate("/login"); setMobileOpen(false); }}>
           <ListItemIcon sx={{ minWidth: 36 }}><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
           <ListItemText primaryTypographyProps={{ fontSize: 14, color: "error.main" }}>Sign out</ListItemText>
         </ListItemButton>
