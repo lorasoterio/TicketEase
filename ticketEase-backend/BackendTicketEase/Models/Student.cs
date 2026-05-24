@@ -21,11 +21,11 @@ namespace BackendTicketEase.Models
         public string MiddleName { get; set; } = "";
         public string Suffix { get; set; } = "";
 
-        [StringLength(100)]
-        public string Strand { get; set; } = "";
+        // Foreign key for Strand
+        public int? StrandId { get; set; }
 
-        [StringLength(20)]
-        public string GradeLevel { get; set; } = "";
+        // Foreign key for GradeLevel
+        public int? GradeLevelId { get; set; }
 
         public bool IsGraduate { get; set; } = false;
 
@@ -34,8 +34,14 @@ namespace BackendTicketEase.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation Property
+        // Navigation Properties
         [ForeignKey("UserId")]
         public virtual User User { get; set; } = null!;
+
+        [ForeignKey("StrandId")]
+        public virtual Strand? Strand { get; set; }
+
+        [ForeignKey("GradeLevelId")]
+        public virtual GradeLevels? GradeLevel { get; set; }
     }
 }

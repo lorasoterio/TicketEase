@@ -77,8 +77,8 @@ namespace BackendTicketEase.Controllers
                 LastName = student.LastName,
                 MiddleName = student.MiddleName,
                 Suffix = student.Suffix,
-                Strand = student.Strand,
-                GradeLevel = student.GradeLevel,
+                StrandId = student.StrandId,
+                GradeLevelId = student.GradeLevelId,
                 IsVerified = student.IsVerified,
                 CreatedAt = student.CreatedAt,
                 UpdatedAt = student.UpdatedAt,
@@ -102,12 +102,14 @@ namespace BackendTicketEase.Controllers
             return Ok(result.Students);
         }
 
-        [HttpGet("course/{courseProgram}")]
-        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudentsByCourse(string courseProgram)
+        [HttpGet("strand/{strandId}")]
+        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudentsByStrand(int strandId)
         {
             var students = await _context.Students
                 .Include(s => s.User)
-                .Where(s => s.Strand.Contains(courseProgram))
+                .Include(s => s.Strand)
+                .Include(s => s.GradeLevel)
+                .Where(s => s.StrandId == strandId)
                 .Select(s => new StudentDto
                 {
                     StudentId = s.StudentId,
@@ -117,24 +119,28 @@ namespace BackendTicketEase.Controllers
                     LastName = s.LastName,
                     MiddleName = s.MiddleName,
                     Suffix = s.Suffix,
-                    Strand = s.Strand,
-                    GradeLevel = s.GradeLevel,
+                    StrandId = s.StrandId,
+                    StrandName = s.Strand != null ? s.Strand.StrandName : string.Empty,
+                    GradeLevelId = s.GradeLevelId,
+                    GradeLevelName = s.GradeLevel != null ? s.GradeLevel.GradeLevelName : string.Empty,
+                    IsGraduate = s.IsGraduate,
                     IsVerified = s.IsVerified,
                     CreatedAt = s.CreatedAt,
                     UpdatedAt = s.UpdatedAt,
                     UserEmail = s.User.Email
                 })
                 .ToListAsync();
-
             return Ok(students);
         }
 
-        [HttpGet("year/{yearLevel}")]
-        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudentsByYearLevel(string gradeLevel)
+        [HttpGet("gradelevel/{gradeLevelId}")]
+        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudentsByGradeLevel(int gradeLevelId)
         {
             var students = await _context.Students
                 .Include(s => s.User)
-                .Where(s => s.GradeLevel == gradeLevel)
+                .Include(s => s.Strand)
+                .Include(s => s.GradeLevel)
+                .Where(s => s.GradeLevelId == gradeLevelId)
                 .Select(s => new StudentDto
                 {
                     StudentId = s.StudentId,
@@ -144,15 +150,17 @@ namespace BackendTicketEase.Controllers
                     LastName = s.LastName,
                     MiddleName = s.MiddleName,
                     Suffix = s.Suffix,
-                    Strand = s.Strand,
-                    GradeLevel = s.GradeLevel,
+                    StrandId = s.StrandId,
+                    StrandName = s.Strand != null ? s.Strand.StrandName : string.Empty,
+                    GradeLevelId = s.GradeLevelId,
+                    GradeLevelName = s.GradeLevel != null ? s.GradeLevel.GradeLevelName : string.Empty,
+                    IsGraduate = s.IsGraduate,
                     IsVerified = s.IsVerified,
                     CreatedAt = s.CreatedAt,
                     UpdatedAt = s.UpdatedAt,
                     UserEmail = s.User.Email
                 })
                 .ToListAsync();
-
             return Ok(students);
         }
 
@@ -189,8 +197,8 @@ namespace BackendTicketEase.Controllers
                 LastName = request.LastName ?? "",
                 MiddleName = request.MiddleName ?? "",
                 Suffix = request.Suffix ?? "",
-                Strand = request.Strand ?? "",
-                GradeLevel = request.GradeLevel ?? "",
+                StrandId = request.StrandId,
+                GradeLevelId = request.GradeLevelId,
                 IsVerified = request.IsVerified ?? false,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -212,8 +220,11 @@ namespace BackendTicketEase.Controllers
                 LastName = createdStudent.LastName,
                 MiddleName = createdStudent.MiddleName,
                 Suffix = createdStudent.Suffix,
-                Strand = createdStudent.Strand,
-                GradeLevel = createdStudent.GradeLevel,
+                StrandId = createdStudent.StrandId,
+                StrandName = createdStudent.Strand != null ? createdStudent.Strand.StrandName : string.Empty,
+                GradeLevelId = createdStudent.GradeLevelId,
+                GradeLevelName = createdStudent.GradeLevel != null ? createdStudent.GradeLevel.GradeLevelName : string.Empty,
+                IsGraduate = createdStudent.IsGraduate,
                 IsVerified = createdStudent.IsVerified,
                 CreatedAt = createdStudent.CreatedAt,
                 UpdatedAt = createdStudent.UpdatedAt,
@@ -221,7 +232,7 @@ namespace BackendTicketEase.Controllers
             };
 
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var cpid) ? cpid : student.UserId;
-            await _auditLogService.LogAsync(actorId, "Create", "Student", student.StudentId, null, new { studentDto.FirstName, studentDto.LastName, studentDto.MiddleName, studentDto.Suffix, studentDto.SchoolStudentId, studentDto.Strand });
+            await _auditLogService.LogAsync(actorId, "Create", "Student", student.StudentId, null, new { studentDto.FirstName, studentDto.LastName, studentDto.MiddleName, studentDto.Suffix, studentDto.SchoolStudentId, studentDto.StrandId });
             return CreatedAtAction(nameof(GetStudent), new { id = student.StudentId }, studentDto);
         }
 
@@ -236,7 +247,7 @@ namespace BackendTicketEase.Controllers
             }
 
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var upid) ? upid : (int?)null;
-            await _auditLogService.LogAsync(actorId, "Update", "Student", id, null, new { request.FirstName, request.LastName, request.MiddleName, request.Suffix, request.Strand, request.GradeLevel});
+            await _auditLogService.LogAsync(actorId, "Update", "Student", id, null, new { request.FirstName, request.LastName, request.MiddleName, request.Suffix, request.StrandId, request.GradeLevelId});
             return NoContent();
         }
 

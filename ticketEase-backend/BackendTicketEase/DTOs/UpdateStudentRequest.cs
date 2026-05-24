@@ -7,8 +7,8 @@ namespace BackendTicketEase.DTOs
         public string? LastName { get; set; }
         public string? MiddleName { get; set; }
         public string? Suffix { get; set; }
-        public string? Strand { get; set; }
-        public string? GradeLevel { get; set; }
+        public int? StrandId { get; set; }
+        public int? GradeLevelId { get; set; }
         public bool? IsVerified { get; set; }
     }
 }

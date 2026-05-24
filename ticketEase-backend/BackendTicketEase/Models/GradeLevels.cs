@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace BackendTicketEase.Models
 {
     [Table ("GradeLevels")]
-     [Index(nameof(GradeLevelName), IsUnique = true)]
+    [Index(nameof(GradeLevelName), IsUnique = true)]
     public class GradeLevels
     {
         [Key]

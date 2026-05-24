@@ -13,9 +13,9 @@ namespace BackendTicketEase.Services
             string lastName,
             string middleName,
             string suffix,
-            string strand,
-            string gradeLevel);
-
+            int? strandId,
+            int? gradeLevelId);
+   
         Task<(bool Success, string Message, StudentDto? StudentDto)> GetStudentByIdAsync(int studentId);
         Task<(bool Success, string Message, StudentDto? StudentDto)> GetStudentByUserIdAsync(int userId);
         Task<(bool Success, string Message, IEnumerable<StudentDto> Students)> GetAllStudentsAsync();

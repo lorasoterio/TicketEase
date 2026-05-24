@@ -9,8 +9,10 @@ namespace BackendTicketEase.DTOs
         public string LastName { get; set; } = string.Empty;
         public string MiddleName { get; set; } = string.Empty;
         public string Suffix { get; set; } = string.Empty;
-        public string Strand { get; set; } = string.Empty;
-        public string GradeLevel { get; set; } = string.Empty;
+        public int? StrandId { get; set; }
+        public string StrandName { get; set; } = string.Empty;
+        public int? GradeLevelId { get; set; }
+        public string GradeLevelName { get; set; } = string.Empty;
         public bool IsGraduate { get; set; }
 
         public bool IsVerified { get; set; }

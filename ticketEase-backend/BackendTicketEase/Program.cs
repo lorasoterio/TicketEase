@@ -29,6 +29,7 @@ builder.Services.AddScoped<IStaffService, StaffService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<ITicketMessageService, TicketMessageService>();
 builder.Services.AddScoped<IAttachmentService, AttachmentService>();
+builder.Services.AddScoped<ITicketAssignmentService, TicketAssignmentService>();
 
 builder.Services.AddScoped<IDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 

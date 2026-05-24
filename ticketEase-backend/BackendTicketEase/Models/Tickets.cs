@@ -18,6 +18,9 @@ namespace BackendTicketEase.Models
         [Required]
         public int StudentId { get; set; }
 
+        // FK to DocumentTypes.DocumentTypeId (type of document requested)
+        public int? DocumentTypeId { get; set; }
+
         [Required]
         public TicketType TicketType { get; set; }
 
@@ -46,6 +49,10 @@ namespace BackendTicketEase.Models
         [ForeignKey("AssignedStaffId")]
         [JsonIgnore]
         public virtual User? AssignedStaff { get; set; }
+
+        [ForeignKey("DocumentTypeId")]
+        [JsonIgnore]
+        public virtual DocumentType? DocumentType { get; set; }
     }
 
     public enum TicketType

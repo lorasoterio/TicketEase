@@ -69,8 +69,8 @@ namespace BackendTicketEase.Controllers
                 request.LastName,
                 request.MiddleName,
                 request.Suffix,
-                request.Strand,
-                request.GradeLevel
+                request.StrandId,
+                request.GradeLevelId
             );
 
             if (!result.Success)
