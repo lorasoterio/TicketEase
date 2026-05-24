@@ -10,6 +10,41 @@ namespace BackendTicketEase.Data
         {
         }
 
+        public override int SaveChanges()
+        {
+            UpdateTimestamps();
+            return base.SaveChanges();
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            UpdateTimestamps();
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void UpdateTimestamps()
+        {
+            var entries = ChangeTracker.Entries()
+                .Where(e => e.State == EntityState.Modified || e.State == EntityState.Added);
+            foreach (var entry in entries)
+            {
+                var entityType = entry.Entity.GetType();
+                var updatedAtProp = entityType.GetProperty("UpdatedAt");
+                if (updatedAtProp != null && updatedAtProp.PropertyType == typeof(DateTime))
+                {
+                    updatedAtProp.SetValue(entry.Entity, DateTime.UtcNow);
+                }
+                if (entry.State == EntityState.Added)
+                {
+                    var createdAtProp = entityType.GetProperty("CreatedAt");
+                    if (createdAtProp != null && createdAtProp.PropertyType == typeof(DateTime))
+                    {
+                        createdAtProp.SetValue(entry.Entity, DateTime.UtcNow);
+                    }
+                }
+            }
+        }
+
         public DbSet<User> Users { get; set; }
         public DbSet<Student> Students { get; set; }
         public DbSet<Staff> Staffs { get; set; }
@@ -21,6 +56,7 @@ namespace BackendTicketEase.Data
         public DbSet<StatusHistory> TicketStatusHistory { get; set; }
         public DbSet<TicketMessage> TicketMessages { get; set; }
         public DbSet<DocumentType> DocumentTypes { get; set; }
+        public DbSet<GradeLevels> GradeLevels { get; set; }
       
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -254,15 +290,26 @@ namespace BackendTicketEase.Data
                 entity.HasKey(e => e.DocumentTypeId);
 
                 entity.Property(e => e.Name)
-                      .IsRequired()
-                      .HasMaxLength(100);
+                    .IsRequired()
+                    .HasMaxLength(100);
 
                 entity.Property(e => e.Description)
-                      .HasMaxLength(255);
+                    .HasMaxLength(255);
 
                 entity.Property(e => e.UpdatedAt)
-                      .HasDefaultValueSql("CURRENT_TIMESTAMP")
-                      .ValueGeneratedOnAddOrUpdate();
+                    .HasDefaultValueSql("CURRENT_TIMESTAMP")
+                    .ValueGeneratedOnAddOrUpdate();
+            });
+
+            // GradeLevels Configuration
+            modelBuilder.Entity<GradeLevels>(entity =>
+            {
+                entity.ToTable("GradeLevels");
+                entity.HasKey(e => e.GradeLevelId);
+                entity.Property(e => e.GradeLevelName).IsRequired();
+                entity.Property(e => e.LevelOrder);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAddOrUpdate();
             });
         }
     }
