@@ -57,6 +57,7 @@ namespace BackendTicketEase.Data
         public DbSet<TicketMessage> TicketMessages { get; set; }
         public DbSet<DocumentType> DocumentTypes { get; set; }
         public DbSet<GradeLevels> GradeLevels { get; set; }
+        public DbSet<Strand> Strands { get; set; }
       
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -308,6 +309,17 @@ namespace BackendTicketEase.Data
                 entity.HasKey(e => e.GradeLevelId);
                 entity.Property(e => e.GradeLevelName).IsRequired();
                 entity.Property(e => e.LevelOrder);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAddOrUpdate();
+            });
+
+            // Strand Configuration
+            modelBuilder.Entity<Strand>(entity =>
+            {
+                entity.ToTable("Strands");
+                entity.HasKey(e => e.StrandId);
+                entity.Property(e => e.StrandCode).IsRequired();
+                entity.Property(e => e.StrandName);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAddOrUpdate();
             });
