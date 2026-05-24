@@ -24,8 +24,8 @@ namespace BackendTicketEase.Services
             string lastName,
             string middleName,
             string suffix,
-            string strand,
-            string gradeLevel)
+            int? strandId,
+            int? gradeLevelId)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -78,8 +78,8 @@ namespace BackendTicketEase.Services
                     LastName = lastName ?? "",
                     MiddleName = middleName ?? "",
                     Suffix = suffix ?? "",
-                    Strand = strand ?? "",
-                    GradeLevel = gradeLevel ?? "",
+                    StrandId = strandId,
+                    GradeLevelId = gradeLevelId,
                     IsVerified = false,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -133,24 +133,10 @@ namespace BackendTicketEase.Services
         {
             var students = await _context.Students
                 .Include(s => s.User)
-                .Select(s => new StudentDto
-                {
-                    StudentId = s.StudentId,
-                    UserId = s.UserId,
-                    SchoolStudentId = s.SchoolStudentId,
-                    FirstName = s.FirstName,
-                    LastName = s.LastName,
-                    MiddleName = s.MiddleName,
-                    Suffix = s.Suffix,
-                    Strand = s.Strand,
-                    GradeLevel = s.GradeLevel,
-                    IsVerified = s.IsVerified,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    UserEmail = s.User.Email
-                })
+                .Include(s => s.StrandId)
+                .Include(s => s.GradeLevelId)
+                .Select(s => MapToDto(s))
                 .ToListAsync();
-
             return (true, "Students retrieved successfully.", students);
         }
 
@@ -158,25 +144,11 @@ namespace BackendTicketEase.Services
         {
             var students = await _context.Students
                 .Include(s => s.User)
+                .Include(s => s.StrandId)
+                .Include(s => s.GradeLevelId)
                 .Where(s => s.IsVerified)
-                .Select(s => new StudentDto
-                {
-                    StudentId = s.StudentId,
-                    UserId = s.UserId,
-                    SchoolStudentId = s.SchoolStudentId,
-                    FirstName = s.FirstName,
-                    LastName = s.LastName,
-                    MiddleName = s.MiddleName,
-                    Suffix = s.Suffix,
-                    Strand = s.Strand,
-                    GradeLevel = s.GradeLevel,
-                    IsVerified = s.IsVerified,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    UserEmail = s.User.Email
-                })
+                .Select(s => MapToDto(s))
                 .ToListAsync();
-
             return (true, "Verified students retrieved successfully.", students);
         }
 
@@ -184,25 +156,11 @@ namespace BackendTicketEase.Services
         {
             var students = await _context.Students
                 .Include(s => s.User)
+                .Include(s => s.StrandId)
+                .Include(s => s.GradeLevelId)
                 .Where(s => !s.IsVerified)
-                .Select(s => new StudentDto
-                {
-                    StudentId = s.StudentId,
-                    UserId = s.UserId,
-                    SchoolStudentId = s.SchoolStudentId,
-                    FirstName = s.FirstName,
-                    LastName = s.LastName,
-                    MiddleName = s.MiddleName,
-                    Suffix = s.Suffix,
-                    Strand = s.Strand,
-                    GradeLevel = s.GradeLevel,
-                    IsVerified = s.IsVerified,
-                    CreatedAt = s.CreatedAt,
-                    UpdatedAt = s.UpdatedAt,
-                    UserEmail = s.User.Email
-                })
+                .Select(s => MapToDto(s))
                 .ToListAsync();
-
             return (true, "Unverified students retrieved successfully.", students);
         }
 
@@ -226,12 +184,10 @@ namespace BackendTicketEase.Services
         public async Task<(bool Success, string Message)> UpdateStudentAsync(int studentId, UpdateStudentRequest request)
         {
             var student = await _context.Students.FindAsync(studentId);
-
             if (student == null)
             {
                 return (false, $"Student with ID {studentId} not found.");
             }
-
             if (!string.IsNullOrWhiteSpace(request.SchoolStudentId))
             {
                 var schoolIdExists = await _context.Students
@@ -242,33 +198,22 @@ namespace BackendTicketEase.Services
                 }
                 student.SchoolStudentId = request.SchoolStudentId;
             }
-
             if (!string.IsNullOrWhiteSpace(request.FirstName))
                 student.FirstName = request.FirstName;
-
             if (!string.IsNullOrWhiteSpace(request.LastName))
                 student.LastName = request.LastName;
-
             if (!string.IsNullOrWhiteSpace(request.MiddleName))
                 student.MiddleName = request.MiddleName;
-
             if (!string.IsNullOrWhiteSpace(request.Suffix))
                 student.Suffix = request.Suffix;
-
-            if (!string.IsNullOrWhiteSpace(request.Strand))
-                student.Strand = request.Strand;
-
-            if (!string.IsNullOrWhiteSpace(request.GradeLevel))
-                student.GradeLevel = request.GradeLevel;
-
+            if (request.StrandId.HasValue)
+                student.StrandId = request.StrandId;
+            if (request.GradeLevelId.HasValue)
+                student.GradeLevelId = request.GradeLevelId;
             if (request.IsVerified.HasValue)
                 student.IsVerified = request.IsVerified.Value;
-
             student.UpdatedAt = DateTime.UtcNow;
-
             await _context.SaveChangesAsync();
-
-
             return (true, "Student updated successfully.");
         }
 
@@ -298,8 +243,11 @@ namespace BackendTicketEase.Services
                 LastName = student.LastName,
                 MiddleName = student.MiddleName,
                 Suffix = student.Suffix,
-                Strand = student.Strand,
-                GradeLevel = student.GradeLevel,
+                StrandId = student.StrandId,
+                StrandName = student.Strand != null ? student.Strand.StrandName : string.Empty,
+                GradeLevelId = student.GradeLevelId,
+                GradeLevelName = student.GradeLevel != null ? student.GradeLevel.GradeLevelName : string.Empty,
+                IsGraduate = student.IsGraduate,
                 IsVerified = student.IsVerified,
                 CreatedAt = student.CreatedAt,
                 UpdatedAt = student.UpdatedAt,

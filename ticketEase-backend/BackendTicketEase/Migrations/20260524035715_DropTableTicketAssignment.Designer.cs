@@ -3,6 +3,7 @@ using System;
 using BackendTicketEase.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BackendTicketEase.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260524035715_DropTableTicketAssignment")]
+    partial class DropTableTicketAssignment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -412,8 +415,10 @@ namespace BackendTicketEase.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<int?>("GradeLevelId")
-                        .HasColumnType("integer");
+                    b.Property<string>("GradeLevel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
 
                     b.Property<bool>("IsGraduate")
                         .HasColumnType("boolean");
@@ -434,8 +439,10 @@ namespace BackendTicketEase.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<int?>("StrandId")
-                        .HasColumnType("integer");
+                    b.Property<string>("Strand")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Suffix")
                         .IsRequired()
@@ -450,10 +457,6 @@ namespace BackendTicketEase.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("StudentId");
-
-                    b.HasIndex("GradeLevelId");
-
-                    b.HasIndex("StrandId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -479,9 +482,6 @@ namespace BackendTicketEase.Migrations
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
-
-                    b.Property<int?>("DocumentTypeId")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Priority")
                         .IsRequired()
@@ -525,8 +525,6 @@ namespace BackendTicketEase.Migrations
                     b.HasKey("TicketId");
 
                     b.HasIndex("AssignedStaffId");
-
-                    b.HasIndex("DocumentTypeId");
 
                     b.HasIndex("StudentId");
 
@@ -708,23 +706,11 @@ namespace BackendTicketEase.Migrations
 
             modelBuilder.Entity("BackendTicketEase.Models.Student", b =>
                 {
-                    b.HasOne("BackendTicketEase.Models.GradeLevels", "GradeLevel")
-                        .WithMany()
-                        .HasForeignKey("GradeLevelId");
-
-                    b.HasOne("BackendTicketEase.Models.Strand", "Strand")
-                        .WithMany()
-                        .HasForeignKey("StrandId");
-
                     b.HasOne("BackendTicketEase.Models.User", "User")
                         .WithOne("Student")
                         .HasForeignKey("BackendTicketEase.Models.Student", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("GradeLevel");
-
-                    b.Navigation("Strand");
 
                     b.Navigation("User");
                 });
@@ -736,11 +722,6 @@ namespace BackendTicketEase.Migrations
                         .HasForeignKey("AssignedStaffId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("BackendTicketEase.Models.DocumentType", "DocumentType")
-                        .WithMany()
-                        .HasForeignKey("DocumentTypeId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("BackendTicketEase.Models.User", "StudentUser")
                         .WithMany()
                         .HasForeignKey("StudentId")
@@ -748,8 +729,6 @@ namespace BackendTicketEase.Migrations
                         .IsRequired();
 
                     b.Navigation("AssignedStaff");
-
-                    b.Navigation("DocumentType");
 
                     b.Navigation("StudentUser");
                 });

@@ -52,12 +52,13 @@ namespace BackendTicketEase.Data
         public DbSet<Attachment> Attachments { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<Notification> Notifications { get; set; }
-        public DbSet<TicketAssignment> TicketAssignments { get; set; }
+
         public DbSet<StatusHistory> TicketStatusHistory { get; set; }
         public DbSet<TicketMessage> TicketMessages { get; set; }
         public DbSet<DocumentType> DocumentTypes { get; set; }
         public DbSet<GradeLevels> GradeLevels { get; set; }
         public DbSet<Strand> Strands { get; set; }
+        public DbSet<StaffGradeAssignment> StaffGradeAssignments { get; set; }
       
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -168,6 +169,12 @@ namespace BackendTicketEase.Data
                       .OnDelete(DeleteBehavior.Restrict);
 
                 entity.Property(e => e.Subject).HasMaxLength(255);
+
+                // Relationship to DocumentType
+                entity.HasOne(t => t.DocumentType)
+                      .WithMany()
+                      .HasForeignKey(t => t.DocumentTypeId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             // AuditLog Configuration
@@ -194,29 +201,7 @@ namespace BackendTicketEase.Data
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
             });
 
-            // TicketAssignment Configuration
-            modelBuilder.Entity<TicketAssignment>(entity =>
-            {
-                entity.ToTable("TicketAssignment");
-                entity.HasKey(e => e.AssignmentId);
 
-                entity.HasOne(e => e.Ticket)
-                      .WithMany()
-                      .HasForeignKey(e => e.TicketId)
-                      .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(e => e.AssignedByUser)
-                      .WithMany()
-                      .HasForeignKey(e => e.AssignedBy)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(e => e.AssignedToUser)
-                      .WithMany()
-                      .HasForeignKey(e => e.AssignedTo)
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                entity.Property(e => e.AssignedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
-            });
 
             // TicketStatusHistory Configuration
             modelBuilder.Entity<StatusHistory>(entity =>
@@ -320,6 +305,33 @@ namespace BackendTicketEase.Data
                 entity.HasKey(e => e.StrandId);
                 entity.Property(e => e.StrandCode).IsRequired();
                 entity.Property(e => e.StrandName);
+                entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAddOrUpdate();
+            });
+
+            // StaffGradeAssignment Configuration
+            modelBuilder.Entity<StaffGradeAssignment>(entity =>
+            {
+                entity.ToTable("StaffGradeAssignments");
+                entity.HasKey(e => e.Id);
+
+                entity.HasOne(e => e.Staff)
+                      .WithMany()
+                      .HasForeignKey(e => e.StaffId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.GradeLevels)
+                      .WithMany()
+                      .HasForeignKey(e => e.GradeLevelId)
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(e => e.Strand)
+                      .WithMany()
+                      .HasForeignKey(e => e.StrandId)
+                      .OnDelete(DeleteBehavior.SetNull);
+
+                entity.Property(e => e.IsGraduate).HasDefaultValue(false);
+                entity.Property(e => e.Priority).HasDefaultValue(0);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP");
                 entity.Property(e => e.UpdatedAt).HasDefaultValueSql("CURRENT_TIMESTAMP").ValueGeneratedOnAddOrUpdate();
             });
