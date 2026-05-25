@@ -101,7 +101,7 @@ export default function UserNavbar() {
     .split(" ")
     .map((n) => n[0])
     .join("")
-    .slice(0, 2)
+    .slice(0, 3)
     .toUpperCase();
   const [profileAnchor, setProfileAnchor] = useState(null);
   const [notifAnchor, setNotifAnchor] = useState(null);

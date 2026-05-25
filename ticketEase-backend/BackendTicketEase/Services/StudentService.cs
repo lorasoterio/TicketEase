@@ -118,7 +118,10 @@ namespace BackendTicketEase.Services
         {
             var student = await _context.Students
                 .Include(s => s.User)
+                .Include(s => s.Strand)      
+                .Include(s => s.GradeLevel) 
                 .FirstOrDefaultAsync(s => s.UserId == userId);
+       
 
             if (student == null)
             {
@@ -133,35 +136,38 @@ namespace BackendTicketEase.Services
         {
             var students = await _context.Students
                 .Include(s => s.User)
-                .Include(s => s.StrandId)
-                .Include(s => s.GradeLevelId)
-                .Select(s => MapToDto(s))
-                .ToListAsync();
-            return (true, "Students retrieved successfully.", students);
+                .Include(s => s.Strand)
+                .Include(s => s.GradeLevel)
+                .ToListAsync(); 
+
+            var studentDtos = students.Select(s => MapToDto(s)); // ← then map in memory
+            return (true, "Students retrieved successfully.", studentDtos);
         }
 
         public async Task<(bool Success, string Message, IEnumerable<StudentDto> Students)> GetVerifiedStudentsAsync()
         {
             var students = await _context.Students
                 .Include(s => s.User)
-                .Include(s => s.StrandId)
-                .Include(s => s.GradeLevelId)
+                .Include(s => s.Strand)
+                .Include(s => s.GradeLevel)
                 .Where(s => s.IsVerified)
-                .Select(s => MapToDto(s))
-                .ToListAsync();
-            return (true, "Verified students retrieved successfully.", students);
+                .ToListAsync(); 
+
+            var studentDtos = students.Select(s => MapToDto(s));
+            return (true, "Verified students retrieved successfully.", studentDtos);
         }
 
         public async Task<(bool Success, string Message, IEnumerable<StudentDto> Students)> GetUnverifiedStudentsAsync()
         {
             var students = await _context.Students
                 .Include(s => s.User)
-                .Include(s => s.StrandId)
-                .Include(s => s.GradeLevelId)
+                .Include(s => s.Strand)
+                .Include(s => s.GradeLevel)
                 .Where(s => !s.IsVerified)
-                .Select(s => MapToDto(s))
-                .ToListAsync();
-            return (true, "Unverified students retrieved successfully.", students);
+                .ToListAsync(); 
+
+            var studentDtos = students.Select(s => MapToDto(s));
+            return (true, "Unverified students retrieved successfully.", studentDtos);
         }
 
         public async Task<(bool Success, string Message)> VerifyStudentAsync(int studentId)

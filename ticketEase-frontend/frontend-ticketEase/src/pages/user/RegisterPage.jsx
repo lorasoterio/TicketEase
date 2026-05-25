@@ -8,9 +8,9 @@ import {
   MenuBook, CalendarToday, Phone, Home,
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
-import { useRegisterForm } from "../../hooks/auth/useRegisterForm";
 
-const YEAR_LEVELS = ["11th Grade", "12th Grade", "Graduate"];
+import { useEffect, useState } from "react";
+import { useRegisterForm } from "../../hooks/auth/useRegisterForm";
 
 const theme = createTheme({
   palette: {
@@ -40,11 +40,38 @@ const theme = createTheme({
   },
 });
 
-export default function UserRegisterPage() {
+export default function RegisterPage() {
+
   const {
     form, errors, serverError, loading,
     handleChange, handleRegister,
+    fetchDropdownData,
   } = useRegisterForm();
+
+  const [strands, setStrands] = useState([]);
+  const [gradeLevels, setGradeLevels] = useState([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+
+  useEffect(() => {
+    async function loadDropdowns() {
+      setLoadingDropdowns(true);
+      try {
+        // fetchDropdownData is expected to fetch and return the data
+        const data = await fetchDropdownData();
+        // If fetchDropdownData returns nothing, fallback to legacy
+        if (data && data.strands && data.gradeLevels) {
+          setStrands(data.strands);
+          setGradeLevels(data.gradeLevels);
+        }
+      } catch (e) {
+        // Optionally handle error
+      } finally {
+        setLoadingDropdowns(false);
+      }
+    }
+    loadDropdowns();
+  }, []);
+
 
   return (
     <ThemeProvider theme={theme}>
@@ -144,29 +171,39 @@ export default function UserRegisterPage() {
                 InputProps={{ startAdornment: <InputAdornment position="start"><School sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
               />
               <TextField
+                select
                 label="Strand"
-                value={form.courseProgram}
-                onChange={handleChange("courseProgram")}
-                error={!!errors.courseProgram}
-                helperText={errors.courseProgram}
-                placeholder="e.g. STEM, ABM, HUMSS"
+                value={form.strandId || ""}
+                onChange={handleChange("strandId")}
+                error={!!errors.strandId}
+                helperText={errors.strandId}
                 InputProps={{ startAdornment: <InputAdornment position="start"><MenuBook sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
-              />
+                disabled={loadingDropdowns}
+              >
+                {strands.map((strand) => (
+                  <MenuItem key={strand.strandId} value={strand.strandId} sx={{ fontFamily: "'Source Serif 4', serif" }}>
+                    {strand.strandName} ({strand.strandCode})
+                  </MenuItem>
+                ))}
+              </TextField>
 
               <TextField
                 select
                 label="Year Level"
-                value={form.yearLevel}
-                onChange={handleChange("yearLevel")}
-                error={!!errors.yearLevel}
-                helperText={errors.yearLevel}
+                value={form.gradeLevelId || ""}
+                onChange={handleChange("gradeLevelId")}
+                error={!!errors.gradeLevelId}
+                helperText={errors.gradeLevelId}
                 InputProps={{ startAdornment: <InputAdornment position="start"><CalendarToday sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+                disabled={loadingDropdowns}
               >
-                {YEAR_LEVELS.map((level) => (
-                  <MenuItem key={level} value={level} sx={{ fontFamily: "'Source Serif 4', serif" }}>
-                    {level}
-                  </MenuItem>
-                ))}
+                {gradeLevels
+                  .sort((a, b) => a.levelOrder - b.levelOrder)
+                  .map((level) => (
+                    <MenuItem key={level.gradeLevelId} value={level.gradeLevelId} sx={{ fontFamily: "'Source Serif 4', serif" }}>
+                      {level.gradeLevelName}
+                    </MenuItem>
+                  ))}
               </TextField>
 
               {/* Graduate Checkbox */}

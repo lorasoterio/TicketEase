@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box, TextField, FormControl, Select, MenuItem, Paper, Typography,
   Button, Stack, InputAdornment, CircularProgress, Alert,
   Dialog, DialogTitle, DialogContent, DialogActions, Divider, Chip,
   List, ListItem, ListItemText, ListItemIcon, Tooltip,
+  Autocomplete,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
@@ -13,6 +14,121 @@ import GoldLine from "../../components/adminuis/GoldLine";
 import useTicketQueue, { timeAgo, priorityLabel } from "../../hooks/admin/useTicketQueue";
 import useTicketAttachments from "../../hooks/admin/useTicketAttachments";
 import { getAllStaff } from "../../services/userService";
+// ── Assign Grade Rep dialog ─────────────────────────────────
+import { fetchGradeLevels } from "../../services/authServices";
+
+function AssignGradeRepDialog({ open, onClose, onAssign, staffList, loading, error }) {
+  const [selectedStaffId, setSelectedStaffId] = useState("");
+  const [selectedGradeLevelId, setSelectedGradeLevelId] = useState("");
+  const [gradeLevels, setGradeLevels] = useState([]);
+  const [gradeLoading, setGradeLoading] = useState(false);
+  const [assigning, setAssigning] = useState(false);
+  const [assignError, setAssignError] = useState(null);
+
+  useEffect(() => {
+    if (open) {
+      setSelectedStaffId("");
+      setSelectedGradeLevelId("");
+      setAssignError(null);
+      setGradeLoading(true);
+      fetchGradeLevels()
+        .then((levels) => setGradeLevels(levels || []))
+        .catch(() => setGradeLevels([]))
+        .finally(() => setGradeLoading(false));
+    }
+  }, [open]);
+
+  const handleAssign = async () => {
+    setAssigning(true);
+    setAssignError(null);
+    try {
+      await onAssign(selectedStaffId, selectedGradeLevelId, setAssignError);
+      setAssigning(false);
+      setSelectedStaffId("");
+      setSelectedGradeLevelId("");
+      onClose();
+    } catch (e) {
+      setAssignError("Assignment failed.");
+      setAssigning(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle sx={{ fontSize: 14, fontWeight: 700 }}>Assign Grade Representative</DialogTitle>
+      <Divider />
+      <DialogContent sx={{ pt: 2 }}>
+        <Stack spacing={1.5}>
+          <Typography sx={{ fontSize: 12 }}>
+            Select a staff member and grade level to assign as representative.
+          </Typography>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+              <CircularProgress size={22} />
+            </Box>
+          ) : (
+            <Autocomplete
+              options={staffList}
+              getOptionLabel={(s) => s.fullName ?? s.user?.fullName ?? `Staff #${s.staffId}`}
+              renderOption={(props, s) => (
+                <li {...props} key={s.userId ?? s.staffId}>
+                  {s.fullName ?? s.user?.fullName ?? `Staff #${s.staffId}`}
+                  {s.department ? ` — ${s.department}` : ""}
+                </li>
+              )}
+              value={staffList.find((s) => (s.userId ?? s.staffId) == selectedStaffId) || null}
+              onChange={(_, value) => setSelectedStaffId(value ? value.userId ?? value.staffId : "")}
+              isOptionEqualToValue={(option, value) => (option.userId ?? option.staffId) === (value.userId ?? value.staffId)}
+              renderInput={(params) => (
+                <TextField {...params} label="Select staff member…" size="small" sx={{ mb: 2 }} />
+              )}
+              fullWidth
+              disableClearable
+            />
+          )}
+          {gradeLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+              <CircularProgress size={18} />
+            </Box>
+          ) : (
+            <FormControl size="small" fullWidth>
+              <Select
+                value={selectedGradeLevelId}
+                onChange={(e) => setSelectedGradeLevelId(e.target.value)}
+                displayEmpty
+                sx={{ fontSize: 12 }}
+              >
+                <MenuItem value="" disabled sx={{ fontSize: 12 }}>Select grade level…</MenuItem>
+                {gradeLevels.map((g) => (
+                  <MenuItem key={g.gradeLevelId} value={g.gradeLevelId} sx={{ fontSize: 12 }}>
+                    {g.name ?? g.gradeLevelName ?? `Grade #${g.gradeLevelId}`}
+                  </MenuItem>
+                ))}
+                <MenuItem value="graduate" sx={{ fontSize: 12, fontStyle: 'italic', color: 'success.main' }}>
+                  Graduate
+                </MenuItem>
+              </Select>
+            </FormControl>
+          )}
+          {error && <Alert severity="error" sx={{ fontSize: 12 }}>{error}</Alert>}
+          {assignError && <Alert severity="error" sx={{ fontSize: 12 }}>{assignError}</Alert>}
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} size="small" sx={{ fontSize: 12 }} disabled={assigning}>Cancel</Button>
+        <Button
+          onClick={handleAssign}
+          size="small"
+          variant="contained"
+          sx={{ fontSize: 12 }}
+          disabled={!selectedStaffId || !selectedGradeLevelId || assigning}
+        >
+          {assigning ? "Assigning…" : "Confirm"}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
 
 export default function Queue() {
   const {
@@ -35,6 +151,14 @@ export default function Queue() {
   const [assigning, setAssigning] = useState(false);
   const [assignError, setAssignError] = useState(null);
 
+  // Grade Rep modal state
+  const [gradeRepModalOpen, setGradeRepModalOpen] = useState(false);
+  const [gradeRepStaffList, setGradeRepStaffList] = useState([]);
+  const [gradeRepStaffLoading, setGradeRepStaffLoading] = useState(false);
+  const [gradeRepError, setGradeRepError] = useState(null);
+
+
+  // Open assign dialog for a ticket (old behavior)
   const handleOpenAssign = async (ticket) => {
     setAssignTarget(ticket);
     setSelectedStaffId("");
@@ -47,6 +171,22 @@ export default function Queue() {
       setStaffList([]);
     } finally {
       setStaffLoading(false);
+    }
+  };
+
+  // Open assign grade rep modal (new behavior)
+  const handleOpenGradeRepModal = async () => {
+    setGradeRepModalOpen(true);
+    setGradeRepError(null);
+    setGradeRepStaffLoading(true);
+    try {
+      const data = await getAllStaff();
+      setGradeRepStaffList(data || []);
+    } catch {
+      setGradeRepStaffList([]);
+      setGradeRepError("Failed to load staff list.");
+    } finally {
+      setGradeRepStaffLoading(false);
     }
   };
 
@@ -70,47 +210,90 @@ export default function Queue() {
   };
 
   return (
+
     <Box>
       <GoldLine />
-      <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-        <TextField
+      <Box sx={{ display: "flex", gap: 1, mb: 2, alignItems: "center" }}>
+        <Box sx={{ display: "flex", gap: 1, flex: 1 }}>
+          <TextField
+            size="small"
+            placeholder="Search queue…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ fontSize: 16, color: "text.secondary" }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ flex: 1, maxWidth: 260, "& .MuiInputBase-input": { fontSize: 12 } }}
+          />
+          <FormControl size="small" sx={{ minWidth: 130 }}>
+            <Select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              displayEmpty
+              sx={{ fontSize: 12 }}
+            >
+              <MenuItem value="" sx={{ fontSize: 12 }}>All Priorities</MenuItem>
+              <MenuItem value="urgent" sx={{ fontSize: 12 }}>Urgent</MenuItem>
+              <MenuItem value="normal" sx={{ fontSize: 12 }}>Normal</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 130 }}>
+            <Select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              displayEmpty
+              sx={{ fontSize: 12 }}
+            >
+              <MenuItem value="" sx={{ fontSize: 12 }}>All Types</MenuItem>
+              <MenuItem value="document" sx={{ fontSize: 12 }}>Document Request</MenuItem>
+              <MenuItem value="inquiry" sx={{ fontSize: 12 }}>Inquiry</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+        <Button
+          variant="contained"
+          color="primary"
           size="small"
-          placeholder="Search queue…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ fontSize: 16, color: "text.secondary" }} />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ flex: 1, maxWidth: 260, "& .MuiInputBase-input": { fontSize: 12 } }}
-        />
-        <FormControl size="small" sx={{ minWidth: 130 }}>
-          <Select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            displayEmpty
-            sx={{ fontSize: 12 }}
-          >
-            <MenuItem value="" sx={{ fontSize: 12 }}>All Priorities</MenuItem>
-            <MenuItem value="urgent" sx={{ fontSize: 12 }}>Urgent</MenuItem>
-            <MenuItem value="normal" sx={{ fontSize: 12 }}>Normal</MenuItem>
-          </Select>
-        </FormControl>
-        <FormControl size="small" sx={{ minWidth: 130 }}>
-          <Select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            displayEmpty
-            sx={{ fontSize: 12 }}
-          >
-            <MenuItem value="" sx={{ fontSize: 12 }}>All Types</MenuItem>
-            <MenuItem value="document" sx={{ fontSize: 12 }}>Document Request</MenuItem>
-            <MenuItem value="inquiry" sx={{ fontSize: 12 }}>Inquiry</MenuItem>
-          </Select>
-        </FormControl>
+          sx={{ ml: 2, fontSize: 12, minWidth: 90, alignSelf: "flex-start" }}
+          onClick={handleOpenGradeRepModal}
+        >
+          Assign
+        </Button>
+            {/* ── Assign Grade Rep Dialog ───────────────────────────── */}
+            <AssignGradeRepDialog
+              open={gradeRepModalOpen}
+              onClose={() => setGradeRepModalOpen(false)}
+              staffList={gradeRepStaffList}
+              loading={gradeRepStaffLoading}
+              error={gradeRepError}
+              onAssign={async (staffId, gradeLevelId, setAssignError) => {
+                // Call backend to assign staff to grade level as representative
+                try {
+                  let body = { staffId: Number(staffId) };
+                  if (gradeLevelId === "graduate") {
+                    body.isGraduate = true;
+                  } else {
+                    body.gradeLevelId = Number(gradeLevelId);
+                  }
+                  const res = await fetch("/api/StaffGradeAssignment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                  });
+                  if (!res.ok) {
+                    const data = await res.json();
+                    setAssignError(data?.message || "Failed to assign representative.");
+                    return;
+                  }
+                } catch (e) {
+                  setAssignError("Failed to assign representative.");
+                }
+              }}
+            />
       </Box>
 
       {loading && (
@@ -282,38 +465,38 @@ export default function Queue() {
         <DialogTitle sx={{ fontSize: 14, fontWeight: 700 }}>Assign Ticket</DialogTitle>
         <Divider />
         <DialogContent sx={{ pt: 2 }}>
-          {assignTarget && (
-            <Stack spacing={1.5}>
+          <Stack spacing={1.5}>
+            {assignTarget && assignTarget !== null && (
               <Typography sx={{ fontSize: 12 }}>
                 Assigning <strong>{assignTarget.subject || `#${assignTarget.referenceNumber}`}</strong> to a staff member.
               </Typography>
-              {staffLoading ? (
-                <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-                  <CircularProgress size={22} />
-                </Box>
-              ) : (
-                <FormControl size="small" fullWidth>
-                  <Select
-                    value={selectedStaffId}
-                    onChange={(e) => setSelectedStaffId(e.target.value)}
-                    displayEmpty
-                    sx={{ fontSize: 12 }}
-                  >
-                    <MenuItem value="" disabled sx={{ fontSize: 12 }}>Select staff member…</MenuItem>
-                    {staffList.map((s) => (
-                      <MenuItem key={s.userId ?? s.staffId} value={s.userId ?? s.staffId} sx={{ fontSize: 12 }}>
-                        {s.fullName ?? s.user?.fullName ?? `Staff #${s.staffId}`}
-                        {s.department ? ` — ${s.department}` : ""}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )}
-              {assignError && (
-                <Alert severity="error" sx={{ fontSize: 12 }}>{assignError}</Alert>
-              )}
-            </Stack>
-          )}
+            )}
+            {staffLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                <CircularProgress size={22} />
+              </Box>
+            ) : (
+              <FormControl size="small" fullWidth>
+                <Select
+                  value={selectedStaffId}
+                  onChange={(e) => setSelectedStaffId(e.target.value)}
+                  displayEmpty
+                  sx={{ fontSize: 12 }}
+                >
+                  <MenuItem value="" disabled sx={{ fontSize: 12 }}>Select staff member…</MenuItem>
+                  {staffList.map((s) => (
+                    <MenuItem key={s.userId ?? s.staffId} value={s.userId ?? s.staffId} sx={{ fontSize: 12 }}>
+                      {s.fullName ?? s.user?.fullName ?? `Staff #${s.staffId}`}
+                      {s.department ? ` — ${s.department}` : ""}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
+            {assignError && (
+              <Alert severity="error" sx={{ fontSize: 12 }}>{assignError}</Alert>
+            )}
+          </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAssign} size="small" sx={{ fontSize: 12 }} disabled={assigning}>Cancel</Button>

@@ -86,7 +86,7 @@ export default function AdminNavbar() {
     const initials = fullName
       .split(" ")
       .filter(Boolean)
-      .slice(0, 2)
+      .slice(0, 3)
       .map((w) => w[0].toUpperCase())
       .join("") || "?";
     return {

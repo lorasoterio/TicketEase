@@ -110,11 +110,15 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-using (var scope = app.Services.CreateScope())
+
+if (!app.Environment.IsProduction())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();
-    await DbSeeder.SeedSuperAdminAsync(db, app.Configuration, app.Logger);
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Database.MigrateAsync();
+        await DbSeeder.SeedSuperAdminAsync(db, app.Configuration, app.Logger);
+    }
 }
 
 app.UseSwagger();

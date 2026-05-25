@@ -13,10 +13,8 @@ export const registerUser = async (data) => {
       lastName: data.lastName,
       middleName: data.middleName,
       suffix: data.suffix,
-      courseProgram: data.courseProgram,
-      yearLevel: data.yearLevel,
-      contactNumber: data.contactNumber,
-      address: data.address,
+      strandId: data.strandId,
+      gradeLevelId: data.gradeLevelId,
     });
     return response.data;
   } catch (err) {
@@ -25,6 +23,8 @@ export const registerUser = async (data) => {
     throw new Error(message);
   }
 };
+
+
 
 /**
  * Register new staff/admin user (two-step: create auth user, then staff profile)
@@ -62,4 +62,14 @@ export const loginUser = async (data) => {
     const message = err?.response?.data?.message || "Login failed.";
     throw new Error(message);
   }
+};
+
+export const fetchStrands = async () => {
+  const response = await client.get("/Strand");
+  return response.data;
+};
+
+export const fetchGradeLevels = async () => {
+  const response = await client.get("/GradeLevel");
+  return response.data;
 };

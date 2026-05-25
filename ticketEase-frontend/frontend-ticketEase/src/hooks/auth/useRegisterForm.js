@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../../services/authServices";
+import { registerUser, fetchStrands, fetchGradeLevels } from "../../services/authServices";
 
 const INITIAL_FIELDS = {
   firstName: "",
@@ -8,8 +8,8 @@ const INITIAL_FIELDS = {
   middleName: "",
   suffix: "",
   schoolStudentId: "",
-  strand: "",
-  gradeLevel: "",
+  strandId: "",
+  gradeLevelId: "",
   email: "",
   password: "",
   confirmPassword: "",
@@ -21,8 +21,8 @@ function validate(form) {
   if (!form.lastName.trim()) errors.lastName = "Last name is required.";
   if (!form.middleName.trim()) errors.middleName = "Middle name is required.";
   if (!form.schoolStudentId.trim()) errors.schoolStudentId = "Student ID is required.";
-  if (!form.strand.trim()) errors.strand = "Strand is required.";
-  if (!form.gradeLevel.trim()) errors.gradeLevel = "Grade level is required.";
+  if (!form.strandId) errors.strandId = "Strand is required.";
+  if (!form.gradeLevelId) errors.gradeLevelId = "Grade level is required.";
   if (!form.email.trim()) errors.email = "Email is required.";
   if (!form.password) errors.password = "Password is required.";
   else if (form.password.length < 6)
@@ -42,6 +42,19 @@ export function useRegisterForm() {
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+
+  // fetchDropdownData returns the data for use in RegisterPage
+  const fetchDropdownData = async () => {
+    try {
+      const strands = await fetchStrands();
+      const gradeLevels = await fetchGradeLevels();
+      return { strands, gradeLevels };
+    } catch (error) {
+      console.error("Failed to fetch dropdown data:", error);
+      return { strands: [], gradeLevels: [] };
+    }
   };
 
   const handleRegister = async () => {
@@ -74,5 +87,6 @@ export function useRegisterForm() {
     loading,
     handleChange,
     handleRegister,
+    fetchDropdownData,
   };
 }
