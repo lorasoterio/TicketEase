@@ -1,4 +1,5 @@
-﻿using BackendTicketEase.Models;
+﻿using BackendTicketEase.DTOs;
+using BackendTicketEase.Models;
 using BackendTicketEase.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -53,6 +54,14 @@ namespace BackendTicketEase.Controllers
             var deleted = await _assignmentService.DeleteAssignmentAsync(id);
             if (!deleted) return NotFound();
             return NoContent();
+        }
+
+        [HttpPost("assign")]
+        public async Task<IActionResult> AssignStaff([FromBody] StaffAssignmentRequest request)
+        {
+            // Disambiguate between overloaded AssignStaffAsync methods
+            var result = await _assignmentService.AssignStaffAsync(request);
+            return Ok(result);
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BackendTicketEase.DTOs;
 
 namespace BackendTicketEase.Services
 {
@@ -15,11 +16,32 @@ namespace BackendTicketEase.Services
             _context = context;
         }
 
-        public async Task<StaffGradeAssignment?> AssignTicketToStaffAsync(int ticketId)
+        public async Task<StaffGradeAssignment> AssignTicketToStaffAsync(StaffAssignmentRequest request)
         {
-            // TODO: Implement logic to assign ticket to staff based on grade/strand/priority
-            // Placeholder: return null
-            return null;
+            var assignment = new StaffGradeAssignment
+            {
+                StaffId = request.StaffId,
+                GradeLevelId = request.GradeLevelId,
+                StrandId = request.StrandId,
+                IsGraduate = request.IsGraduate
+            };
+            _context.StaffGradeAssignments.Add(assignment);
+            await _context.SaveChangesAsync();
+            return assignment;
+        }
+
+        public async Task<StaffGradeAssignment> AssignStaffAsync(StaffAssignmentRequest request)
+        {
+            var assignment = new StaffGradeAssignment
+            {
+                StaffId = request.StaffId,
+                GradeLevelId = request.GradeLevelId,
+                StrandId = request.StrandId,
+                IsGraduate = request.IsGraduate
+            };
+            _context.StaffGradeAssignments.Add(assignment);
+            await _context.SaveChangesAsync();
+            return assignment;
         }
 
         public async Task<List<StaffGradeAssignment>> GetAssignmentsForTicketAsync(int ticketId)
@@ -43,6 +65,7 @@ namespace BackendTicketEase.Services
                 .Include(sga => sga.Staff)
                 .Include(sga => sga.GradeLevels)
                 .Include(sga => sga.Strand)
+                .Include(sga => sga.IsGraduate)
                 .ToListAsync();
         }
 

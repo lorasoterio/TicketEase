@@ -9,7 +9,5 @@ namespace BackendTicketEase.DTOs
         public string MiddleName { get; set; } = "";
         public string Suffix { get; set; } = "";
         public string Position { get; set; } = string.Empty;
-        public string Department { get; set; } = string.Empty;
-        public string ContactNumber { get; set; } = string.Empty;
     }
 }

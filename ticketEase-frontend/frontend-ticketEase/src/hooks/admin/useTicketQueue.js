@@ -1,6 +1,53 @@
 import { useState, useEffect, useCallback } from "react";
-import { getAllTickets, assignTicket } from "../../services/ticketsService";
+import { getAllTickets } from "../../services/ticketsService";
+import { createAssignment } from "../../services/assignRepresentativeService";
+
 import { getAllStudents } from "../../services/userService";
+import { getAllStaff } from "../../services/staffService";
+import { getAllGradeLevels } from "../../services/gradeLevelService";
+
+/**
+ * Fetches all staff.
+ * @returns {Promise<{ staff: any[], error: string | null }>}
+ */
+export async function fetchAllStaffs() {
+  try {
+    const staffRes = await getAllStaff();
+    // Map staff to include fullName
+    const staffWithFullName = (staffRes?.data || []).map(s => ({
+      ...s,
+      fullName: [s.firstName, s.middleName, s.lastName, s.suffix].filter(Boolean).join(' ')
+    }));
+    return {
+      staff: staffWithFullName,
+      error: null,
+    };
+  } catch (err) {
+    return {
+      staff: [],
+      error: typeof err === "string" ? err : "Failed to fetch staff.",
+    };
+  }
+}
+
+/**
+ * Fetches all grade levels.
+ * @returns {Promise<{ gradeLevels: any[], error: string | null }>}
+ */
+export async function fetchAllGradeLevels() {
+  try {
+    const gradeLevelRes = await getAllGradeLevels();
+    return {
+      gradeLevels: gradeLevelRes?.data || [],
+      error: null,
+    };
+  } catch (err) {
+    return {
+      gradeLevels: [],
+      error: typeof err === "string" ? err : "Failed to fetch grade levels.",
+    };
+  }
+}
 
 /**
  * Formats a UTC date string into a relative "time ago" string.
@@ -113,13 +160,20 @@ export default function useTicketQueue() {
     });
 
   const assignTicketToStaff = useCallback(async (ticket, staffId) => {
-    const { error: err } = await assignTicket(ticket.ticketId, staffId, ticket);
-    if (err) {
+    try {
+      // The assignment object structure should match backend expectations
+      const assignment = {
+        ticketId: ticket.ticketId,
+        staffId: staffId
+      };
+      await createAssignment(assignment);
+      await fetchTickets();
+      return { success: true };
+    } catch (err) {
       return { success: false, error: typeof err === "string" ? err : "Failed to assign ticket." };
     }
-    await fetchTickets();
-    return { success: true };
   }, [fetchTickets]);
+
 
   return {
     tickets,
