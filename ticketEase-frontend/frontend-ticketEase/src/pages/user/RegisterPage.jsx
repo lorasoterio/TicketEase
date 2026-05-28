@@ -10,7 +10,7 @@ import {
 import { Link } from "react-router-dom";
 import { useRegisterForm } from "../../hooks/auth/useRegisterForm";
 
-const YEAR_LEVELS = ["11th Grade", "12th Grade", "Graduate"];
+
 
 const theme = createTheme({
   palette: {
@@ -44,6 +44,8 @@ export default function UserRegisterPage() {
   const {
     form, errors, serverError, loading,
     handleChange, handleRegister,
+    gradeLevel, gradeLevelLoading, gradeLevelError,
+    strand, strandLoading, strandError
   } = useRegisterForm();
 
   return (
@@ -143,30 +145,55 @@ export default function UserRegisterPage() {
                 placeholder="e.g. 2021-00123"
                 InputProps={{ startAdornment: <InputAdornment position="start"><School sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
               />
+
               <TextField
+                select
                 label="Strand"
                 value={form.courseProgram}
                 onChange={handleChange("courseProgram")}
                 error={!!errors.courseProgram}
-                helperText={errors.courseProgram}
-                placeholder="e.g. STEM, ABM, HUMSS"
+                helperText={errors.courseProgram || strandError}
                 InputProps={{ startAdornment: <InputAdornment position="start"><MenuBook sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
-              />
+                disabled={strandLoading}
+              >
+                {strandLoading ? (
+                  <MenuItem value="" disabled>Loading...</MenuItem>
+                ) : (
+                  strand && strand.length > 0 ? (
+                    strand.map((item) => (
+                      <MenuItem key={item.id || item} value={item.id || item} sx={{ fontFamily: "'Source Serif 4', serif" }}>
+                        {item.name || item}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem value="" disabled>No strands found</MenuItem>
+                  )
+                )}
+              </TextField>
 
               <TextField
                 select
-                label="Year Level"
-                value={form.yearLevel}
-                onChange={handleChange("yearLevel")}
-                error={!!errors.yearLevel}
-                helperText={errors.yearLevel}
+                label="Grade Level"
+                value={form.gradeLevel}
+                onChange={handleChange("gradeLevel")}
+                error={!!errors.gradeLevel}
+                helperText={errors.gradeLevel || gradeLevelError}
                 InputProps={{ startAdornment: <InputAdornment position="start"><CalendarToday sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+                disabled={gradeLevelLoading}
               >
-                {YEAR_LEVELS.map((level) => (
-                  <MenuItem key={level} value={level} sx={{ fontFamily: "'Source Serif 4', serif" }}>
-                    {level}
-                  </MenuItem>
-                ))}
+                {gradeLevelLoading ? (
+                  <MenuItem value="" disabled>Loading...</MenuItem>
+                ) : (
+                  gradeLevel && gradeLevel.length > 0 ? (
+                    gradeLevel.map((level) => (
+                      <MenuItem key={level.id || level} value={level.id || level} sx={{ fontFamily: "'Source Serif 4', serif" }}>
+                        {level.name || level}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem value="" disabled>No grade levels found</MenuItem>
+                  )
+                )}
               </TextField>
 
               {/* Graduate Checkbox */}

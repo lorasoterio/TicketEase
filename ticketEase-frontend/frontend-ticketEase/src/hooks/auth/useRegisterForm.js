@@ -118,5 +118,8 @@ export function useRegisterForm() {
     strands,
     strandsLoading,
     strandsError,
+    gradeLevel,
+    gradeLevelLoading,
+    gradeLevelError,
   };
 }
