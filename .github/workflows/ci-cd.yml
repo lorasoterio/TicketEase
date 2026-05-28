@@ -16,7 +16,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: frontend
+        working-directory: ticketEase-frontend/frontend-ticketEase
 
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +34,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: backend
+        working-directory: ticketEase-backend/BackendTicketEase
 
     steps:
       - uses: actions/checkout@v4
