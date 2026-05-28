@@ -9,7 +9,7 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
-import GoldLine from "../../components/adminuis/GoldLine";
+import GoldLine from "../../components/adminuis/Goldline";
 import CardTitle from "../../components/adminuis/CardTitle";
 import useVerifyStudents from "../../hooks/admin/useVerifyStudents";
 

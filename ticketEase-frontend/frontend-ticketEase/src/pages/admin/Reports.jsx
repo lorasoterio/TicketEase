@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Grid, Card, CardContent, Typography, Tabs, Tab, Table, TableHead, TableCell, TableBody, TableRow } from "@mui/material";
-import GoldLine from "../../components/adminuis/GoldLine";
+import GoldLine from "../../components/adminuis/Goldline";
 import StatusChip from "../../components/adminuis/StatusChip";
 import CardTitle from "../../components/adminuis/CardTitle";
 import SimpleBar from "../../components/adminuis/SimpleBar";

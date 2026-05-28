@@ -9,7 +9,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import DownloadIcon from "@mui/icons-material/Download";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import GoldLine from "../../components/adminuis/GoldLine";
+import GoldLine from "../../components/adminuis/Goldline";
 import useTicketQueue, { timeAgo, priorityLabel } from "../../hooks/admin/useTicketQueue";
 import useTicketAttachments from "../../hooks/admin/useTicketAttachments";
 import { getAllStaff } from "../../services/userService";

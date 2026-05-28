@@ -22,7 +22,7 @@ import {
   Lock,
   PersonOutline,
 } from "@mui/icons-material";
-import GoldLine from "../../components/adminuis/GoldLine";
+import GoldLine from "../../components/adminuis/Goldline";
 import CardTitle from "../../components/adminuis/CardTitle";
 import useAdminProfile from "../../hooks/admin/useAdminProfile";
 
