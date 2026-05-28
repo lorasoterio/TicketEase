@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../services/authServices";
+import { getStrands } from "../../services/strandService";
 
 const INITIAL_FIELDS = {
   firstName: "",
@@ -20,7 +21,8 @@ function validate(form) {
   if (!form.firstName.trim()) errors.firstName = "First name is required.";
   if (!form.lastName.trim()) errors.lastName = "Last name is required.";
   if (!form.middleName.trim()) errors.middleName = "Middle name is required.";
-  if (!form.schoolStudentId.trim()) errors.schoolStudentId = "Student ID is required.";
+  if (!form.schoolStudentId.trim())
+    errors.schoolStudentId = "Student ID is required.";
   if (!form.strand.trim()) errors.strand = "Strand is required.";
   if (!form.gradeLevel.trim()) errors.gradeLevel = "Grade level is required.";
   if (!form.email.trim()) errors.email = "Email is required.";
@@ -38,6 +40,44 @@ export function useRegisterForm() {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [strands, setStrands] = useState([]);
+  const [strandsLoading, setStrandsLoading] = useState(false);
+  const [strandsError, setStrandsError] = useState("");
+  const [gradeLevel, setGradeLevel] = useState([]);
+  const [gradeLevelLoading, setGradeLevelLoading] = useState(false);
+  const [gradeLevelError, setGradeLevelError] = useState("");
+  // Fetch strands for dropdown
+  useEffect(() => {
+    const fetchStrands = async () => {
+      setStrandsLoading(true);
+      setStrandsError("");
+      try {
+        const data = await getStrands();
+        setStrands(data);
+      } catch (err) {
+        setStrandsError("Failed to load strands.");
+      } finally {
+        setStrandsLoading(false);
+      }
+    };
+    fetchStrands();
+  }, []);
+
+    useEffect(() => {
+    const fetchGradeLevels = async () => {
+      setGradeLevelLoading(true);
+      setGradeLevelError("");
+      try {
+        const data = await getGradeLevels();
+        setGradeLevel(data);
+      } catch (err) {
+        setGradeLevelError("Failed to load grade levels.");
+      } finally {
+        setGradeLevelLoading(false);
+      }
+    };
+    fetchGradeLevels();
+  }, []);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -61,7 +101,8 @@ export function useRegisterForm() {
       navigate("/login");
     } catch (err) {
       const message =
-        err?.response?.data?.message || "Something went wrong. Please try again.";
+        err?.response?.data?.message ||
+        "Something went wrong. Please try again.";
       setServerError(message);
       setLoading(false);
     }
@@ -74,5 +115,8 @@ export function useRegisterForm() {
     loading,
     handleChange,
     handleRegister,
+    strands,
+    strandsLoading,
+    strandsError,
   };
 }

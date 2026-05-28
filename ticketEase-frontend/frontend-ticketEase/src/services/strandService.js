@@ -1,26 +1,26 @@
-import axios from 'axios';
+import Client from '../utils/Client';
 
-const API_URL = '/api/Strand';
+const API_URL = '/Strand';
 
 export const getStrands = async () => {
-	const response = await axios.get(API_URL);
+	const response = await Client.get(API_URL);
 	return response.data;
 };
 
 export const getStrand = async (id) => {
-	const response = await axios.get(`${API_URL}/${id}`);
+	const response = await Client.get(`${API_URL}/${id}`);
 	return response.data;
 };
 
 export const createStrand = async (strand) => {
-	const response = await axios.post(API_URL, strand);
+	const response = await Client.post(API_URL, strand);
 	return response.data;
 };
 
 export const updateStrand = async (id, strand) => {
-	await axios.put(`${API_URL}/${id}`, strand);
+	await Client.put(`${API_URL}/${id}`, strand);
 };
 
 export const deleteStrand = async (id) => {
-	await axios.delete(`${API_URL}/${id}`);
+	await Client.delete(`${API_URL}/${id}`);
 };
