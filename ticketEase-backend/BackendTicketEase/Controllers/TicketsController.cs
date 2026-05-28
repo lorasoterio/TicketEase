@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using BackendTicketEase.Data;
 using BackendTicketEase.Models;
 using BackendTicketEase.Services;
+using Microsoft.Extensions.Logging;
 
 namespace BackendTicketEase.Controllers
 {
@@ -19,12 +20,77 @@ namespace BackendTicketEase.Controllers
         private readonly AppDbContext _context;
         private readonly GenerateRefNumber _refNumberService;
         private readonly IAuditLogService _auditLogService;
+        private readonly ILogger<TicketsController> _logger;
 
-        public TicketsController(AppDbContext context, GenerateRefNumber refNumberService, IAuditLogService auditLogService)
+        public TicketsController(AppDbContext context, GenerateRefNumber refNumberService, IAuditLogService auditLogService, ILogger<TicketsController> logger)
         {
             _context = context;
             _refNumberService = refNumberService;
             _auditLogService = auditLogService;
+            _logger = logger;
+        }
+
+        // GET: api/tickets/by-student/{studentId}
+        // Fetch tickets by studentId (for admin/staff use, no role filtering)
+        [HttpGet("by-student/{studentId}")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Ticket>>> GetTicketsByStudentId(int studentId)
+        {
+            // Only staff/admin should use this endpoint; students should not be able to fetch arbitrary student tickets
+            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+            var isStudent = string.IsNullOrEmpty(roleClaim) ||
+                            string.Equals(roleClaim, nameof(UserRole.Student), StringComparison.OrdinalIgnoreCase);
+            if (isStudent)
+                return Forbid();
+
+            var tickets = await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.StudentId == studentId)
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            return Ok(tickets);
+        }
+
+        // GET: api/tickets/by-staff/{staffId}
+        // Fetch tickets by assigned staffId (for admin/staff use, no role filtering)
+        [HttpGet("staff/{staffId}")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Ticket>>> GetTicketsByAssignedStaffId(int staffId)
+        {
+            // Only staff/admin should use this endpoint; students should not be able to fetch arbitrary staff tickets
+            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+            var isStudent = string.IsNullOrEmpty(roleClaim) ||
+                            string.Equals(roleClaim, nameof(UserRole.Student), StringComparison.OrdinalIgnoreCase);
+            if (isStudent)
+                return Forbid();
+
+            var tickets = await _context.Tickets
+                .AsNoTracking()
+                .Where(t => t.AssignedStaffId == staffId)
+                .OrderByDescending(t => t.CreatedAt)
+                .ToListAsync();
+
+            return Ok(tickets);
+        }
+
+        // GET: api/tickets/by-student/{studentId}
+        // Fetch tickets by studentId (for admin/staff use, no role filtering)
+        [HttpGet("student/{studentId}")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Ticket>>> GetAllTicketsByStudentId(int studentId)
+        {
+            // Only staff/admin should use this endpoint; students should not be able to fetch arbitrary student tickets
+            var roleClaim = User.FindFirstValue(ClaimTypes.Role);
+            var isStudent = string.IsNullOrEmpty(roleClaim) ||
+                            string.Equals(roleClaim, nameof(UserRole.Student), StringComparison.OrdinalIgnoreCase);
+            if (isStudent)
+                return Forbid();
+
+            // Use TicketService to fetch tickets for the given studentId
+            var ticketService = new TicketService(_context);
+            var tickets = await ticketService.GetTicketsForLoggedInStudentAsync(studentId);
+            return Ok(tickets);
         }
 
         // GET: api/tickets
@@ -39,21 +105,43 @@ namespace BackendTicketEase.Controllers
                 return Unauthorized();
 
             var roleClaim = User.FindFirstValue(ClaimTypes.Role);
-            // If role claim is absent, default to the most restrictive (student) behavior
             var isStudent = string.IsNullOrEmpty(roleClaim) ||
                             string.Equals(roleClaim, nameof(UserRole.Student), StringComparison.OrdinalIgnoreCase);
+            var isStaff = string.Equals(roleClaim, nameof(UserRole.Staff), StringComparison.OrdinalIgnoreCase);
+            var isAdmin = string.Equals(roleClaim, nameof(UserRole.Admin), StringComparison.OrdinalIgnoreCase);
 
             var query = _context.Tickets.AsNoTracking();
 
             if (isStudent)
             {
-                // Students can only access their own tickets; ignore any caller-supplied studentId
+                // Map userId → StudentId; students only see their own tickets
                 query = query.Where(t => t.StudentId == userId);
             }
-            else if (studentId.HasValue)
+            else if (isStaff)
             {
-                // Staff/Admin can optionally filter by a specific student
-                query = query.Where(t => t.StudentId == studentId.Value);
+                if (studentId.HasValue)
+                {
+                    // Staff filtering tickets for a specific student they're assigned to
+                    query = query.Where(t => t.StudentId == studentId.Value && t.AssignedStaffId == userId);
+                }
+                else
+                {
+                    // Staff sees only tickets assigned to them
+                    query = query.Where(t => t.AssignedStaffId == userId);
+                }
+            }
+            else if (isAdmin)
+            {
+                // Admins see everything; optionally filter by student
+                if (studentId.HasValue)
+                {
+                    query = query.Where(t => t.StudentId == studentId.Value);
+                }
+                // No filter = all tickets
+            }
+            else
+            {
+                return Forbid();
             }
 
             var tickets = await query
@@ -91,7 +179,28 @@ namespace BackendTicketEase.Controllers
             ticket.CreatedAt = DateTime.UtcNow;
             ticket.UpdatedAt = DateTime.UtcNow;
 
-            // Remarks is already initialized in the model, no need for EstimatedCompletion
+            // --- Automatic Staff Assignment Logic ---
+            // Fetch the student's grade level
+            // --- Automatic Staff Assignment Logic ---
+            var student = await _context.Students
+    .FirstOrDefaultAsync(s => s.StudentId == ticket.StudentId);
+
+            if (student != null && student.GradeLevelId.HasValue)
+            {
+                int gradeLevelId = student.GradeLevelId.Value; // 👈 unwrap first
+
+                var staffAssignment = await _context.StaffGradeAssignments
+                    .Where(sga => sga.GradeLevelId == gradeLevelId) // 👈 now a plain int comparison
+                    .OrderBy(sga => sga.Priority)
+                    .FirstOrDefaultAsync();
+
+                if (staffAssignment != null)
+                {
+                    ticket.AssignedStaffId = staffAssignment.StaffId;
+                }
+            }
+            // ----------------------------------------
+            // ----------------------------------------
 
             await _context.Tickets.AddAsync(ticket);
             await _context.SaveChangesAsync();

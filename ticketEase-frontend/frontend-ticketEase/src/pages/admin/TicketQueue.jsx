@@ -25,6 +25,8 @@ import {
   Tooltip,
   Autocomplete,
 } from "@mui/material";
+
+import { assignGradeRepresentative } from "../../services/assignRepresentativeService";
 import SearchIcon from "@mui/icons-material/Search";
 import AttachFileIcon from "@mui/icons-material/AttachFile";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -108,22 +110,22 @@ function AssignGradeRepDialog({ open, onClose, onAssign, loading, error }) {
                 s.fullName ?? s.user?.fullName ?? `Staff #${s.staffId}`
               }
               renderOption={(props, s) => (
-                <li {...props} key={s.userId ?? s.staffId}>
+                <li {...props} key={s.staffId}>
                   {s.fullName ?? s.user?.fullName ?? `Staff #${s.staffId}`}
-                  {s.department ? ` — ${s.department}` : ""}
+      
                 </li>
               )}
               value={
                 staffList.find(
-                  (s) => (s.userId ?? s.staffId) == selectedStaffId,
+                  (s) => (s.staffId) == selectedStaffId,
                 ) || null
               }
               onChange={(_, value) =>
-                setSelectedStaffId(value ? (value.userId ?? value.staffId) : "")
+                setSelectedStaffId(value ? (value.staffId) : "")
               }
               isOptionEqualToValue={(option, value) =>
-                (option.userId ?? option.staffId) ===
-                (value.userId ?? value.staffId)
+                ( option.staffId) ===
+                (value.staffId)
               }
               renderInput={(params) => (
                 <TextField
@@ -375,28 +377,13 @@ export default function Queue() {
           loading={gradeRepStaffLoading}
           error={gradeRepError}
           onAssign={async (staffId, gradeLevelId, setAssignError) => {
-            // Call backend to assign staff to grade level as representative
             try {
-              let body = { staffId: Number(staffId) };
-              if (gradeLevelId === "graduate") {
-                body.isGraduate = true;
-              } else {
-                body.gradeLevelId = Number(gradeLevelId);
-              }
-              const res = await fetch("/api/StaffGradeAssignment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
+              await assignGradeRepresentative({
+                staffId: Number(staffId),
+                gradeLevelId: gradeLevelId,
               });
-              if (!res.ok) {
-                const data = await res.json();
-                setAssignError(
-                  data?.message || "Failed to assign representative.",
-                );
-                return;
-              }
             } catch (e) {
-              setAssignError("Failed to assign representative.");
+              setAssignError(e?.message || "Failed to assign representative.");
             }
           }}
         />

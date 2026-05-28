@@ -1,4 +1,32 @@
 import client from "../api/client";
+/**
+ * Fetches tickets assigned to a specific staff member (admin/staff use).
+ * @param {number|string} staffId - The ID of the staff member.
+ * @returns {Promise<{data: Array, error: Object}>}
+ */
+export const getTicketsByStaff = async (staffId) => {
+  try {
+    const response = await client.get(`/tickets/staff/${staffId}`);
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: error.response?.data || error.message };
+  }
+};
+
+/**
+ * Fetches tickets for a specific student (admin/staff use).
+ * @param {number|string} studentId - The ID of the student.
+ * @returns {Promise<{data: Array, error: Object}>}
+ */
+export const getTicketsByStudent = async (studentId) => {
+  try {
+    const response = await client.get(`/tickets/student/${studentId}`);
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: error.response?.data || error.message };
+  }
+};
+
 
 /**
  * Submits a new ticket to the backend API.
@@ -27,6 +55,7 @@ export const getTicketsByUser = async (userId) => {
     return { data: null, error: error.response?.data || error.message };
   }
 };
+
 
 /**
  * Fetches all tickets (for admin use).

@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../context/useAuth";
-import client from "../../api/client";
+import { getTicketsByStudent } from "../../services/ticketsService";
 
 export default function useMyTickets() {
   const { user } = useAuth();
@@ -20,15 +20,24 @@ export default function useMyTickets() {
 
   /* ---------- FETCH FROM BACKEND ---------- */
   useEffect(() => {
-    console.log("[useMyTickets] Current user ID:", user?.userId ?? "not logged in");
-    if (!user?.userId) return;
+    console.log("[useMyTickets] Current user:", user);
+
+    if (!user?.schoolStudentId) {
+      console.warn("[useMyTickets] No schoolStudentId found in user.", user);
+      return;
+    }
 
     const fetchTickets = async () => {
       setLoading(true);
       setFetchError("");
 
       try {
-        const { data } = await client.get("/tickets");
+        const { data, error } = await getTicketsByStudent(user.schoolStudentId);
+        console.log("[useMyTickets] Fetched data:", data);
+        if (error) {
+          console.error("[useMyTickets] Fetch error:", error);
+          throw new Error(typeof error === "string" ? error : (error.message || "Failed to load tickets."));
+        }
 
         const shaped = data.map((t) => ({
           id:       t.referenceNumber || String(t.ticketId),
@@ -38,9 +47,10 @@ export default function useMyTickets() {
           type:     formatTicketType(t.ticketType),
           date:     formatDate(t.createdAt),
         }));
-
+        console.log("[useMyTickets] Shaped tickets:", shaped);
         setAllTickets(shaped);
       } catch (err) {
+        console.error("[useMyTickets] Exception:", err);
         setFetchError(err.message || "Failed to load tickets.");
       } finally {
         setLoading(false);
@@ -57,7 +67,7 @@ export default function useMyTickets() {
 
   /* ---------- FILTER ---------- */
   const filteredTickets = useMemo(() => {
-    return allTickets.filter((t) => {
+    const filtered = allTickets.filter((t) => {
       const statusMatch = status === "All" || t.status === status;
       const typeMatch   = ticketType === "All" || t.type === ticketType;
       const searchMatch =
@@ -65,6 +75,8 @@ export default function useMyTickets() {
         t.id.toLowerCase().includes(search.toLowerCase());
       return statusMatch && typeMatch && searchMatch;
     });
+    console.log("[useMyTickets] Filtered tickets:", filtered);
+    return filtered;
   }, [allTickets, status, ticketType, search]);
 
   /* ---------- PAGINATION ---------- */

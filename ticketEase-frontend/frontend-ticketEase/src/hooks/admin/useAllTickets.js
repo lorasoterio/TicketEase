@@ -62,11 +62,11 @@ export default function useAllTickets() {
       );
       setRawTickets(assigned);
 
-      // Build userId → { fullName, schoolStudentId, yearLevel } map
+      // Build studentId → { fullName, schoolStudentId, yearLevel } map
       const map = {};
       (students || []).forEach((s) => {
-        if (s.userId != null)
-          map[s.userId] = {
+        if (s.studentId != null)
+          map[s.studentId] = {
             fullName: s.fullName || "—",
             schoolStudentId: s.schoolStudentId || "—",
             yearLevel: s.yearLevel || "—",

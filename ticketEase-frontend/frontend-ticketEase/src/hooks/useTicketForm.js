@@ -3,6 +3,7 @@ import { useAuth } from "../context/useAuth";
 import { submitTicket } from "../services/ticketsService";
 import { getStudentByUserId } from "../services/studentService";
 import { createAuditLog } from "../services/auditLogService";
+import { fetchDocumentTypes } from "../services/documentTypeService";
 
 /**
  * useTicketForm — A reusable custom hook for any ticket submission form.
@@ -23,6 +24,17 @@ export function useTicketForm(initialFields, validateFn, onSuccess) {
   const [ticketNumber, setTicketNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [studentProfile, setStudentProfile] = useState(null);
+  const [documentTypes, setDocumentTypes] = useState([]);
+  // Fetch document types when ticket type is 'Document Request'
+  useEffect(() => {
+    if (form.ticketType === "Document Request") {
+      fetchDocumentTypes().then((data) => {
+        setDocumentTypes(Array.isArray(data) ? data : []);
+      });
+    } else {
+      setDocumentTypes([]);
+    }
+  }, [form.ticketType]);
 
   // Fetch the student profile and auto-fill school ID and full name
   useEffect(() => {
@@ -33,7 +45,10 @@ export function useTicketForm(initialFields, validateFn, onSuccess) {
       setForm((prev) => ({
         ...prev,
         studentId: data.schoolStudentId ?? prev.studentId,
-        fullName: data.fullName ?? prev.fullName,
+        fullName:
+          [data.firstName, data.middleName, data.lastName]
+            .filter(Boolean)
+            .join(" ") || prev.fullName,
       }));
     });
   }, [user?.userId]);
@@ -52,25 +67,38 @@ export function useTicketForm(initialFields, validateFn, onSuccess) {
    * handleSubmit — Runs validation. If valid, generates a ticket number and marks as submitted.
    */
   const handleSubmit = async () => {
+    if (!studentProfile) {
+      setErrors({ submit: "Student profile not loaded yet. Please wait." });
+      return;
+    }
     const validationErrors = validateFn(form);
-    if (Object.keys(validationErrors).length > 0) { setErrors(validationErrors); return; }
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
 
     setLoading(true);
 
-    const ticketTypeMap = { "Document Request": 0, "Inquiry": 1 };
+    const ticketTypeMap = { "Document Request": 0, Inquiry: 1 };
 
     const ticketData = {
-      StudentId: user.userId,
+      StudentId: studentProfile?.studentId,
       TicketType: ticketTypeMap[form.ticketType] ?? 0,
       Subject: form.subject,
       Description: form.description,
-      Priority: 0, // 0 = Normal
+      Priority: 0,
+      ...(form.ticketType === "Document Request" && {
+        DocumentTypeId: form.documentTypeId ?? null, // ← add this
+      }),
     };
 
     const { data, error } = await submitTicket(ticketData);
 
     setLoading(false);
-    if (error) { setErrors({ submit: "Failed to submit. Please try again." }); return; }
+    if (error) {
+      setErrors({ submit: "Failed to submit. Please try again." });
+      return;
+    }
     setTicketNumber(data.referenceNumber);
     setSubmitted(true);
     createAuditLog({
@@ -79,7 +107,11 @@ export function useTicketForm(initialFields, validateFn, onSuccess) {
       entityType: "Ticket",
       entityId: data.ticketId ?? null,
       oldValues: null,
-      newValues: { referenceNumber: data.referenceNumber, ticketType: form.ticketType, subject: form.subject },
+      newValues: {
+        referenceNumber: data.referenceNumber,
+        ticketType: form.ticketType,
+        subject: form.subject,
+      },
     });
     if (typeof onSuccess === "function") onSuccess();
   };
@@ -100,6 +132,7 @@ export function useTicketForm(initialFields, validateFn, onSuccess) {
     ticketNumber,
     loading,
     studentProfile,
+    documentTypes,
     handleChange,
     handleSubmit,
     handleReset,

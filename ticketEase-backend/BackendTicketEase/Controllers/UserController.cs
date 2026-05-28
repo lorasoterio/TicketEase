@@ -35,7 +35,9 @@ namespace BackendTicketEase.Controllers
                     Role = u.Role.ToString(),
                     IsActive = u.IsActive,
                     CreatedAt = u.CreatedAt,
-                    UpdatedAt = u.UpdatedAt
+                    UpdatedAt = u.UpdatedAt,
+                    StudentId = u.Student != null ? (int?)u.Student.StudentId : null,
+                    StaffId = u.Staff != null ? (int?)u.Staff.StaffId : null
                 })
                 .ToListAsync();
 
@@ -63,7 +65,9 @@ namespace BackendTicketEase.Controllers
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt
+                UpdatedAt = user.UpdatedAt,
+                StudentId = user.Student != null ? (int?)user.Student.StudentId : null,
+                StaffId = user.Staff != null ? (int?)user.Staff.StaffId : null
             };
 
             return Ok(userDto);
@@ -90,7 +94,9 @@ namespace BackendTicketEase.Controllers
                 Role = user.Role.ToString(),
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
-                UpdatedAt = user.UpdatedAt
+                UpdatedAt = user.UpdatedAt,
+                StudentId = user.Student != null ? (int?)user.Student.StudentId : null,
+                StaffId = user.Staff != null ? (int?)user.Staff.StaffId : null
             };
 
             return Ok(userDto);
@@ -116,7 +122,9 @@ namespace BackendTicketEase.Controllers
                     Role = u.Role.ToString(),
                     IsActive = u.IsActive,
                     CreatedAt = u.CreatedAt,
-                    UpdatedAt = u.UpdatedAt
+                    UpdatedAt = u.UpdatedAt,
+                    StudentId = u.Student != null ? (int?)u.Student.StudentId : null,
+                    StaffId = u.Staff != null ? (int?)u.Staff.StaffId : null
                 })
                 .ToListAsync();
 

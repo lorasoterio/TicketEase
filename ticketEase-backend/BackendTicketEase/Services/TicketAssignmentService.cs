@@ -22,7 +22,6 @@ namespace BackendTicketEase.Services
             {
                 StaffId = request.StaffId,
                 GradeLevelId = request.GradeLevelId,
-                StrandId = request.StrandId,
                 IsGraduate = request.IsGraduate
             };
             _context.StaffGradeAssignments.Add(assignment);
@@ -36,7 +35,6 @@ namespace BackendTicketEase.Services
             {
                 StaffId = request.StaffId,
                 GradeLevelId = request.GradeLevelId,
-                StrandId = request.StrandId,
                 IsGraduate = request.IsGraduate
             };
             _context.StaffGradeAssignments.Add(assignment);
@@ -65,7 +63,6 @@ namespace BackendTicketEase.Services
                 .Include(sga => sga.Staff)
                 .Include(sga => sga.GradeLevels)
                 .Include(sga => sga.Strand)
-                .Include(sga => sga.IsGraduate)
                 .ToListAsync();
         }
 

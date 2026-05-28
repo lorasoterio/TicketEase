@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using BackendTicketEase.Data;
 using BackendTicketEase.Models;
+using BackendTicketEase.DTOs;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +24,17 @@ namespace BackendTicketEase.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var documentTypes = await _context.DocumentTypes.ToListAsync();
+            var documentTypes = await _context.DocumentTypes
+                .Select(d => new DocumentTypeDto
+                {
+                    DocumentTypeId = d.DocumentTypeId,
+                    Name = d.Name,
+                    Description = d.Description,
+                    EstimatedWorkingDays = d.EstimatedWorkingDays,
+                    IsActive = d.IsActive
+                })
+                .ToListAsync();
+
             return Ok(documentTypes);
         }
 
@@ -39,10 +50,18 @@ namespace BackendTicketEase.Controllers
 
         // POST: api/DocumentType
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] DocumentType documentType)
+        public async Task<IActionResult> Create([FromBody] CreateDocumentTypeRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var documentType = new DocumentType
+            {
+                Name = request.Name,
+                Description = request.Description,
+                EstimatedWorkingDays = request.EstimatedWorkingDays,
+                IsActive = true
+            };
 
             _context.DocumentTypes.Add(documentType);
             await _context.SaveChangesAsync();
@@ -51,10 +70,19 @@ namespace BackendTicketEase.Controllers
 
         // PUT: api/DocumentType/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] DocumentType documentType)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateDocumentTypeRequest request)
         {
-            if (id != documentType.DocumentTypeId)
+            if (id != request.DocumentTypeId)
                 return BadRequest();
+
+            var documentType = await _context.DocumentTypes.FindAsync(id);
+            if (documentType == null)
+                return NotFound();
+
+            documentType.Name = request.Name;
+            documentType.Description = request.Description;
+            documentType.EstimatedWorkingDays = request.EstimatedWorkingDays;
+            documentType.IsActive = request.IsActive;
 
             _context.Entry(documentType).State = EntityState.Modified;
 

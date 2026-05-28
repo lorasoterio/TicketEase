@@ -7,5 +7,9 @@ export const logoutUser = async () => {
   } catch (err) {
     // Ignore errors, just clear session
   }
+  // Remove user and token from both sessionStorage and localStorage
   sessionStorage.removeItem("user");
+  sessionStorage.removeItem("token");
+  localStorage.removeItem("user");
+  localStorage.removeItem("token");
 };

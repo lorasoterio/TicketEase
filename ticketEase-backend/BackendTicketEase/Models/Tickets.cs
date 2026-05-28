@@ -44,11 +44,11 @@ namespace BackendTicketEase.Models
         // Navigation properties (ignored for JSON/Swagger to avoid circular refs)
         [ForeignKey("StudentId")]
         [JsonIgnore]
-        public virtual User? StudentUser { get; set; }
+        public virtual Student? StudentUser { get; set; }
 
         [ForeignKey("AssignedStaffId")]
         [JsonIgnore]
-        public virtual User? AssignedStaff { get; set; }
+        public virtual Staff? AssignedStaff { get; set; }
 
         [ForeignKey("DocumentTypeId")]
         [JsonIgnore]

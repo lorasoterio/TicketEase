@@ -53,6 +53,7 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
     ticketNumber,
     loading,
     studentProfile,
+    documentTypes,
     handleChange,
     handleSubmit,
     handleReset,
@@ -69,9 +70,7 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
   };
 
   const handleRemoveFile = () => setAttachment(null);
-
   const handleReset_ = () => {
-    handleReset();
     setAttachment(null);
     onSubmitted?.();
   };
@@ -100,17 +99,20 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
           }
         >
           <strong>Request submitted!</strong> Your ticket number is{" "}
-          <Chip label={ticketNumber} size="small" color="success" sx={{ fontWeight: 700 }} />.
-          Please keep this for follow-up.
+          <Chip
+            label={ticketNumber}
+            size="small"
+            color="success"
+            sx={{ fontWeight: 700 }}
+          />
+          . Please keep this for follow-up.
         </Alert>
       </Collapse>
 
       {/* ── Form ── */}
       <Collapse in={!submitted}>
         <Stack spacing={2.5}>
-          {errors.submit && (
-            <Alert severity="error">{errors.submit}</Alert>
-          )}
+          {errors.submit && <Alert severity="error">{errors.submit}</Alert>}
 
           {/* Student Information */}
           <SectionLabel
@@ -158,7 +160,9 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
 
           {/* Details of the Request */}
           <SectionLabel
-            icon={<Description sx={{ color: "secondary.main", fontSize: 18 }} />}
+            icon={
+              <Description sx={{ color: "secondary.main", fontSize: 18 }} />
+            }
             label="Details of the Request"
           />
           <Stack spacing={2}>
@@ -176,28 +180,79 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
                 ))}
               </Select>
               {errors.ticketType && (
-                <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 1.5 }}>
+                <Typography
+                  variant="caption"
+                  color="error"
+                  sx={{ mt: 0.5, ml: 1.5 }}
+                >
                   {errors.ticketType}
                 </Typography>
               )}
             </FormControl>
 
-            <TextField
-              size="small"
-              label="Subject"
-              placeholder="Brief title for your request..."
-              value={form.subject}
-              onChange={handleChange("subject")}
-              error={!!errors.subject}
-              helperText={errors.subject}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Description sx={{ color: "text.disabled", fontSize: 20 }} />
-                  </InputAdornment>
-                ),
-              }}
-            />
+            {form.ticketType === "Document Request" ? (
+              <FormControl size="small" error={!!errors.subject} fullWidth>
+                <InputLabel>Document Type</InputLabel>
+                <Select
+                  value={form.subject}
+                  onChange={(e) => {
+                    const selectedName = e.target.value;
+                    const selectedDoc = documentTypes.find(
+                      (doc) => (doc.name || doc) === selectedName,
+                    );
+                    handleChange("subject")(e); // stores the name
+                    handleChange("documentTypeId")({
+                      // stores the ID
+                      target: { value: selectedDoc?.documentTypeId ?? "" },
+                    });
+                  }}
+                  label="Document Type"
+                >
+                  {Array.isArray(documentTypes) && documentTypes.length > 0 ? (
+                    documentTypes.map((doc) => (
+                      <MenuItem
+                        key={doc.documentTypeId || doc.id || doc}
+                        value={doc.name || doc}
+                      >
+                        {doc.name || doc}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem value="" disabled>
+                      No document types available
+                    </MenuItem>
+                  )}
+                </Select>
+                {errors.subject && (
+                  <Typography
+                    variant="caption"
+                    color="error"
+                    sx={{ mt: 0.5, ml: 1.5 }}
+                  >
+                    {errors.subject}
+                  </Typography>
+                )}
+              </FormControl>
+            ) : (
+              <TextField
+                size="small"
+                label="Subject"
+                placeholder="Brief title for your request..."
+                value={form.subject}
+                onChange={handleChange("subject")}
+                error={!!errors.subject}
+                helperText={errors.subject}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Description
+                        sx={{ color: "text.disabled", fontSize: 20 }}
+                      />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            )}
 
             <TextField
               size="small"
@@ -224,7 +279,11 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
                 size="small"
                 startIcon={<AttachFile sx={{ fontSize: 18 }} />}
                 onClick={() => fileInputRef.current?.click()}
-                sx={{ borderStyle: "dashed", color: "text.secondary", borderColor: "divider" }}
+                sx={{
+                  borderStyle: "dashed",
+                  color: "text.secondary",
+                  borderColor: "divider",
+                }}
               >
                 {attachment ? "Change File" : "Attach File"}
               </Button>
@@ -237,7 +296,12 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
                   sx={{ ml: 1, maxWidth: 220 }}
                 />
               )}
-              <Typography variant="caption" display="block" color="text.disabled" sx={{ mt: 0.5 }}>
+              <Typography
+                variant="caption"
+                display="block"
+                color="text.disabled"
+                sx={{ mt: 0.5 }}
+              >
                 Optional — Max 10 MB
               </Typography>
             </Box>
