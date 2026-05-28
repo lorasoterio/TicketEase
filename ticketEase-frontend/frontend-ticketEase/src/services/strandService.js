@@ -1,4 +1,4 @@
-import Client from '../utils/Client';
+import Client from '../api/Client';
 
 const API_URL = '/Strand';
 

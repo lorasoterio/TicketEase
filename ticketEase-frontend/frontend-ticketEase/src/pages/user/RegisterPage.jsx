@@ -149,10 +149,10 @@ export default function UserRegisterPage() {
               <TextField
                 select
                 label="Strand"
-                value={form.courseProgram}
-                onChange={handleChange("courseProgram")}
-                error={!!errors.courseProgram}
-                helperText={errors.courseProgram || strandError}
+                value={form.strand || ""}
+                onChange={e => handleChange("strand")({ target: { value: e.target.value } })}
+                error={!!errors.strand}
+                helperText={errors.strand || strandError}
                 InputProps={{ startAdornment: <InputAdornment position="start"><MenuBook sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
                 disabled={strandLoading}
               >
@@ -161,8 +161,8 @@ export default function UserRegisterPage() {
                 ) : (
                   strand && strand.length > 0 ? (
                     strand.map((item) => (
-                      <MenuItem key={item.id || item} value={item.id || item} sx={{ fontFamily: "'Source Serif 4', serif" }}>
-                        {item.name || item}
+                      <MenuItem key={item.strandId} value={item.strandId} sx={{ fontFamily: "'Source Serif 4', serif" }}>
+                        {item.name}
                       </MenuItem>
                     ))
                   ) : (
@@ -174,8 +174,8 @@ export default function UserRegisterPage() {
               <TextField
                 select
                 label="Grade Level"
-                value={form.gradeLevel}
-                onChange={handleChange("gradeLevel")}
+                value={form.gradeLevel || ""}
+                onChange={e => handleChange("gradeLevel")({ target: { value: e.target.value } })}
                 error={!!errors.gradeLevel}
                 helperText={errors.gradeLevel || gradeLevelError}
                 InputProps={{ startAdornment: <InputAdornment position="start"><CalendarToday sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
@@ -186,8 +186,8 @@ export default function UserRegisterPage() {
                 ) : (
                   gradeLevel && gradeLevel.length > 0 ? (
                     gradeLevel.map((level) => (
-                      <MenuItem key={level.id || level} value={level.id || level} sx={{ fontFamily: "'Source Serif 4', serif" }}>
-                        {level.name || level}
+                      <MenuItem key={level.gradeLevelId} value={level.gradeLevelId} sx={{ fontFamily: "'Source Serif 4', serif" }}>
+                        {level.name}
                       </MenuItem>
                     ))
                   ) : (
