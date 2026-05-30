@@ -44,8 +44,8 @@ export default function UserRegisterPage() {
   const {
     form, errors, serverError, loading,
     handleChange, handleRegister,
-    gradeLevel, gradeLevelLoading, gradeLevelError,
-    strand, strandLoading, strandError
+    gradeLevels, gradeLevelsLoading, gradeLevelsError,
+    strands, strandsLoading, strandsError
   } = useRegisterForm();
 
   return (

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../services/authServices";
 import { getStrands } from "../../services/strandService";
+import { getGradeLevels } from "../../services/gradeLevelService";
 
 const INITIAL_FIELDS = {
   firstName: "",
@@ -9,8 +10,8 @@ const INITIAL_FIELDS = {
   middleName: "",
   suffix: "",
   schoolStudentId: "",
-  strand: "",
-  gradeLevel: "",
+  strandId: "",
+  gradeLevelId: "",
   email: "",
   password: "",
   confirmPassword: "",
@@ -23,8 +24,8 @@ function validate(form) {
   if (!form.middleName.trim()) errors.middleName = "Middle name is required.";
   if (!form.schoolStudentId.trim())
     errors.schoolStudentId = "Student ID is required.";
-  if (!form.strand.trim()) errors.strand = "Strand is required.";
-  if (!form.gradeLevel.trim()) errors.gradeLevel = "Grade level is required.";
+  if (!form.strandId.trim()) errors.strandId = "Strand is required.";
+  if (!form.gradeLevelId.trim()) errors.gradeLevelId = "Grade level is required.";
   if (!form.email.trim()) errors.email = "Email is required.";
   if (!form.password) errors.password = "Password is required.";
   else if (form.password.length < 6)
@@ -43,9 +44,9 @@ export function useRegisterForm() {
   const [strands, setStrands] = useState([]);
   const [strandsLoading, setStrandsLoading] = useState(false);
   const [strandsError, setStrandsError] = useState("");
-  const [gradeLevel, setGradeLevel] = useState([]);
-  const [gradeLevelLoading, setGradeLevelLoading] = useState(false);
-  const [gradeLevelError, setGradeLevelError] = useState("");
+  const [gradeLevels, setGradeLevels] = useState([]);
+  const [gradeLevelsLoading, setGradeLevelsLoading] = useState(false);
+  const [gradeLevelsError, setGradeLevelsError] = useState("");
   // Fetch strands for dropdown
   useEffect(() => {
     const fetchStrands = async () => {
@@ -65,11 +66,11 @@ export function useRegisterForm() {
 
     useEffect(() => {
     const fetchGradeLevels = async () => {
-      setGradeLevelLoading(true);
-      setGradeLevelError("");
+      setGradeLevelsLoading(true);
+      setGradeLevelsError("");
       try {
         const data = await getGradeLevels();
-        setGradeLevel(data);
+        setGradeLevels(data);
       } catch (err) {
         setGradeLevelError("Failed to load grade levels.");
       } finally {
@@ -118,8 +119,10 @@ export function useRegisterForm() {
     strands,
     strandsLoading,
     strandsError,
-    gradeLevel,
-    gradeLevelLoading,
-    gradeLevelError,
+    gradeLevels,
+    gradeLevelsLoading,
+    gradeLevelsError,
+    fetchGradeLevels,
+    fetchStrands,
   };
 }
