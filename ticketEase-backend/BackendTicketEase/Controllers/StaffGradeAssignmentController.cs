@@ -59,7 +59,11 @@ namespace BackendTicketEase.Controllers
         [HttpPost("assign")]
         public async Task<IActionResult> AssignStaff([FromBody] StaffAssignmentRequest request)
         {
-            // Disambiguate between overloaded AssignStaffAsync methods
+            if (!request.IsGraduate && request.GradeLevelId == null)
+            {
+                return BadRequest(new { message = "GradeLevelId is required for non-graduate assignments." });
+            }
+
             var result = await _assignmentService.AssignStaffAsync(request);
             return Ok(result);
         }

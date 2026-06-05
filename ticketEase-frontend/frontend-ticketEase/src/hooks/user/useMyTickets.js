@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "../../context/useAuth";
-import { getTicketsByStudent } from "../../services/ticketsService";
+import { getMyTickets } from "../../services/ticketsService";
+import { fetchDocumentTypes } from "../../services/documentTypeService";
 
 export default function useMyTickets() {
   const { user } = useAuth();
@@ -22,8 +23,8 @@ export default function useMyTickets() {
   useEffect(() => {
     console.log("[useMyTickets] Current user:", user);
 
-    if (!user?.schoolStudentId) {
-      console.warn("[useMyTickets] No schoolStudentId found in user.", user);
+    if (!user) {
+      console.warn("[useMyTickets] No authenticated user found.", user);
       return;
     }
 
@@ -32,20 +33,35 @@ export default function useMyTickets() {
       setFetchError("");
 
       try {
-        const { data, error } = await getTicketsByStudent(user.schoolStudentId);
+        const [{ data, error }, documentTypes] = await Promise.all([
+          getMyTickets(),
+          fetchDocumentTypes(),
+        ]);
         console.log("[useMyTickets] Fetched data:", data);
         if (error) {
           console.error("[useMyTickets] Fetch error:", error);
           throw new Error(typeof error === "string" ? error : (error.message || "Failed to load tickets."));
         }
 
+        const estimatedDaysByTypeId = new Map(
+          (Array.isArray(documentTypes) ? documentTypes : []).map((d) => [
+            Number(d.documentTypeId),
+            Number(d.estimatedWorkingDays),
+          ])
+        );
+
         const shaped = data.map((t) => ({
           id:       t.referenceNumber || String(t.ticketId),
           ticketId: t.ticketId,
           subject:  t.subject ?? "(No subject)",
+          remarks:  t.remarks ?? t.remark ?? t.adminRemarks ?? "",
           status:   formatStatus(t.status),
           type:     formatTicketType(t.ticketType),
           date:     formatDate(t.createdAt),
+          estimatedWorkingDays:
+            t.documentTypeId != null
+              ? estimatedDaysByTypeId.get(Number(t.documentTypeId))
+              : null,
         }));
         console.log("[useMyTickets] Shaped tickets:", shaped);
         setAllTickets(shaped);

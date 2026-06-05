@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Box, Grid, Card, CardContent, Typography, Tabs, Tab, Table, TableHead, TableCell, TableBody, TableRow } from "@mui/material";
-import GoldLine from "../../components/adminuis/GoldLine";
+import GoldLine from "../../components/adminuis/Goldline";
 import StatusChip from "../../components/adminuis/StatusChip";
 import CardTitle from "../../components/adminuis/CardTitle";
 import SimpleBar from "../../components/adminuis/SimpleBar";
@@ -69,7 +69,7 @@ export default function Reports() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {[["Cruz, Maria L.", 14, 12], ["Santos, Jun B.", 11, 9], ["Reyes, Ana P.", 8, 8], ["Lim, Carlo D.", 7, 5]].map(([name, t, r]) => (
+                      {[ ["Cruz, Maria L.", 14, 12], ["Santos, Jun B.", 11, 9], ["Reyes, Ana P.", 8, 8], ["Lim, Carlo D.", 7, 5] ].map(([name, t]) => (
                         <TableRow key={name} hover>
                           <TableCell>{name}</TableCell>
                           <TableCell>{t}</TableCell>

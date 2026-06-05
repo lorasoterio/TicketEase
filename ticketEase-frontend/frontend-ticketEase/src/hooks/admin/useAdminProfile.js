@@ -17,20 +17,18 @@ export default function useAdminProfile() {
 
   useEffect(() => {
     if (!authProfile?.userId) return;
-
     setLoading(true);
     setError(null);
-
-    client
-      .get(`/staff/user/${authProfile.userId}`)
-      .then(({ data }) => {
+    (async () => {
+      try {
+        const { data } = await client.get(`/staff/user/${authProfile.userId}`);
         setProfile(data);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         setError(err.response?.data?.message || "Failed to load profile.");
+      } finally {
         setLoading(false);
-      });
+      }
+    })();
   }, [authProfile?.userId]);
 
   function updatePasswordField(name, value) {

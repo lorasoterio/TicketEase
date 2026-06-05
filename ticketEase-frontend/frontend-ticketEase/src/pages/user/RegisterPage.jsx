@@ -51,6 +51,17 @@ export default function RegisterPage() {
   const [strands, setStrands] = useState([]);
   const [gradeLevels, setGradeLevels] = useState([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+  const isGraduate = !!form.isGraduate;
+
+  const handleGraduateChange = (event) => {
+    const checked = event.target.checked;
+    handleChange("isGraduate")({ target: { value: checked } });
+
+    if (checked) {
+      handleChange("strandId")({ target: { value: "" } });
+      handleChange("gradeLevelId")({ target: { value: "" } });
+    }
+  };
 
   useEffect(() => {
     async function loadDropdowns() {
@@ -170,48 +181,52 @@ export default function RegisterPage() {
                 placeholder="e.g. 2021-00123"
                 InputProps={{ startAdornment: <InputAdornment position="start"><School sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
               />
-              <TextField
-                select
-                label="Strand"
-                value={form.strandId || ""}
-                onChange={handleChange("strandId")}
-                error={!!errors.strandId}
-                helperText={errors.strandId}
-                InputProps={{ startAdornment: <InputAdornment position="start"><MenuBook sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
-                disabled={loadingDropdowns}
-              >
-                {strands.map((strand) => (
-                  <MenuItem key={strand.strandId} value={strand.strandId} sx={{ fontFamily: "'Source Serif 4', serif" }}>
-                    {strand.strandName} ({strand.strandCode})
-                  </MenuItem>
-                ))}
-              </TextField>
+              {!isGraduate && (
+                <>
+                  <TextField
+                    select
+                    label="Strand"
+                    value={form.strandId || ""}
+                    onChange={handleChange("strandId")}
+                    error={!!errors.strandId}
+                    helperText={errors.strandId}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><MenuBook sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+                    disabled={loadingDropdowns}
+                  >
+                    {strands.map((strand) => (
+                      <MenuItem key={strand.strandId} value={strand.strandId} sx={{ fontFamily: "'Source Serif 4', serif" }}>
+                        {strand.strandName} ({strand.strandCode})
+                      </MenuItem>
+                    ))}
+                  </TextField>
 
-              <TextField
-                select
-                label="Year Level"
-                value={form.gradeLevelId || ""}
-                onChange={handleChange("gradeLevelId")}
-                error={!!errors.gradeLevelId}
-                helperText={errors.gradeLevelId}
-                InputProps={{ startAdornment: <InputAdornment position="start"><CalendarToday sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
-                disabled={loadingDropdowns}
-              >
-                {gradeLevels
-                  .sort((a, b) => a.levelOrder - b.levelOrder)
-                  .map((level) => (
-                    <MenuItem key={level.gradeLevelId} value={level.gradeLevelId} sx={{ fontFamily: "'Source Serif 4', serif" }}>
-                      {level.gradeLevelName}
-                    </MenuItem>
-                  ))}
-              </TextField>
+                  <TextField
+                    select
+                    label="Year Level"
+                    value={form.gradeLevelId || ""}
+                    onChange={handleChange("gradeLevelId")}
+                    error={!!errors.gradeLevelId}
+                    helperText={errors.gradeLevelId}
+                    InputProps={{ startAdornment: <InputAdornment position="start"><CalendarToday sx={{ color: "text.disabled", fontSize: 20 }} /></InputAdornment> }}
+                    disabled={loadingDropdowns}
+                  >
+                    {gradeLevels
+                      .sort((a, b) => a.levelOrder - b.levelOrder)
+                      .map((level) => (
+                        <MenuItem key={level.gradeLevelId} value={level.gradeLevelId} sx={{ fontFamily: "'Source Serif 4', serif" }}>
+                          {level.gradeLevelName}
+                        </MenuItem>
+                      ))}
+                  </TextField>
+                </>
+              )}
 
               {/* Graduate Checkbox */}
               <FormControlLabel
                 control={
                   <Checkbox
                     checked={!!form.isGraduate}
-                    onChange={e => handleChange("isGraduate")({ target: { value: e.target.checked } })}
+                    onChange={handleGraduateChange}
                     color="primary"
                   />
                 }

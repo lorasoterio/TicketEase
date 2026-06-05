@@ -32,7 +32,11 @@ export const getAuditLogById = async (id) => {
 
 export const createAuditLog = async ({ userId, actionType, entityType, entityId, oldValues, newValues }) => {
   try {
-    const response = await client.post("/auditlogs", { userId, actionType, entityType, entityId, oldValues, newValues });
+    const response = await client.post(
+      "/auditlogs",
+      { userId, actionType, entityType, entityId, oldValues, newValues },
+      { skipSuccessNotification: true },
+    );
     return { data: response.data, error: null };
   } catch (error) {
     const status = error.response?.status;

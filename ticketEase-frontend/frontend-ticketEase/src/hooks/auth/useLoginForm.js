@@ -42,14 +42,26 @@ export function useLoginForm() {
     try {
       const data = await loginUser(form);
 
-      sessionStorage.setItem("user", JSON.stringify(data));
-      setUser(data);
-      setProfile(data);
+      const normalizedRole = (data.role ?? data.Role ?? "").toString().toLowerCase();
+      const normalizedIsVerified = data.isVerified ?? data.IsVerified;
+      if (normalizedRole === "student" && normalizedIsVerified !== true) {
+        setServerError("Your student account is pending verification.");
+        return;
+      }
 
-      const role = data.role?.toLowerCase();
-      if (role === "staff" || role === "admin") {
+      const normalizedUser = {
+        ...data,
+        role: data.role ?? data.Role,
+        isVerified: normalizedIsVerified,
+      };
+
+      sessionStorage.setItem("user", JSON.stringify(normalizedUser));
+      setUser(normalizedUser);
+      setProfile(normalizedUser);
+
+      if (normalizedRole === "staff" || normalizedRole === "admin") {
         navigate("/admin/dashboard");
-      } else if (role === "superadmin") {
+      } else if (normalizedRole === "superadmin") {
         navigate("/superadmin/dashboard");
       } else {
         navigate("/user/dashboard");

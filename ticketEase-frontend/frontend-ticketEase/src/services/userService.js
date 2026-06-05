@@ -24,3 +24,8 @@ export const unverifyStudent = async (studentId) => {
   const response = await client.patch(`/student/${studentId}/unverify`);
   return response.data;
 };
+
+export const deleteStudent = async (studentId) => {
+  const response = await client.delete(`/student/${studentId}`);
+  return response.data;
+};

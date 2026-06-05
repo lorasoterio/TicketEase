@@ -3,6 +3,7 @@ import { logoutUser } from "../../services/logout";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/useAuth";
 import client from "../../api/client";
+import useNotifications from "../../hooks/useNotifications";
 
 import {
   AppBar,
@@ -58,26 +59,7 @@ const NAV_LINKS = [
   },
 ];
 
-const NOTIFICATIONS = [
-  {
-    id: 1,
-    text: "Your ticket #1042 has been updated by staff.",
-    time: "2m ago",
-    unread: true,
-  },
-  {
-    id: 2,
-    text: "Staff replied on ticket #1055.",
-    time: "1h ago",
-    unread: true,
-  },
-  {
-    id: 3,
-    text: "Ticket #0991 was marked as completed.",
-    time: "2d ago",
-    unread: false,
-  },
-];
+
 
 // Shared accent for student role
 const ACCENT = "#1a56e8";
@@ -108,14 +90,19 @@ export default function UserNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [ticketCount, setTicketCount] = useState(null);
 
+  const {
+    notifications,
+    unreadCount: unread,
+    handleMarkAsRead,
+    handleMarkAllAsRead,
+  } = useNotifications();
+
   useEffect(() => {
     if (!user?.userId) return;
     client.get("/tickets")
       .then(({ data }) => setTicketCount(data.length))
       .catch(() => setTicketCount(null));
   }, [user]);
-
-  const unread = NOTIFICATIONS.filter((n) => n.unread).length;
 
   return (
     <>
@@ -370,70 +357,94 @@ export default function UserNavbar() {
           },
         }}
       >
-        <Typography
-          sx={{
-            px: 2,
-            pt: 1.5,
-            pb: 0.75,
-            fontSize: 11,
-            fontWeight: 700,
-            color: "text.disabled",
-            letterSpacing: "0.6px",
-            textTransform: "uppercase",
-          }}
-        >
-          Notifications
-        </Typography>
-        <List disablePadding>
-          {NOTIFICATIONS.map((n, i) => (
-            <ListItem
-              key={n.id}
-              disablePadding
+        <Box sx={{ px: 2, pt: 1.5, pb: 0.75, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Typography
+            sx={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "text.disabled",
+              letterSpacing: "0.6px",
+              textTransform: "uppercase",
+            }}
+          >
+            Notifications
+          </Typography>
+          {unread > 0 && (
+            <Typography
+              component="button"
+              onClick={handleMarkAllAsRead}
               sx={{
-                borderTop: i > 0 ? "1px solid" : "none",
-                borderColor: "grey.100",
+                fontSize: 11,
+                color: ACCENT,
+                fontWeight: 600,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                p: 0,
+                fontFamily: "inherit",
               }}
             >
-              <ListItemButton
+              Mark all read
+            </Typography>
+          )}
+        </Box>
+        <List disablePadding>
+          {notifications.length === 0 ? (
+            <Typography sx={{ px: 2, py: 2, fontSize: 13, color: "text.disabled", textAlign: "center" }}>
+              No notifications yet
+            </Typography>
+          ) : (
+            notifications.map((n, i) => (
+              <ListItem
+                key={n.id}
+                disablePadding
                 sx={{
-                  px: 2,
-                  py: 1.25,
-                  alignItems: "flex-start",
-                  gap: 1,
-                  bgcolor: n.unread ? "#fafbff" : "transparent",
+                  borderTop: i > 0 ? "1px solid" : "none",
+                  borderColor: "grey.100",
                 }}
               >
-                {n.unread && (
-                  <Box
-                    sx={{
-                      width: 6,
-                      height: 6,
-                      bgcolor: ACCENT,
-                      borderRadius: "50%",
-                      mt: 0.75,
-                      flexShrink: 0,
-                    }}
-                  />
-                )}
-                <Box sx={{ ml: n.unread ? 0 : "14px" }}>
-                  <Typography
-                    sx={{
-                      fontSize: 12.5,
-                      color: "text.primary",
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {n.text}
-                  </Typography>
-                  <Typography
-                    sx={{ fontSize: 11, color: "text.disabled", mt: 0.25 }}
-                  >
-                    {n.time}
-                  </Typography>
-                </Box>
-              </ListItemButton>
-            </ListItem>
-          ))}
+                <ListItemButton
+                  onClick={() => !n.isRead && handleMarkAsRead(n.id)}
+                  sx={{
+                    px: 2,
+                    py: 1.25,
+                    alignItems: "flex-start",
+                    gap: 1,
+                    bgcolor: !n.isRead ? "#fafbff" : "transparent",
+                  }}
+                >
+                  {!n.isRead && (
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        bgcolor: ACCENT,
+                        borderRadius: "50%",
+                        mt: 0.75,
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                  <Box sx={{ ml: !n.isRead ? 0 : "14px" }}>
+                    <Typography
+                      sx={{
+                        fontSize: 12.5,
+                        color: "text.primary",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {n.message}
+                    </Typography>
+                    <Typography
+                      sx={{ fontSize: 11, color: "text.disabled", mt: 0.25 }}
+                    >
+                      {n.time}
+                    </Typography>
+                  </Box>
+                </ListItemButton>
+              </ListItem>
+            ))
+          )}
         </List>
       </Popover>
 

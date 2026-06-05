@@ -10,6 +10,7 @@ const INITIAL_FIELDS = {
   schoolStudentId: "",
   strandId: "",
   gradeLevelId: "",
+  isGraduate: false,
   email: "",
   password: "",
   confirmPassword: "",
@@ -21,8 +22,8 @@ function validate(form) {
   if (!form.lastName.trim()) errors.lastName = "Last name is required.";
   if (!form.middleName.trim()) errors.middleName = "Middle name is required.";
   if (!form.schoolStudentId.trim()) errors.schoolStudentId = "Student ID is required.";
-  if (!form.strandId) errors.strandId = "Strand is required.";
-  if (!form.gradeLevelId) errors.gradeLevelId = "Grade level is required.";
+  if (!form.isGraduate && !form.strandId) errors.strandId = "Strand is required.";
+  if (!form.isGraduate && !form.gradeLevelId) errors.gradeLevelId = "Grade level is required.";
   if (!form.email.trim()) errors.email = "Email is required.";
   if (!form.password) errors.password = "Password is required.";
   else if (form.password.length < 6)
@@ -68,7 +69,14 @@ export function useRegisterForm() {
       setLoading(true);
       setServerError("");
 
-      await registerUser(form);
+      const payload = {
+        ...form,
+        isGraduate: !!form.isGraduate,
+        strandId: form.isGraduate ? null : form.strandId || null,
+        gradeLevelId: form.isGraduate ? null : form.gradeLevelId || null,
+      };
+
+      await registerUser(payload);
 
       setLoading(false);
       navigate("/login");

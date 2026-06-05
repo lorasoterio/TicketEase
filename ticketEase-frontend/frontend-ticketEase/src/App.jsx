@@ -1,4 +1,5 @@
 import AppRoutes from "./routes/AppRoutes";
+import GlobalSuccessSnackbar from "./components/feedback/GlobalSuccessSnackbar";
 export default function App() {
  /* useEffect(() => {
     let isMounted = true;
@@ -22,6 +23,7 @@ export default function App() {
   return (
     <>
       <AppRoutes />
+      <GlobalSuccessSnackbar />
     </>
   );
 }

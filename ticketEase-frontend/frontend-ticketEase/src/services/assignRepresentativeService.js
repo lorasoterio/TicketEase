@@ -9,7 +9,7 @@ export const assignGradeRepresentative = async ({ staffId, gradeLevelId }) => {
     if (gradeLevelId === "graduate") {
       payload.isGraduate = true;
     } else {
-      payload.gradeLevelId = gradeLevelId;
+      payload.gradeLevelId = Number(gradeLevelId);
     }
     const response = await client.post(`${BASE_URL}/assign`, payload);
     return response.data;

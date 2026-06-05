@@ -4,7 +4,7 @@ export const logoutUser = async () => {
   // Call backend logout endpoint if available
   try {
     await client.post("/auth/logout");
-  } catch (err) {
+  } catch {
     // Ignore errors, just clear session
   }
   // Remove user and token from both sessionStorage and localStorage

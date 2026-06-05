@@ -731,7 +731,7 @@ namespace BackendTicketEase.Migrations
 
             modelBuilder.Entity("BackendTicketEase.Models.Ticket", b =>
                 {
-                    b.HasOne("BackendTicketEase.Models.Staff", "AssignedStaff")
+                    b.HasOne("BackendTicketEase.Models.User", "AssignedStaff")
                         .WithMany()
                         .HasForeignKey("AssignedStaffId")
                         .OnDelete(DeleteBehavior.Restrict);
@@ -741,7 +741,7 @@ namespace BackendTicketEase.Migrations
                         .HasForeignKey("DocumentTypeId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.HasOne("BackendTicketEase.Models.Student", "StudentUser")
+                    b.HasOne("BackendTicketEase.Models.User", "StudentUser")
                         .WithMany()
                         .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Restrict)

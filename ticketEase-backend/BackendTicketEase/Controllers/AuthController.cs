@@ -55,6 +55,7 @@ namespace BackendTicketEase.Controllers
             public string? MiddleName { get; set; }
             public string? Suffix { get; set; }
             public string? SchoolStudentId { get; set; }
+            public bool? IsVerified { get; set; }
             public string? Position { get; set; }
         }
 
@@ -70,7 +71,8 @@ namespace BackendTicketEase.Controllers
                 request.MiddleName,
                 request.Suffix,
                 request.StrandId,
-                request.GradeLevelId
+                request.GradeLevelId,
+                request.IsGraduate
             );
 
             if (!result.Success)
@@ -101,7 +103,8 @@ namespace BackendTicketEase.Controllers
                 request.LastName,
                 request.MiddleName,
                 request.Suffix,
-                request.Position
+                request.Position,
+                request.Role
             );
 
             if (!result.Success)
@@ -113,12 +116,12 @@ namespace BackendTicketEase.Controllers
             {
                 UserId = result.User!.UserId,
                 Email = result.User.Email,
-                Role = "Staff",
+                Role = result.User.Role.ToString(),
                 ProfileId = result.Staff!.StaffId,
                 Message = result.Message
             };
 
-            await _auditLogService.LogAsync(result.User.UserId, "Register", "User", result.User.UserId, null, new { result.User.Email, Role = "Staff" });
+            await _auditLogService.LogAsync(result.User.UserId, "Register", "User", result.User.UserId, null, new { result.User.Email, Role = result.User.Role.ToString() });
             return CreatedAtAction(null, response);
         }
 
@@ -183,11 +186,19 @@ namespace BackendTicketEase.Controllers
                 var student = await _context.Set<Student>()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(s => s.UserId == user.UserId);
+
+                if (student == null)
+                    return Unauthorized(new { message = "Invalid credentials." });
+
+                if (!student.IsVerified)
+                    return StatusCode(403, new { message = "Your student account is pending verification." });
+
                 response.FirstName = student?.FirstName;
                 response.LastName = student?.LastName;
                 response.MiddleName = student?.MiddleName;
                 response.Suffix = student?.Suffix;
                 response.SchoolStudentId = student?.SchoolStudentId;
+                response.IsVerified = student.IsVerified;
             }
             else if (user.Role == UserRole.Staff || user.Role == UserRole.Admin || user.Role == UserRole.SuperAdmin)
             {

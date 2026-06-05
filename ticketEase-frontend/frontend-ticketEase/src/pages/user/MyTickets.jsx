@@ -37,13 +37,11 @@ export default function MyTickets() {
 
   const {
     tickets,
-    status,
     ticketType,
     search,
     page,
     setPage,
     pageCount,
-    handleSetStatus,
     handleSetTicketType,
     handleSetSearch,
     refetch,
@@ -97,26 +95,35 @@ export default function MyTickets() {
               <MenuItem value="Document Request">Document Request</MenuItem>
               <MenuItem value="Inquiry">Inquiry</MenuItem>
             </TextField>
-
-            <TextField
-              select
-              size="small"
-              value={status}
-              onChange={(e) => handleSetStatus(e.target.value)}
-              label="Status"
-              sx={{ minWidth: { xs: "100%", sm: 160 } }}
-            >
-              <MenuItem value="All">All Status</MenuItem>
-              <MenuItem value="Pending">Pending</MenuItem>
-              <MenuItem value="In progress">In progress</MenuItem>
-              <MenuItem value="Completed">Completed</MenuItem>
-              <MenuItem value="Rejected">Rejected</MenuItem>
-            </TextField>
           </Stack>
         </Paper>
 
         {/* List */}
         <Paper sx={{ overflow: "hidden" }}>
+          <Box
+            sx={{
+              px: 2,
+              py: 1,
+              bgcolor: "#f8fafc",
+              borderBottom: "1px solid",
+              borderColor: "divider",
+              display: { xs: "none", sm: "block" },
+            }}
+          >
+            <Stack direction="row" alignItems="center">
+              <Typography sx={{ fontSize: "11px", fontWeight: 600, flex: 1 }}>
+                Ticket
+              </Typography>
+              <Typography sx={{ fontSize: "11px", fontWeight: 600, width: 220, mr: 1 }}>
+                Remarks
+              </Typography>
+              <Typography sx={{ fontSize: "11px", fontWeight: 600, width: 72 }}>
+                Ticket ID
+              </Typography>
+              <Box sx={{ width: 74 }} />
+            </Stack>
+          </Box>
+
           {tickets.map((t, i) => (
             <Box key={t.id}>
               <TicketRow ticket={t} onView={setSelectedTicket} />

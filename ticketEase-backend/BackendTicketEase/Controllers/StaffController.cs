@@ -15,12 +15,14 @@ namespace BackendTicketEase.Controllers
         private readonly AppDbContext _context;
         private readonly IStaffService _staffService;
         private readonly IAuditLogService _auditLogService;
+        private readonly INotificationService _notificationService;
 
-        public StaffController(AppDbContext context, IStaffService staffService, IAuditLogService auditLogService)
+        public StaffController(AppDbContext context, IStaffService staffService, IAuditLogService auditLogService, INotificationService notificationService)
         {
             _context = context;
             _staffService = staffService;
             _auditLogService = auditLogService;
+            _notificationService = notificationService;
         }
 
         [HttpGet]
@@ -81,6 +83,7 @@ namespace BackendTicketEase.Controllers
                 {
                     StaffId = s.StaffId,
                     UserId = s.UserId,
+                    Role = s.User.Role.ToString(),
                     FirstName = s.FirstName,
                     LastName = s.LastName,
                     MiddleName = s.MiddleName,
@@ -135,6 +138,7 @@ namespace BackendTicketEase.Controllers
             {
                 StaffId = createdStaff!.StaffId,
                 UserId = createdStaff.UserId,
+                Role = createdStaff.User.Role.ToString(),
                 FirstName = createdStaff.FirstName,
                 LastName = createdStaff.LastName,
                 MiddleName = createdStaff.MiddleName,
@@ -161,6 +165,25 @@ namespace BackendTicketEase.Controllers
                 return BadRequest(new { message = result.Message });
             }
 
+            var updatedStaff = await _context.Staffs
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.StaffId == id);
+
+            if (updatedStaff != null)
+            {
+                try
+                {
+                    await _notificationService.SendAsync(
+                        updatedStaff.UserId,
+                        updatedStaff.User.Email,
+                        "record_updated",
+                        "Your staff profile was updated.");
+                }
+                catch
+                {
+                }
+            }
+
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var upid) ? upid : (int?)null;
             await _auditLogService.LogAsync(actorId, "Update", "Staff", id, null, new { request.FirstName, request.LastName, request.MiddleName, request.Suffix, request.Position, request.IsActive });
             return NoContent();
@@ -181,6 +204,26 @@ namespace BackendTicketEase.Controllers
 
             await _context.SaveChangesAsync();
 
+            var staffUserEmail = await _context.Users
+                .Where(u => u.UserId == staff.UserId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrWhiteSpace(staffUserEmail))
+            {
+                try
+                {
+                    await _notificationService.SendAsync(
+                        staff.UserId,
+                        staffUserEmail,
+                        "record_updated",
+                        "Your staff profile status was updated.");
+                }
+                catch
+                {
+                }
+            }
+
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var apid) ? apid : staff.UserId;
             await _auditLogService.LogAsync(actorId, "Update", "Staff", id, new { IsActive = false }, new { IsActive = true });
             return NoContent();
@@ -194,6 +237,25 @@ namespace BackendTicketEase.Controllers
             if (!result.Success)
             {
                 return NotFound(new { message = result.Message });
+            }
+
+            var deactivatedStaff = await _context.Staffs
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.StaffId == id);
+
+            if (deactivatedStaff != null)
+            {
+                try
+                {
+                    await _notificationService.SendAsync(
+                        deactivatedStaff.UserId,
+                        deactivatedStaff.User.Email,
+                        "record_updated",
+                        "Your staff profile status was updated.");
+                }
+                catch
+                {
+                }
             }
 
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var dpid) ? dpid : (int?)null;

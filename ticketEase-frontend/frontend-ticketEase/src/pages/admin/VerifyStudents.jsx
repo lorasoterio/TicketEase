@@ -9,11 +9,66 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
-import GoldLine from "../../components/adminuis/GoldLine";
+import GoldLine from "../../components/adminuis/Goldline";
 import CardTitle from "../../components/adminuis/CardTitle";
 import useVerifyStudents from "../../hooks/admin/useVerifyStudents";
+import { useConfirm } from "../../components/ui/confirmdialog";
+
+const getFullName = (student) =>
+  (
+    student.fullName ||
+    [student.firstName, student.middleName, student.lastName, student.suffix]
+      .filter(Boolean)
+      .join(" ")
+  ).trim() || "—";
+
+const STRAND_NAME_BY_CODE = {
+  ABM: "Accountancy, Business and Management",
+  HUMSS: "Humanities and Social Sciences",
+  STEM: "Science, Technology, Engineering and Mathematics",
+  GAS: "General Academic Strand",
+  TVL: "Technical-Vocational-Livelihood",
+  ICT: "Information and Communications Technology",
+  HE: "Home Economics",
+  IA: "Industrial Arts",
+  AFA: "Agri-Fishery Arts",
+};
+
+const STRAND_CODE_BY_NAME = Object.entries(STRAND_NAME_BY_CODE).reduce((acc, [code, name]) => {
+  acc[name.toLowerCase()] = code;
+  return acc;
+}, {});
+
+const getStrandLabel = (student) => {
+  const raw = (student.strandName || student.courseProgram || "").trim();
+  if (!raw) return "—";
+
+  const codeFromName = STRAND_CODE_BY_NAME[raw.toLowerCase()];
+  if (codeFromName) return `${codeFromName} (${raw})`;
+
+  const asCode = raw.toUpperCase();
+  if (STRAND_NAME_BY_CODE[asCode]) return `${asCode} (${STRAND_NAME_BY_CODE[asCode]})`;
+
+  const nameWithCode = raw.match(/^(.+?)\s*\(([A-Za-z]{2,6})\)$/);
+  if (nameWithCode) {
+    const name = nameWithCode[1].trim();
+    const code = nameWithCode[2].toUpperCase();
+    return `${code} (${name})`;
+  }
+
+  const codeWithName = raw.match(/^([A-Za-z]{2,6})\s*\((.+)\)$/);
+  if (codeWithName) {
+    const code = codeWithName[1].toUpperCase();
+    const name = codeWithName[2].trim();
+    return `${code} (${name})`;
+  }
+
+  return raw;
+};
 
 export default function VerifyStudents() {
+  const confirm = useConfirm(); // ← hook from ConfirmDialog
+
   const {
     students,
     loading,
@@ -31,7 +86,45 @@ export default function VerifyStudents() {
     unverifiedCount,
     handleVerify,
     handleUnverify,
+    handleRemove,
   } = useVerifyStudents();
+
+  // ── Confirmed action handlers ──────────────────────────────────────────
+  const onVerify = async (studentId, name) => {
+    const ok = await confirm({
+      title: `Verify ${name}?`,
+      description: "This will grant the student access to the system.",
+      confirmLabel: "Verify",
+      cancelLabel: "Cancel",
+      variant: "success",
+      icon: "success",
+    });
+    if (ok) handleVerify(studentId);
+  };
+
+  const onUnverify = async (studentId, name) => {
+    const ok = await confirm({
+      title: `Revoke verification for ${name}?`,
+      description: "The student will lose system access until re-verified.",
+      confirmLabel: "Revoke",
+      cancelLabel: "Keep",
+      variant: "warning",
+      icon: "warning",
+    });
+    if (ok) handleUnverify(studentId);
+  };
+
+  const onRemove = async (studentId, name) => {
+    const ok = await confirm({
+      title: `Remove ${name}?`,
+      description: "This will permanently delete the student record and cannot be undone.",
+      confirmLabel: "Remove",
+      cancelLabel: "Cancel",
+      variant: "danger",
+      icon: "delete",
+    });
+    if (ok) handleRemove(studentId);
+  };
 
   return (
     <Box>
@@ -83,7 +176,7 @@ export default function VerifyStudents() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  {["Student ID", "Full Name", "Course / Program", "Year", "Email", "Status", "Action"].map((h) => (
+                  {["Student ID", "Full Name", "Strand", "Year Level", "Email", "Status", "Action"].map((h) => (
                     <TableCell key={h} sx={{ fontSize: 11, fontWeight: 700, whiteSpace: "nowrap" }}>{h}</TableCell>
                   ))}
                 </TableRow>
@@ -103,13 +196,17 @@ export default function VerifyStudents() {
                   </TableRow>
                 ) : (
                   students.map((s) => {
-                    const isActing = actionLoading === s.studentId;
+                    const name = getFullName(s);
+                    const isActing = actionLoading?.studentId === s.studentId;
+                    const isVerifying = isActing && actionLoading?.action === "verify";
+                    const isUnverifying = isActing && actionLoading?.action === "unverify";
+                    const isRemoving = isActing && actionLoading?.action === "remove";
                     return (
                       <TableRow key={s.studentId} hover>
                         <TableCell sx={{ fontSize: 12, color: "text.secondary" }}>{s.schoolStudentId || "—"}</TableCell>
-                        <TableCell sx={{ fontSize: 12, fontWeight: 600 }}>{s.fullName || "—"}</TableCell>
-                        <TableCell sx={{ fontSize: 12 }}>{s.courseProgram || "—"}</TableCell>
-                        <TableCell sx={{ fontSize: 12 }}>{s.yearLevel || "—"}</TableCell>
+                        <TableCell sx={{ fontSize: 12, fontWeight: 600 }}>{name}</TableCell>
+                        <TableCell sx={{ fontSize: 12 }}>{getStrandLabel(s)}</TableCell>
+                        <TableCell sx={{ fontSize: 12 }}>{s.gradeLevelName || s.yearLevel || "—"}</TableCell>
                         <TableCell sx={{ fontSize: 12 }}>{s.userEmail || "—"}</TableCell>
                         <TableCell>
                           <Chip
@@ -132,9 +229,9 @@ export default function VerifyStudents() {
                                   size="small"
                                   variant="outlined"
                                   color="error"
-                                  startIcon={isActing ? <CircularProgress size={12} /> : <CancelOutlinedIcon />}
+                                  startIcon={isUnverifying ? <CircularProgress size={12} /> : <CancelOutlinedIcon />}
                                   disabled={isActing}
-                                  onClick={() => handleUnverify(s.studentId)}
+                                  onClick={() => onUnverify(s.studentId, name)} // ← was handleUnverify
                                   sx={{ fontSize: 10, py: 0.3, px: 1 }}
                                 >
                                   Revoke
@@ -142,21 +239,38 @@ export default function VerifyStudents() {
                               </span>
                             </Tooltip>
                           ) : (
-                            <Tooltip title="Verify this student">
-                              <span>
-                                <Button
-                                  size="small"
-                                  variant="contained"
-                                  color="success"
-                                  startIcon={isActing ? <CircularProgress size={12} /> : <CheckCircleOutlineIcon />}
-                                  disabled={isActing}
-                                  onClick={() => handleVerify(s.studentId)}
-                                  sx={{ fontSize: 10, py: 0.3, px: 1 }}
-                                >
-                                  Verify
-                                </Button>
-                              </span>
-                            </Tooltip>
+                            <Stack direction="row" spacing={0.6}>
+                              <Tooltip title="Verify this student">
+                                <span>
+                                  <Button
+                                    size="small"
+                                    variant="contained"
+                                    color="success"
+                                    startIcon={isVerifying ? <CircularProgress size={12} /> : <CheckCircleOutlineIcon />}
+                                    disabled={isActing}
+                                    onClick={() => onVerify(s.studentId, name)} // ← was handleVerify
+                                    sx={{ fontSize: 10, py: 0.3, px: 1 }}
+                                  >
+                                    Verify
+                                  </Button>
+                                </span>
+                              </Tooltip>
+                              <Tooltip title="Remove this student">
+                                <span>
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="error"
+                                    startIcon={isRemoving ? <CircularProgress size={12} /> : <CancelOutlinedIcon />}
+                                    disabled={isActing}
+                                    onClick={() => onRemove(s.studentId, name)} // ← was handleRemove
+                                    sx={{ fontSize: 10, py: 0.3, px: 1 }}
+                                  >
+                                    Remove
+                                  </Button>
+                                </span>
+                              </Tooltip>
+                            </Stack>
                           )}
                         </TableCell>
                       </TableRow>

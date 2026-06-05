@@ -15,12 +15,14 @@ namespace BackendTicketEase.Controllers
         private readonly AppDbContext _context;
         private readonly IStudentService _studentService;
         private readonly IAuditLogService _auditLogService;
+        private readonly INotificationService _notificationService;
 
-        public StudentController(AppDbContext context, IStudentService studentService, IAuditLogService auditLogService)
+        public StudentController(AppDbContext context, IStudentService studentService, IAuditLogService auditLogService, INotificationService notificationService)
         {
             _context = context;
             _studentService = studentService;
             _auditLogService = auditLogService;
+            _notificationService = notificationService;
         }
 
         [HttpGet]
@@ -246,6 +248,25 @@ namespace BackendTicketEase.Controllers
                 return BadRequest(new { message = result.Message });
             }
 
+            var updatedStudent = await _context.Students
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.StudentId == id);
+
+            if (updatedStudent != null)
+            {
+                try
+                {
+                    await _notificationService.SendAsync(
+                        updatedStudent.UserId,
+                        updatedStudent.User.Email,
+                        "record_updated",
+                        "Your student profile was updated.");
+                }
+                catch
+                {
+                }
+            }
+
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var upid) ? upid : (int?)null;
             await _auditLogService.LogAsync(actorId, "Update", "Student", id, null, new { request.FirstName, request.LastName, request.MiddleName, request.Suffix, request.StrandId, request.GradeLevelId});
             return NoContent();
@@ -259,6 +280,25 @@ namespace BackendTicketEase.Controllers
             if (!result.Success)
             {
                 return NotFound(new { message = result.Message });
+            }
+
+            var verifiedStudent = await _context.Students
+                .Include(s => s.User)
+                .FirstOrDefaultAsync(s => s.StudentId == id);
+
+            if (verifiedStudent != null)
+            {
+                try
+                {
+                    await _notificationService.SendAsync(
+                        verifiedStudent.UserId,
+                        verifiedStudent.User.Email,
+                        "record_updated",
+                        "Your student profile verification status was updated.");
+                }
+                catch
+                {
+                }
             }
 
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var vpid) ? vpid : (int?)null;
@@ -280,6 +320,26 @@ namespace BackendTicketEase.Controllers
             student.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            var studentUserEmail = await _context.Users
+                .Where(u => u.UserId == student.UserId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrWhiteSpace(studentUserEmail))
+            {
+                try
+                {
+                    await _notificationService.SendAsync(
+                        student.UserId,
+                        studentUserEmail,
+                        "record_updated",
+                        "Your student profile verification status was updated.");
+                }
+                catch
+                {
+                }
+            }
 
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var uvpid) ? uvpid : student.UserId;
             await _auditLogService.LogAsync(actorId, "Update", "Student", id, new { IsVerified = true }, new { IsVerified = false });

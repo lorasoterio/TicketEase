@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/useAuth";
 import client from "../../api/client";
 
 /**
@@ -19,11 +18,16 @@ export function useStudentTickets(studentId) {
     if (!studentId) return;
     setLoading(true);
     setError("");
-    client
-      .get(`/tickets?studentId=${studentId}`)
-      .then(({ data }) => setTickets(data))
-      .catch((err) => setError(err.response?.data?.message || err.message || "Failed to load tickets."))
-      .finally(() => setLoading(false));
+    (async () => {
+      try {
+        const { data } = await client.get(`/tickets?studentId=${studentId}`);
+        setTickets(data);
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || "Failed to load tickets.");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [studentId, fetchTrigger]);
 
   return { tickets, loading, error, refetch };
@@ -46,11 +50,16 @@ export function useStaffTickets(staffId) {
     if (!staffId) return;
     setLoading(true);
     setError("");
-    client
-      .get(`/tickets?assignStaffId=${staffId}`)
-      .then(({ data }) => setTickets(data))
-      .catch((err) => setError(err.response?.data?.message || err.message || "Failed to load tickets."))
-      .finally(() => setLoading(false));
+    (async () => {
+      try {
+        const { data } = await client.get(`/tickets?assignStaffId=${staffId}`);
+        setTickets(data);
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || "Failed to load tickets.");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [staffId, fetchTrigger]);
 
   return { tickets, loading, error, refetch };

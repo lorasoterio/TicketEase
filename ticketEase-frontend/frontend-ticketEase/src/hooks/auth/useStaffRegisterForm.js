@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { registerStaff } from "../../services/authServices";
 
 const INITIAL_FIELDS = {
@@ -8,7 +7,7 @@ const INITIAL_FIELDS = {
   middleName: "",
   suffix: "",
   position: "",
-  role: "Staff",
+  role: "",
   email: "",
   password: "",
   confirmPassword: "",
@@ -31,7 +30,6 @@ function validate(form) {
 }
 
 export function useStaffRegisterForm() {
-  const navigate = useNavigate();
   const [form, setForm] = useState(INITIAL_FIELDS);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");

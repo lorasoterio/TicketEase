@@ -1,6 +1,7 @@
 using BackendTicketEase.Data;
 using BackendTicketEase.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,9 +25,8 @@ namespace BackendTicketEase.Services
                 GradeLevelId = request.GradeLevelId,
                 IsGraduate = request.IsGraduate
             };
-            _context.StaffGradeAssignments.Add(assignment);
-            await _context.SaveChangesAsync();
-            return assignment;
+
+            return await UpsertAssignmentAsync(assignment);
         }
 
         public async Task<StaffGradeAssignment> AssignStaffAsync(StaffAssignmentRequest request)
@@ -37,9 +37,8 @@ namespace BackendTicketEase.Services
                 GradeLevelId = request.GradeLevelId,
                 IsGraduate = request.IsGraduate
             };
-            _context.StaffGradeAssignments.Add(assignment);
-            await _context.SaveChangesAsync();
-            return assignment;
+
+            return await UpsertAssignmentAsync(assignment);
         }
 
         public async Task<List<StaffGradeAssignment>> GetAssignmentsForTicketAsync(int ticketId)
@@ -68,14 +67,13 @@ namespace BackendTicketEase.Services
 
         public async Task<StaffGradeAssignment> CreateAssignmentAsync(StaffGradeAssignment assignment)
         {
-            _context.StaffGradeAssignments.Add(assignment);
-            await _context.SaveChangesAsync();
-            return assignment;
+            return await UpsertAssignmentAsync(assignment);
         }
 
         public async Task<StaffGradeAssignment> UpdateAssignmentAsync(StaffGradeAssignment assignment)
         {
             _context.StaffGradeAssignments.Update(assignment);
+            assignment.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return assignment;
         }
@@ -87,6 +85,45 @@ namespace BackendTicketEase.Services
             _context.StaffGradeAssignments.Remove(assignment);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        private async Task<StaffGradeAssignment> UpsertAssignmentAsync(StaffGradeAssignment assignment)
+        {
+            if (!assignment.IsGraduate && assignment.GradeLevelId == null)
+            {
+                throw new ArgumentException("GradeLevelId is required for non-graduate assignments.");
+            }
+
+            var existingAssignment = await _context.StaffGradeAssignments.FirstOrDefaultAsync(
+                a => a.IsGraduate == assignment.IsGraduate && a.GradeLevelId == assignment.GradeLevelId);
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            if (existingAssignment != null)
+            {
+                _context.StaffGradeAssignments.Remove(existingAssignment);
+                await _context.SaveChangesAsync();
+
+                if (assignment.StrandId == null)
+                {
+                    assignment.StrandId = existingAssignment.StrandId;
+                }
+
+                if (assignment.Priority == 0)
+                {
+                    assignment.Priority = existingAssignment.Priority;
+                }
+            }
+
+            assignment.Id = 0;
+            assignment.CreatedAt = DateTime.UtcNow;
+            assignment.UpdatedAt = DateTime.UtcNow;
+
+            _context.StaffGradeAssignments.Add(assignment);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return assignment;
         }
     }
 }

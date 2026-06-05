@@ -12,7 +12,8 @@ namespace BackendTicketEase.Services
             string lastName,
             string middleName,
             string suffix,
-            string position);
+            string position,
+            string role);
 
         Task<(bool Success, string Message, StaffDto? StaffDto)> GetStaffByIdAsync(int staffId);
         Task<(bool Success, string Message, StaffDto? StaffDto)> GetStaffByUserIdAsync(int userId);

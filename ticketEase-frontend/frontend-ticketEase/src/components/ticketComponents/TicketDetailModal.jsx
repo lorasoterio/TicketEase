@@ -17,7 +17,6 @@ import { Close, Send } from "@mui/icons-material";
 import { useState, useRef, useEffect } from "react";
 
 import useTicketDetail from "../../hooks/user/useTicketDetail";
-import StatusChip from "./StatusChip";
 
 function formatDate(ts) {
   if (!ts) return "";
@@ -74,6 +73,12 @@ export default function TicketDetailModal({ ticket, onClose }) {
   const bottomRef = useRef(null);
 
   const isInquiry = ticket?.type === "Inquiry";
+  const estimatedWorkingDays =
+    Number.isFinite(ticket?.estimatedWorkingDays)
+      ? ticket.estimatedWorkingDays
+      : Number.isFinite(detail?.estimatedWorkingDays)
+        ? detail.estimatedWorkingDays
+        : null;
 
   /* scroll to bottom when new messages arrive */
   useEffect(() => {
@@ -138,7 +143,6 @@ export default function TicketDetailModal({ ticket, onClose }) {
             {/* ── Ticket info ── */}
             <Box sx={{ p: 2.5, pb: 2 }}>
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-                <StatusChip label={ticket?.status} />
                 <Typography
                   variant="caption"
                   sx={{
@@ -194,6 +198,21 @@ export default function TicketDetailModal({ ticket, onClose }) {
                       day: "numeric",
                       year: "numeric",
                     })}
+                  </Typography>
+                </Stack>
+              )}
+
+              {!isInquiry && Number.isFinite(estimatedWorkingDays) && (
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Estimated Working Days:
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    fontWeight={600}
+                    sx={{ fontFamily: "'Source Serif 4', serif" }}
+                  >
+                    {estimatedWorkingDays} working day{estimatedWorkingDays === 1 ? "" : "s"}
                   </Typography>
                 </Stack>
               )}

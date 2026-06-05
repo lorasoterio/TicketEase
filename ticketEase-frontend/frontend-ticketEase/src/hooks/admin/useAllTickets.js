@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { getAllTickets, updateTicketStatus } from "../../services/ticketsService";
+import { getAllTickets, getMyTickets, setTicketPriorityHigh, updateTicketRemarks, updateTicketStatus } from "../../services/ticketsService";
 import { getAllStudents } from "../../services/userService";
 import { useAuth } from "../../context/useAuth";
 
@@ -10,13 +10,16 @@ const STATUS_API_MAP = {
 };
 
 const PAGE_SIZE = 7;
+const STAFF_AUTO_REFRESH_MS = 15000;
 
-function formatDate(dateStr) {
+function formatDateTime(dateStr) {
   if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("en-US", {
+  return new Date(dateStr).toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 }
 
@@ -28,6 +31,9 @@ function mapTicketType(type) {
 
 export default function useAllTickets() {
   const { user } = useAuth();
+  const currentUserId = Number(user?.userId);
+  const role = (user?.role ?? "").toLowerCase();
+  const isAssignedScopeRole = role === "staff" || role === "admin";
   const [rawTickets, setRawTickets] = useState([]);
   const [studentMap, setStudentMap] = useState({});
   const [loading, setLoading] = useState(true);
@@ -43,33 +49,31 @@ export default function useAllTickets() {
     setError(null);
     try {
       const [ticketsResult, students] = await Promise.all([
-        getAllTickets(),
+        isAssignedScopeRole ? getMyTickets() : getAllTickets(),
         getAllStudents(),
       ]);
 
       const { data: ticketList, error: ticketErr } = ticketsResult;
+      console.log("[useAllTickets] Fetched tickets:", ticketList);
       if (ticketErr) throw new Error(typeof ticketErr === "string" ? ticketErr : "Failed to load tickets.");
 
-      const isStaff = (user?.role ?? "").toLowerCase() === "staff";
-
-      // Only show tickets that have been assigned to a staff member and are past Pending.
-      // If the logged-in user is staff, restrict to only tickets assigned to them.
       const assigned = (ticketList || []).filter(
         (t) =>
           t.assignedStaffId != null &&
-          (t.status ?? "").toLowerCase() !== "pending" &&
-          (!isStaff || t.assignedStaffId === user.userId)
+          (isAssignedScopeRole || (t.status ?? "").toLowerCase() !== "pending") &&
+          (!isAssignedScopeRole || Number(t.assignedStaffId) === currentUserId)
       );
       setRawTickets(assigned);
 
-      // Build studentId → { fullName, schoolStudentId, yearLevel } map
       const map = {};
       (students || []).forEach((s) => {
-        if (s.studentId != null)
-          map[s.studentId] = {
-            fullName: s.fullName || "—",
+        if (s.userId != null)
+          map[s.userId] = {
+            fullName: [s.firstName, s.middleName, s.lastName, s.suffix]
+              .filter(Boolean)
+              .join(" ") || "—",
             schoolStudentId: s.schoolStudentId || "—",
-            yearLevel: s.yearLevel || "—",
+            yearLevel: s.gradeLevelName || "—",
           };
       });
       setStudentMap(map);
@@ -78,11 +82,31 @@ export default function useAllTickets() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, currentUserId, isAssignedScopeRole]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (!isAssignedScopeRole) return undefined;
+
+    const onFocusOrVisible = () => {
+      if (document.visibilityState === "visible") {
+        fetchData();
+      }
+    };
+
+    const intervalId = window.setInterval(fetchData, STAFF_AUTO_REFRESH_MS);
+    window.addEventListener("focus", onFocusOrVisible);
+    document.addEventListener("visibilitychange", onFocusOrVisible);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", onFocusOrVisible);
+      document.removeEventListener("visibilitychange", onFocusOrVisible);
+    };
+  }, [isAssignedScopeRole, fetchData]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -117,18 +141,44 @@ export default function useAllTickets() {
     subject: t.subject ?? "—",
     requestor: studentMap[t.studentId]?.fullName ?? "—",
     type: mapTicketType(t.ticketType),
-    date: formatDate(t.createdAt),
+    date: formatDateTime(t.createdAt),
     status: t.status ?? "—",
     _raw: t,
   }));
 
-  const updateStatus = useCallback(async (rawTicket, newStatus, pickupDate = null) => {
+  const updateStatus = useCallback(async (rawTicket, newStatus, remarks = null) => {
     const apiStatus = STATUS_API_MAP[newStatus] || newStatus;
-    const ticketData = {
-      ...rawTicket,
-      estimatedCompletion: pickupDate ? new Date(pickupDate).toISOString() : null,
-    };
-    return updateTicketStatus(rawTicket.ticketId, apiStatus, ticketData);
+    const statusResult = await updateTicketStatus(rawTicket.ticketId, apiStatus, rawTicket);
+    if (statusResult.error) return statusResult;
+
+    if (remarks !== null && remarks !== undefined) {
+      return updateTicketRemarks(rawTicket.ticketId, remarks);
+    }
+
+    return statusResult;
+  }, []);
+
+  const markTicketAsHigh = useCallback(async (rawTicket) => {
+    if (!rawTicket?.ticketId) {
+      return { data: null, error: "Invalid ticket." };
+    }
+
+    const result = await setTicketPriorityHigh(rawTicket.ticketId);
+    if (!result.error) {
+      setRawTickets((prev) =>
+        prev.map((t) =>
+          t.ticketId === rawTicket.ticketId
+            ? {
+              ...t,
+              priority: "High",
+              updatedAt: result.data?.updatedAt ?? t.updatedAt,
+            }
+            : t
+        )
+      );
+    }
+
+    return result;
   }, []);
 
   return {
@@ -146,5 +196,6 @@ export default function useAllTickets() {
     total: filtered.length,
     refetch: fetchData,
     updateStatus,
+    markTicketAsHigh,
   };
 }

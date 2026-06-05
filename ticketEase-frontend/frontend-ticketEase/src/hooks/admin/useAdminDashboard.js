@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/useAuth";
-import { getAllTickets } from "../../services/ticketsService";
+import { getAllTickets, getMyTickets } from "../../services/ticketsService";
 
 const OPEN_STATUSES = ["Pending", "Assigned", "InProgress", "ReadyForPickup", "Responded"];
 const RESOLVED_STATUSES = ["Closed"];
+const STAFF_AUTO_REFRESH_MS = 15000;
 
 function mapStatus(status) {
   const map = {
@@ -64,22 +65,22 @@ function buildWeekData(tickets) {
 
 export default function useAdminDashboard() {
   const { user } = useAuth();
+  const currentUserId = Number(user?.userId);
+  const role = (user?.role ?? "").toLowerCase();
+  const isAssignedScopeRole = role === "staff" || role === "admin";
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const isStaff = (user?.role ?? "").toLowerCase() === "staff";
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: err } = await getAllTickets();
+      const { data, error: err } = await (isAssignedScopeRole ? getMyTickets() : getAllTickets());
       if (err) throw new Error(typeof err === "string" ? err : "Failed to load tickets.");
       const allTickets = data || [];
-      // Staff only see tickets assigned to them
-      const filtered = isStaff
-        ? allTickets.filter((t) => t.assignedStaffId === user.userId)
+      const filtered = isAssignedScopeRole
+        ? allTickets.filter((t) => Number(t.assignedStaffId) === currentUserId)
         : allTickets;
       setTickets(filtered);
     } catch (e) {
@@ -87,11 +88,31 @@ export default function useAdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [isStaff, user?.userId]);
+  }, [isAssignedScopeRole, currentUserId]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (!isAssignedScopeRole) return undefined;
+
+    const onFocusOrVisible = () => {
+      if (document.visibilityState === "visible") {
+        fetchData();
+      }
+    };
+
+    const intervalId = window.setInterval(fetchData, STAFF_AUTO_REFRESH_MS);
+    window.addEventListener("focus", onFocusOrVisible);
+    document.addEventListener("visibilitychange", onFocusOrVisible);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", onFocusOrVisible);
+      document.removeEventListener("visibilitychange", onFocusOrVisible);
+    };
+  }, [isAssignedScopeRole, fetchData]);
 
   const total = tickets.length;
   const safeTotal = total || 1;

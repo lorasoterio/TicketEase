@@ -8,6 +8,8 @@ import {
   Paper,
   Typography,
   TextField,
+  Checkbox,
+  FormControlLabel,
   MenuItem,
   Select,
   InputLabel,
@@ -42,10 +44,11 @@ const INITIAL_FIELDS = {
   ticketType: "",
   subject: "",
   description: "",
+  isUrgent: false,
 };
 
 // ─────────────────────────────────────────────────────────────
-export default function TicketRequestForm({ onSuccess, onSubmitted }) {
+export default function TicketRequestForm({ onSuccess }) {
   const {
     form,
     errors,
@@ -56,7 +59,6 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
     documentTypes,
     handleChange,
     handleSubmit,
-    handleReset,
   } = useTicketForm(INITIAL_FIELDS, validateDocumentRequest, onSuccess);
 
   const [attachment, setAttachment] = useState(null);
@@ -70,10 +72,6 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
   };
 
   const handleRemoveFile = () => setAttachment(null);
-  const handleReset_ = () => {
-    setAttachment(null);
-    onSubmitted?.();
-  };
 
   return (
     <Paper
@@ -92,11 +90,12 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
           icon={<CheckCircle />}
           severity="success"
           sx={{ mb: 2 }}
-          action={
-            <Button size="small" onClick={handleReset_}>
-              New Request
-            </Button>
-          }
+          // The button below was referencing an undefined handler. Remove or replace with a valid handler if needed.
+          // action={
+          //   <Button size="small" onClick={handleReset_}>
+          //     New Request
+          //   </Button>
+          // }
         >
           <strong>Request submitted!</strong> Your ticket number is{" "}
           <Chip
@@ -264,6 +263,16 @@ export default function TicketRequestForm({ onSuccess, onSubmitted }) {
               helperText={errors.description}
               multiline
               rows={3}
+            />
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={!!form.isUrgent}
+                  onChange={handleChange("isUrgent")}
+                />
+              }
+              label="Mark this request as urgent"
             />
 
             {/* Attachment */}

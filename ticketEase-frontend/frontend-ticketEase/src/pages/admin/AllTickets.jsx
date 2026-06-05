@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext, useMemo } from "react";
-import { Box, TextField, FormControl, Select, MenuItem, Button, Card, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, CircularProgress, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Stack, Chip, InputLabel, Snackbar, IconButton, List, ListItem, ListItemText, ListItemIcon, Tooltip } from "@mui/material";
+import { Box, TextField, FormControl, Select, MenuItem, Button, Card, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, Typography, CircularProgress, Alert, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, Divider, Stack, Chip, FormControlLabel, InputLabel, Snackbar, IconButton, List, ListItem, ListItemText, ListItemIcon, Tooltip } from "@mui/material";
 import GoldLine from "../../components/adminuis/Goldline";
 import StatusChip from "../../components/adminuis/StatusChip";
 import { AuthContext } from "../../context/AuthContext";
@@ -32,32 +32,29 @@ export default function Tickets() {
     total,
     refetch,
     updateStatus,
+    markTicketAsHigh,
   } = useAllTickets();
 
   const [viewTicket, setViewTicket] = useState(null);
   const [updateTicket, setUpdateTicket] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState("");
-  const [dateOfPickup, setDateOfPickup] = useState("");
+  const [remarks, setRemarks] = useState("");
   const [updating, setUpdating] = useState(false);
+  const [priorityUpdating, setPriorityUpdating] = useState(false);
   const [updateError, setUpdateError] = useState(null);
   const [snackbar, setSnackbar] = useState("");
 
-  // Dynamically filter status options based on ticket type and estimated completion date
+  // Dynamically filter status options based on ticket type
   const updateStatusOptions = useMemo(() => {
     if (!updateTicket) return [];
     const isDocReq = updateTicket.ticketType === "DocumentRequest" || updateTicket.ticketType === 0;
     const isInquiry = updateTicket.ticketType === "Inquiry" || updateTicket.ticketType === 1;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const pickupDate = dateOfPickup ? new Date(dateOfPickup) : null;
-    if (pickupDate) pickupDate.setHours(0, 0, 0, 0);
-    const pickupDateReached = pickupDate !== null && today >= pickupDate;
     return STATUS_OPTIONS.filter((s) => {
       if (s === "Responded") return isInquiry;
-      if (s === "Ready for Pickup") return isDocReq && pickupDateReached;
+      if (s === "Ready for Pickup") return isDocReq;
       return true;
     });
-  }, [updateTicket, dateOfPickup]);
+  }, [updateTicket]);
 
   // ── View dialog: threaded messages (Inquiry tickets) ──
   const { messages, loading: msgLoading, sending, error: msgError, sendMessage } =
@@ -74,7 +71,9 @@ export default function Tickets() {
   }, [messages]);
 
   useEffect(() => {
-    if (!viewTicket) setDraft("");
+    if (!viewTicket) {
+      setTimeout(() => setDraft(""), 0);
+    }
   }, [viewTicket]);
 
   const handleSendMessage = async () => {
@@ -87,25 +86,37 @@ export default function Tickets() {
   const handleOpenUpdate = (raw) => {
     setUpdateTicket(raw);
     setSelectedStatus(raw.status ?? "");
-    setDateOfPickup(
-      raw.estimatedCompletion
-        ? new Date(raw.estimatedCompletion).toISOString().split("T")[0]
-        : ""
-    );
+    setRemarks(raw.remarks ?? "");
     setUpdateError(null);
+  };
+
+  const handleUrgentCheckboxChange = async (e) => {
+    if (!e.target.checked || !updateTicket || updateTicket.priority === "High") return;
+
+    setPriorityUpdating(true);
+    setUpdateError(null);
+    const { error: err } = await markTicketAsHigh(updateTicket);
+    setPriorityUpdating(false);
+
+    if (err) {
+      setUpdateError(typeof err === "string" ? err : "Failed to mark ticket as urgent.");
+      return;
+    }
+
+    setUpdateTicket((prev) => (prev ? { ...prev, priority: "High" } : prev));
+    setSnackbar("Ticket priority updated to Urgent.");
   };
 
   const handleConfirmUpdate = async () => {
     if (!updateTicket || !selectedStatus) return;
     setUpdating(true);
     setUpdateError(null);
-    const { error: err } = await updateStatus(updateTicket, selectedStatus, dateOfPickup || null);
+    const { error: err } = await updateStatus(updateTicket, selectedStatus, remarks);
     setUpdating(false);
     if (err) {
       setUpdateError(typeof err === "string" ? err : "Failed to update status.");
     } else {
       setUpdateTicket(null);
-      setDateOfPickup("");
       setSnackbar("Status updated successfully.");
       refetch();
     }
@@ -145,7 +156,7 @@ export default function Tickets() {
           <Table size="small">
             <TableHead>
               <TableRow>
-                {["Ticket ID", "Subject", "Requestor", "Type", "Date", "Status", "Action"].map((h) => (
+                {["Ticket ID", "Subject", "Requestor", "Type", "Date Created", "Status", "Action"].map((h) => (
                   <TableCell key={h}>{h}</TableCell>
                 ))}
               </TableRow>
@@ -226,8 +237,8 @@ export default function Tickets() {
         </Box>
       </Box>
 
-      {/* ── Update Status Dialog (Document Request only) ── */}
-      <Dialog open={!!updateTicket} onClose={() => { setUpdateTicket(null); setDateOfPickup(""); }} maxWidth="xs" fullWidth>
+      {/* ── Update Status Dialog ── */}
+      <Dialog open={!!updateTicket} onClose={() => setUpdateTicket(null)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontSize: 14, fontWeight: 700 }}>Update Ticket Status</DialogTitle>
         <Divider />
         <DialogContent sx={{ pt: 2 }}>
@@ -251,26 +262,38 @@ export default function Tickets() {
                   ))}
                 </Select>
               </FormControl>
-              {(updateTicket?.ticketType === "DocumentRequest" || updateTicket?.ticketType === 0) && (
-                <TextField
-                  label="Estimated Completion"
-                  type="date"
-                  size="small"
-                  fullWidth
-                  value={dateOfPickup}
-                  onChange={(e) => setDateOfPickup(e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  helperText="'Ready for Pickup' becomes available once this date is reached"
-                  FormHelperTextProps={{ sx: { fontSize: 10 } }}
-                  sx={{ "& .MuiInputBase-input": { fontSize: 12 } }}
-                />
-              )}
+              <TextField
+                size="small"
+                fullWidth
+                multiline
+                minRows={2}
+                label="Remarks"
+                value={remarks}
+                onChange={(e) => setRemarks(e.target.value)}
+                placeholder="Add remarks for this status update"
+                sx={{ "& .MuiInputBase-input": { fontSize: 12 } }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={updateTicket.priority === "High"}
+                    onChange={handleUrgentCheckboxChange}
+                    disabled={priorityUpdating || updateTicket.priority === "High"}
+                    size="small"
+                  />
+                }
+                label={
+                  <Typography sx={{ fontSize: 12 }}>
+                    {updateTicket.priority === "High" ? "Marked as urgent" : "Mark as urgent (High priority)"}
+                  </Typography>
+                }
+              />
               {updateError && <Alert severity="error" sx={{ fontSize: 12 }}>{updateError}</Alert>}
             </Stack>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => { setUpdateTicket(null); setDateOfPickup(""); }} size="small" sx={{ fontSize: 12 }} disabled={updating}>Cancel</Button>
+          <Button onClick={() => setUpdateTicket(null)} size="small" sx={{ fontSize: 12 }} disabled={updating}>Cancel</Button>
           <Button
             onClick={handleConfirmUpdate}
             size="small"
@@ -314,12 +337,6 @@ export default function Tickets() {
                     label="Date Submitted"
                     value={new Date(viewTicket.createdAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                   />
-                  {viewTicket.estimatedCompletion && (
-                    <DetailRow
-                      label="Est. Completion"
-                      value={new Date(viewTicket.estimatedCompletion).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                    />
-                  )}
                   {viewTicket.description && (
                     <Box>
                       <Typography sx={{ fontSize: 11, color: "text.secondary", mb: 0.4 }}>Description</Typography>

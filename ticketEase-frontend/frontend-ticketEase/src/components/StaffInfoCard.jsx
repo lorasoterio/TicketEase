@@ -1,6 +1,6 @@
 import { Paper, Typography, Stack } from "@mui/material";
 
-export default function StaffInfoCard({ staff }) {
+export default function StaffInfoCard({ staff, remarks }) {
   if (!staff) return null;
 
   return (
@@ -19,6 +19,11 @@ export default function StaffInfoCard({ staff }) {
 
       <Stack spacing={0.5}>
         <Typography variant="body2">{staff.name}</Typography>
+        {(remarks || staff.remarks) && (
+          <Typography variant="body2" color="text.secondary">
+            {remarks || staff.remarks}
+          </Typography>
+        )}
         <Typography variant="body2" color="text.secondary">
           {staff.department}
         </Typography>

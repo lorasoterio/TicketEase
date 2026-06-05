@@ -48,7 +48,8 @@ export default function useTicketAttachments(ticketId) {
   }, [ticketId]);
 
   useEffect(() => {
-    fetch();
+    // Avoid calling setState directly in effect body
+    (async () => { await fetch(); })();
   }, [fetch]);
 
   /**

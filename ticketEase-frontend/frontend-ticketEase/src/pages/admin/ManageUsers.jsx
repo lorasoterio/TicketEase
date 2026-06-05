@@ -28,7 +28,7 @@ import {
 import {
   Person, Email, Lock, Badge, Business, Phone, AdminPanelSettings, Add as AddIcon
 } from "@mui/icons-material";
-import GoldLine from "../../components/adminuis/GoldLine";
+import GoldLine from "../../components/adminuis/Goldline";
 import StatusChip from "../../components/adminuis/StatusChip";
 import CardTitle from "../../components/adminuis/CardTitle";
 import { getAllStaff } from "../../services/userService";
@@ -59,14 +59,7 @@ function getInitials(fullName = "") {
     .join("");
 }
 
-function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  return `${Math.floor(hrs / 24)}d ago`;
-}
+
 
 export default function ManageUsers() {
 
@@ -83,7 +76,10 @@ export default function ManageUsers() {
 
   // Refresh recently registered list after a successful registration
   useEffect(() => {
-    if (success) setRefreshKey((k) => k + 1);
+    if (success) {
+      setRefreshKey((k) => k + 1);
+      setModalOpen(false);
+    }
   }, [success]);
 
   useEffect(() => {
@@ -94,7 +90,7 @@ export default function ManageUsers() {
           id: `staff-${s.staffId}`,
           initials: getInitials(s.firstName + " " + s.lastName),
           fullname: s.firstName + " " + s.lastName,
-          email: s.email,
+          email: s.userEmail ?? s.email ?? "",
           roles: s.role ?? "Staff",
           activeSince: s.activatedAt || s.updatedAt || s.createdAt,
           createdAt: s.createdAt,

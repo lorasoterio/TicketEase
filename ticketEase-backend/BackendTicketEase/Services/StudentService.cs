@@ -25,7 +25,8 @@ namespace BackendTicketEase.Services
             string middleName,
             string suffix,
             int? strandId,
-            int? gradeLevelId)
+            int? gradeLevelId,
+            bool isGraduate)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -80,6 +81,7 @@ namespace BackendTicketEase.Services
                     Suffix = suffix ?? "",
                     StrandId = strandId,
                     GradeLevelId = gradeLevelId,
+                    IsGraduate = isGraduate,
                     IsVerified = false,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -138,10 +140,9 @@ namespace BackendTicketEase.Services
                 .Include(s => s.User)
                 .Include(s => s.Strand)
                 .Include(s => s.GradeLevel)
-                .ToListAsync(); 
-
-            var studentDtos = students.Select(s => MapToDto(s)); // ← then map in memory
-            return (true, "Students retrieved successfully.", studentDtos);
+                .Select(s => MapToDto(s))
+                .ToListAsync();
+            return (true, "Students retrieved successfully.", students);
         }
 
         public async Task<(bool Success, string Message, IEnumerable<StudentDto> Students)> GetVerifiedStudentsAsync()

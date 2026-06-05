@@ -15,12 +15,28 @@ export const getTicketsByStaff = async (staffId) => {
 
 /**
  * Fetches tickets for a specific student (admin/staff use).
- * @param {number|string} studentId - The ID of the student.
+ * @param {number|string} userId - The ID of the student.
  * @returns {Promise<{data: Array, error: Object}>}
  */
-export const getTicketsByStudent = async (studentId) => {
+export const getTicketsByStudent = async (userId) => {
   try {
-    const response = await client.get(`/tickets/student/${studentId}`);
+    const response = await client.get(`/tickets/by-student/${userId}`);
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: error.response?.data || error.message };
+  }
+};
+
+/**
+ * Fetches tickets for the currently authenticated user.
+ * Backend resolves scope by role:
+ * - Student: own tickets only
+ * - Staff/Admin: role-based visibility from JWT
+ * @returns {Promise<{data: Array, error: Object}>}
+ */
+export const getMyTickets = async () => {
+  try {
+    const response = await client.get('/tickets');
     return { data: response.data, error: null };
   } catch (error) {
     return { data: null, error: error.response?.data || error.message };
@@ -33,9 +49,9 @@ export const getTicketsByStudent = async (studentId) => {
  * @param {Object} ticketData - The ticket data to submit.
  * @returns {Promise<{data: Object, error: Object}>} - The response data or error.
  */
-export const submitTicket = async (ticketData) => {
+export const submitTicket = async (ticketData, requestConfig = {}) => {
   try {
-    const response = await client.post('/tickets', ticketData);
+    const response = await client.post('/tickets', ticketData, requestConfig);
     return { data: response.data, error: null };
   } catch (error) {
     return { data: null, error: error.response?.data || error.message };
@@ -49,7 +65,7 @@ export const submitTicket = async (ticketData) => {
  */
 export const getTicketsByUser = async (userId) => {
   try {
-    const response = await client.get(`/tickets?studentId=${userId}`);
+    const response = await client.get(`/tickets?filterUserId=${userId}`);
     return { data: response.data, error: null };
   } catch (error) {
     return { data: null, error: error.response?.data || error.message };
@@ -103,6 +119,55 @@ export const updateTicketStatus = async (ticketId, newStatus, ticketData) => {
       ...ticketData,
       status: newStatus,
     });
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: error.response?.data || error.message };
+  }
+};
+
+/**
+ * Updates only the remarks field of a ticket.
+ * @param {number} ticketId - The ID of the ticket.
+ * @param {string} remarks - The remarks text to save.
+ * @returns {Promise<{data: Object, error: Object}>}
+ */
+export const updateTicketRemarks = async (ticketId, remarks) => {
+  try {
+    const response = await client.patch(`/tickets/${ticketId}/remarks`, {
+      remarks: remarks ?? "",
+    });
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: error.response?.data || error.message };
+  }
+};
+
+/**
+ * Updates only the assigned staff of a ticket.
+ * Backend accepts either Staff.StaffId or Users.UserId and normalizes it.
+ * @param {number} ticketId - The ID of the ticket.
+ * @param {number|null} assignedStaffId - The staff identifier to assign.
+ * @returns {Promise<{data: Object, error: Object}>}
+ */
+export const updateTicketAssignedStaff = async (ticketId, assignedStaffId) => {
+  try {
+    const response = await client.patch(`/tickets/${ticketId}/assigned-staff`, {
+      assignedStaffId,
+    });
+    return { data: response.data, error: null };
+  } catch (error) {
+    return { data: null, error: error.response?.data || error.message };
+  }
+};
+
+/**
+ * Sets ticket priority to High.
+ * @param {number} ticketId - The ID of the ticket.
+ * @returns {Promise<{data: Object, error: Object}>}
+ */
+export const setTicketPriorityHigh = async (ticketId) => {
+  try {
+    const response = await client.patch(`/tickets/${ticketId}/priority/high`);
     return { data: response.data, error: null };
   } catch (error) {
     return { data: null, error: error.response?.data || error.message };

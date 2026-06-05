@@ -87,12 +87,14 @@ function mapTicket(ticket, staffMap) {
   return {
     id: ticket.referenceNumber ?? `#${ticket.ticketId}`,
     subject: ticket.subject ?? "",
+    remarks: ticket.remarks ?? ticket.remark ?? ticket.adminRemarks ?? "",
     ticketType: ticket.ticketType,
     status: STATUS_LABEL[statusKey] ?? statusKey,
     updatedAt: formatDate(ticket.updatedAt),
     assignedStaff: staff
       ? {
           name: staff.fullName,
+          remarks: staff.remarks ?? staff.remark ?? "",
           department: staff.department,
           email: staff.userEmail,
         }

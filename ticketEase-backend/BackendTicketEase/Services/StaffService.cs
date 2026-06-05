@@ -22,7 +22,8 @@ namespace BackendTicketEase.Services
             string lastName,
             string middleName,
             string suffix,
-            string position)
+            string position,
+            string role)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -41,12 +42,19 @@ namespace BackendTicketEase.Services
                     return (false, "User with that email already exists.", null, null);
                 }
 
+                var normalizedRole = string.IsNullOrWhiteSpace(role) ? nameof(UserRole.Staff) : role.Trim();
+                if (!Enum.TryParse<UserRole>(normalizedRole, true, out var parsedRole) ||
+                    (parsedRole != UserRole.Staff && parsedRole != UserRole.Admin))
+                {
+                    return (false, "Role must be either Staff or Admin.", null, null);
+                }
+
                 // Create User
                 var user = new User
                 {
                     Email = email,
                     PasswordHash = HashPassword(password),
-                    Role = UserRole.Staff,
+                    Role = parsedRole,
                     IsActive = true,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -121,6 +129,7 @@ namespace BackendTicketEase.Services
                 {
                     StaffId = s.StaffId,
                     UserId = s.UserId,
+                    Role = s.User.Role.ToString(),
                     FirstName = s.FirstName,
                     LastName = s.LastName,
                     MiddleName = s.MiddleName,
@@ -145,6 +154,7 @@ namespace BackendTicketEase.Services
                 {
                     StaffId = s.StaffId,
                     UserId = s.UserId,
+                    Role = s.User.Role.ToString(),
                     FirstName = s.FirstName,
                     LastName = s.LastName,
                     MiddleName = s.MiddleName,
@@ -169,6 +179,7 @@ namespace BackendTicketEase.Services
                 {
                     StaffId = s.StaffId,
                     UserId = s.UserId,
+                    Role = s.User.Role.ToString(),
                     FirstName = s.FirstName,
                     LastName = s.LastName,
                     MiddleName = s.MiddleName,
@@ -256,6 +267,7 @@ namespace BackendTicketEase.Services
             {
                 StaffId = staff.StaffId,
                 UserId = staff.UserId,
+                Role = staff.User.Role.ToString(),
                 FirstName = staff.FirstName,
                 LastName = staff.LastName,
                 MiddleName = staff.MiddleName,

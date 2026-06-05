@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { logoutUser } from "../../services/logout";
 import { useAuth } from "../../context/useAuth";
 import { NavLink, useNavigate } from "react-router-dom";
+import useNotifications from "../../hooks/useNotifications";
 import {
   AppBar,
   Toolbar,
@@ -44,6 +45,7 @@ const NAV_LINKS_BY_ROLE = {
     { to: "/admin/verify-students", label: "Verify Students", icon: <VerifyIcon fontSize="small" /> },
   ],
   staff: [
+    { to: "/admin/dashboard", label: "Dashboard", icon: <DashboardIcon fontSize="small" /> },
     { to: "/admin/tickets", label: "All Tickets", icon: <AllTicketsIcon fontSize="small" /> },
   ],
 };
@@ -53,12 +55,7 @@ function getNavLinks(role) {
   return NAV_LINKS_BY_ROLE[normalized] ?? NAV_LINKS_BY_ROLE.staff;
 }
 
-const NOTIFICATIONS = [
-  { id: 1, text: "New ticket submitted by Ana Cruz (#1064).", time: "5m ago",  unread: true },
-  { id: 2, text: "Ticket #1055 has a new student comment.",   time: "30m ago", unread: true },
-  { id: 3, text: "Ticket #1049 was escalated.",               time: "3h ago",  unread: true },
-  { id: 4, text: "Daily processing report is ready.",         time: "1d ago",  unread: false },
-];
+
 
 // Admin accent — teal/green
 const ACCENT       = "#0a6d47";
@@ -98,7 +95,12 @@ export default function AdminNavbar() {
 
   const navLinks = useMemo(() => getNavLinks(profile?.role), [profile?.role]);
 
-  const unread = NOTIFICATIONS.filter((n) => n.unread).length;
+  const {
+    notifications,
+    unreadCount: unread,
+    handleMarkAsRead,
+    handleMarkAllAsRead,
+  } = useNotifications();
 
   return (
     <>
@@ -334,27 +336,47 @@ export default function AdminNavbar() {
           sx: { mt: 1, borderRadius: "12px", border: "1px solid", borderColor: "grey.200", boxShadow: "0 8px 24px rgba(0,0,0,0.08)", width: 300 },
         }}
       >
-        <Typography sx={{ px: 2, pt: 1.5, pb: 0.75, fontSize: 11, fontWeight: 700, color: "text.disabled", letterSpacing: "0.6px", textTransform: "uppercase" }}>
-          Notifications
-        </Typography>
-        <List disablePadding>
-          {NOTIFICATIONS.map((n, i) => (
-            <ListItem
-              key={n.id}
-              disablePadding
-              sx={{ borderTop: i > 0 ? "1px solid" : "none", borderColor: "grey.100" }}
+        <Box sx={{ px: 2, pt: 1.5, pb: 0.75, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.disabled", letterSpacing: "0.6px", textTransform: "uppercase" }}>
+            Notifications
+          </Typography>
+          {unread > 0 && (
+            <Typography
+              component="button"
+              onClick={handleMarkAllAsRead}
+              sx={{ fontSize: 11, color: ACCENT, fontWeight: 600, background: "none", border: "none", cursor: "pointer", p: 0, fontFamily: "inherit" }}
             >
-              <ListItemButton sx={{ px: 2, py: 1.25, alignItems: "flex-start", gap: 1, bgcolor: n.unread ? "#f6fdf9" : "transparent" }}>
-                {n.unread && (
-                  <Box sx={{ width: 6, height: 6, bgcolor: ACCENT, borderRadius: "50%", mt: 0.75, flexShrink: 0 }} />
-                )}
-                <Box sx={{ ml: n.unread ? 0 : "14px" }}>
-                  <Typography sx={{ fontSize: 12.5, color: "text.primary", lineHeight: 1.4 }}>{n.text}</Typography>
-                  <Typography sx={{ fontSize: 11, color: "text.disabled", mt: 0.25 }}>{n.time}</Typography>
-                </Box>
-              </ListItemButton>
-            </ListItem>
-          ))}
+              Mark all read
+            </Typography>
+          )}
+        </Box>
+        <List disablePadding>
+          {notifications.length === 0 ? (
+            <Typography sx={{ px: 2, py: 2, fontSize: 13, color: "text.disabled", textAlign: "center" }}>
+              No notifications yet
+            </Typography>
+          ) : (
+            notifications.map((n, i) => (
+              <ListItem
+                key={n.id}
+                disablePadding
+                sx={{ borderTop: i > 0 ? "1px solid" : "none", borderColor: "grey.100" }}
+              >
+                <ListItemButton
+                  onClick={() => !n.isRead && handleMarkAsRead(n.id)}
+                  sx={{ px: 2, py: 1.25, alignItems: "flex-start", gap: 1, bgcolor: !n.isRead ? "#f6fdf9" : "transparent" }}
+                >
+                  {!n.isRead && (
+                    <Box sx={{ width: 6, height: 6, bgcolor: ACCENT, borderRadius: "50%", mt: 0.75, flexShrink: 0 }} />
+                  )}
+                  <Box sx={{ ml: !n.isRead ? 0 : "14px" }}>
+                    <Typography sx={{ fontSize: 12.5, color: "text.primary", lineHeight: 1.4 }}>{n.message}</Typography>
+                    <Typography sx={{ fontSize: 11, color: "text.disabled", mt: 0.25 }}>{n.time}</Typography>
+                  </Box>
+                </ListItemButton>
+              </ListItem>
+            ))
+          )}
         </List>
       </Popover>
 

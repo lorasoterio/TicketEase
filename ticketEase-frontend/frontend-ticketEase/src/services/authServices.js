@@ -15,6 +15,7 @@ export const registerUser = async (data) => {
       suffix: data.suffix,
       strandId: data.strandId,
       gradeLevelId: data.gradeLevelId,
+      isGraduate: data.isGraduate,
     });
     return response.data;
   } catch (err) {
@@ -39,6 +40,7 @@ export const registerStaff = async (data) => {
       middleName: data.middleName,
       suffix: data.suffix,
       position: data.position,
+      role: data.role,
     });
     return response.data;
   } catch (err) {

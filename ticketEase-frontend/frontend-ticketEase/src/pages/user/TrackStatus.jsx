@@ -86,6 +86,17 @@ export default function TrackStatus() {
 
             <StaffInfoCard staff={selectedTicket.assignedStaff} />
 
+            {selectedTicket.remarks && (
+              <Paper sx={{ p: 2 }}>
+                <Typography fontWeight={600}>
+                  Remarks
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {selectedTicket.remarks}
+                </Typography>
+              </Paper>
+            )}
+
             {selectedTicket.eta && (
               <Paper sx={{ p: 2 }}>
                 <Typography fontWeight={600}>

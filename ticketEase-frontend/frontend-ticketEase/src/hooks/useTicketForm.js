@@ -28,11 +28,13 @@ export function useTicketForm(initialFields, validateFn, onSuccess) {
   // Fetch document types when ticket type is 'Document Request'
   useEffect(() => {
     if (form.ticketType === "Document Request") {
-      fetchDocumentTypes().then((data) => {
+      (async () => {
+        const data = await fetchDocumentTypes();
         setDocumentTypes(Array.isArray(data) ? data : []);
-      });
+      })();
     } else {
-      setDocumentTypes([]);
+      // Avoid calling setState synchronously in effect body
+      Promise.resolve().then(() => setDocumentTypes([]));
     }
   }, [form.ticketType]);
 
@@ -58,7 +60,9 @@ export function useTicketForm(initialFields, validateFn, onSuccess) {
    * Usage in JSX: onChange={handleChange("fieldName")}
    */
   const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    const value =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    setForm((prev) => ({ ...prev, [field]: value }));
     // Clear the error for this field as soon as the user starts typing
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
@@ -82,17 +86,19 @@ export function useTicketForm(initialFields, validateFn, onSuccess) {
     const ticketTypeMap = { "Document Request": 0, Inquiry: 1 };
 
     const ticketData = {
-      StudentId: studentProfile?.studentId,
+      StudentId: user?.userId,
       TicketType: ticketTypeMap[form.ticketType] ?? 0,
       Subject: form.subject,
       Description: form.description,
-      Priority: 0,
+      Priority: form.isUrgent ? 2 : 0,
       ...(form.ticketType === "Document Request" && {
         DocumentTypeId: form.documentTypeId ?? null, // ← add this
       }),
     };
 
-    const { data, error } = await submitTicket(ticketData);
+    const { data, error } = await submitTicket(ticketData, {
+      successMessage: "Request submitted successfully.",
+    });
 
     setLoading(false);
     if (error) {

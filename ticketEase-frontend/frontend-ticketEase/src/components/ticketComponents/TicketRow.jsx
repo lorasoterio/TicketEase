@@ -1,6 +1,5 @@
 import { Box, Stack, Typography, Button } from "@mui/material";
 import { Visibility } from "@mui/icons-material";
-import StatusChip from "./StatusChip";
 
 export default function TicketRow({ ticket, onView }) {
   return (
@@ -23,8 +22,6 @@ export default function TicketRow({ ticket, onView }) {
           alignItems="center"
           sx={{ width: { xs: "100%", sm: "auto" }, flex: 1 }}
         >
-          <StatusChip label={ticket.status} />
-
           <Box sx={{ flex: 1 }}>
             <Typography variant="body2" fontWeight={500}>
               {ticket.subject}
@@ -39,6 +36,18 @@ export default function TicketRow({ ticket, onView }) {
             >
               {ticket.type} · Submitted {ticket.date}
             </Typography>
+
+            {ticket.type === "Document Request" && Number.isFinite(ticket.estimatedWorkingDays) && (
+              <Typography
+                sx={{
+                  fontSize: "11px",
+                  color: "text.secondary",
+                  fontFamily: "'Source Serif 4', serif",
+                }}
+              >
+                Estimated processing: {ticket.estimatedWorkingDays} working day{ticket.estimatedWorkingDays === 1 ? "" : "s"}
+              </Typography>
+            )}
           </Box>
         </Stack>
 
@@ -48,6 +57,24 @@ export default function TicketRow({ ticket, onView }) {
           alignItems="center"
           sx={{ flexShrink: 0, ml: { xs: 0, sm: "auto" } }}
         >
+          <Box
+            sx={{
+              display: { xs: "none", sm: "block" },
+              width: 220,
+              mr: 1,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: "11px",
+                color: "text.secondary",
+                fontFamily: "'Source Serif 4', serif",
+              }}
+            >
+              {ticket.remarks || "-"}
+            </Typography>
+          </Box>
+
           <Typography
             sx={{
               fontSize: "11px",
@@ -68,6 +95,18 @@ export default function TicketRow({ ticket, onView }) {
             View
           </Button>
         </Stack>
+
+        <Typography
+          sx={{
+            display: { xs: "block", sm: "none" },
+            mt: 0.75,
+            fontSize: "11px",
+            color: "text.secondary",
+            fontFamily: "'Source Serif 4', serif",
+          }}
+        >
+          Remarks: {ticket.remarks || "-"}
+        </Typography>
       </Stack>
     </Box>
   );

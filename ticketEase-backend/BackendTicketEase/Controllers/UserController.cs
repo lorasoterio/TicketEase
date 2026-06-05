@@ -14,11 +14,13 @@ namespace BackendTicketEase.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IAuditLogService _auditLogService;
+        private readonly INotificationService _notificationService;
 
-        public UserController(AppDbContext context, IAuditLogService auditLogService)
+        public UserController(AppDbContext context, IAuditLogService auditLogService, INotificationService notificationService)
         {
             _context = context;
             _auditLogService = auditLogService;
+            _notificationService = notificationService;
         }
 
         // GET: api/user
@@ -188,6 +190,18 @@ namespace BackendTicketEase.Controllers
                 throw;
             }
 
+            try
+            {
+                await _notificationService.SendAsync(
+                    user.UserId,
+                    user.Email,
+                    "record_updated",
+                    "Your user account details were updated.");
+            }
+            catch
+            {
+            }
+
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var upid) ? upid : id;
             await _auditLogService.LogAsync(actorId, "Update", "User", id, oldSnapshot, new { user.Email, Role = user.Role.ToString(), user.IsActive });
             return NoContent();
@@ -209,6 +223,18 @@ namespace BackendTicketEase.Controllers
 
             await _context.SaveChangesAsync();
 
+            try
+            {
+                await _notificationService.SendAsync(
+                    user.UserId,
+                    user.Email,
+                    "record_updated",
+                    "Your user account status was updated.");
+            }
+            catch
+            {
+            }
+
             int? deactorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var depid) ? depid : id;
             await _auditLogService.LogAsync(deactorId, "Update", "User", id, new { IsActive = true }, new { IsActive = false });
             return NoContent();
@@ -229,6 +255,18 @@ namespace BackendTicketEase.Controllers
             user.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            try
+            {
+                await _notificationService.SendAsync(
+                    user.UserId,
+                    user.Email,
+                    "record_updated",
+                    "Your user account status was updated.");
+            }
+            catch
+            {
+            }
 
             int? actorId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var apid) ? apid : id;
             await _auditLogService.LogAsync(actorId, "Update", "User", id, new { IsActive = false }, new { IsActive = true });

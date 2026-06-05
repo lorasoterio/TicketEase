@@ -1,13 +1,21 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { getAllStudents, verifyStudent, unverifyStudent } from "../../services/userService";
+import { getAllStudents, verifyStudent, unverifyStudent, deleteStudent } from "../../services/userService";
 
 const PAGE_SIZE = 8;
+
+const buildFullName = (student) =>
+  (
+    student.fullName ||
+    [student.firstName, student.middleName, student.lastName, student.suffix]
+      .filter(Boolean)
+      .join(" ")
+  ).trim();
 
 export default function useVerifyStudents() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [actionLoading, setActionLoading] = useState(null); // studentId being acted on
+  const [actionLoading, setActionLoading] = useState(null); // { studentId, action }
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all"); // "all" | "verified" | "unverified"
@@ -44,10 +52,14 @@ export default function useVerifyStudents() {
       .filter((s) => {
         if (!search) return true;
         const q = search.toLowerCase();
+        const fullName = buildFullName(s).toLowerCase();
+        const strand = (s.strandName ?? s.courseProgram ?? "").toLowerCase();
+        const yearLevel = (s.gradeLevelName ?? s.yearLevel ?? "").toLowerCase();
         return (
-          (s.fullName ?? "").toLowerCase().includes(q) ||
+          fullName.includes(q) ||
           (s.schoolStudentId ?? "").toLowerCase().includes(q) ||
-          (s.courseProgram ?? "").toLowerCase().includes(q) ||
+          strand.includes(q) ||
+          yearLevel.includes(q) ||
           (s.userEmail ?? "").toLowerCase().includes(q)
         );
       });
@@ -57,7 +69,7 @@ export default function useVerifyStudents() {
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const handleVerify = useCallback(async (studentId) => {
-    setActionLoading(studentId);
+    setActionLoading({ studentId, action: "verify" });
     try {
       await verifyStudent(studentId);
       setStudents((prev) =>
@@ -71,7 +83,7 @@ export default function useVerifyStudents() {
   }, []);
 
   const handleUnverify = useCallback(async (studentId) => {
-    setActionLoading(studentId);
+    setActionLoading({ studentId, action: "unverify" });
     try {
       await unverifyStudent(studentId);
       setStudents((prev) =>
@@ -79,6 +91,18 @@ export default function useVerifyStudents() {
       );
     } catch (e) {
       setError(e?.response?.data?.message ?? e.message ?? "Failed to unverify student.");
+    } finally {
+      setActionLoading(null);
+    }
+  }, []);
+
+  const handleRemove = useCallback(async (studentId) => {
+    setActionLoading({ studentId, action: "remove" });
+    try {
+      await deleteStudent(studentId);
+      setStudents((prev) => prev.filter((s) => s.studentId !== studentId));
+    } catch (e) {
+      setError(e?.response?.data?.message ?? e.message ?? "Failed to remove student.");
     } finally {
       setActionLoading(null);
     }
@@ -104,6 +128,7 @@ export default function useVerifyStudents() {
     unverifiedCount,
     handleVerify,
     handleUnverify,
+    handleRemove,
     refetch: fetchStudents,
   };
 }

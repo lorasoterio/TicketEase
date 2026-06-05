@@ -1,11 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
-import { getAllTickets } from "../../services/ticketsService";
-import { createAssignment } from "../../services/assignRepresentativeService";
-
+import { getAllTickets, setTicketPriorityHigh, updateTicketAssignedStaff } from "../../services/ticketsService";
 import { getAllStudents } from "../../services/userService";
-import { getAllStaff } from "../../services/staffService";
 import { getAllGradeLevels } from "../../services/gradeLevelService";
-
+import { getAllStaff } from "../../services/userService";
 /**
  * Fetches all staff.
  * @returns {Promise<{ staff: any[], error: string | null }>}
@@ -13,10 +10,19 @@ import { getAllGradeLevels } from "../../services/gradeLevelService";
 export async function fetchAllStaffs() {
   try {
     const staffRes = await getAllStaff();
+    const rawStaff = Array.isArray(staffRes)
+      ? staffRes
+      : Array.isArray(staffRes?.data)
+        ? staffRes.data
+        : [];
     // Map staff to include fullName
-    const staffWithFullName = (staffRes?.data || []).map(s => ({
+    const staffWithFullName = rawStaff.map((s) => ({
       ...s,
-      fullName: [s.firstName, s.middleName, s.lastName, s.suffix].filter(Boolean).join(' ')
+      fullName:
+        s.fullName ||
+        [s.firstName, s.middleName, s.lastName, s.suffix]
+          .filter(Boolean)
+          .join(" "),
     }));
     return {
       staff: staffWithFullName,
@@ -74,10 +80,19 @@ export function priorityLabel(priority) {
   return "Normal";
 }
 
+function buildStudentFullName(student) {
+  const fromParts = [student.firstName, student.middleName, student.lastName, student.suffix]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return student.fullName || fromParts || "—";
+}
+
 /**
  * Custom hook for the admin Ticket Queue page.
  *
- * Fetches all tickets, filters to "Pending" status, and exposes
+ * Fetches all tickets and exposes
  * search / priority / type filter state.
  *
  * @returns {{
@@ -94,7 +109,7 @@ export function priorityLabel(priority) {
  * }}
  */
 export default function useTicketQueue() {
-  const [allPending, setAllPending] = useState([]);
+  const [allTickets, setAllTickets] = useState([]);
   const [studentMap, setStudentMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -114,28 +129,34 @@ export default function useTicketQueue() {
     if (err) {
       setError(typeof err === "string" ? err : "Failed to load tickets.");
     } else {
-      // Queue only shows unassigned Pending tickets
-      const pending = (data || []).filter((t) => t.status === "Pending");
-      setAllPending(pending);
+      setAllTickets(data || []);
     }
     const map = {};
     (students || []).forEach((s) => {
-      if (s.userId != null)
-        map[s.userId] = {
-          fullName: s.fullName || "—",
-          schoolStudentId: s.schoolStudentId || "—",
-          yearLevel: s.yearLevel || "—",
-        };
+      const normalizedStudent = {
+        fullName: buildStudentFullName(s),
+        schoolStudentId: s.schoolStudentId || "—",
+        yearLevel: s.gradeLevelName || s.yearLevel || (s.isGraduate ? "Graduate" : "—"),
+      };
+
+      if (s.userId != null) {
+        map[s.userId] = normalizedStudent;
+      }
+
+      // Defensive fallback for any ticket payloads keyed by Student.StudentId.
+      if (s.studentId != null && map[s.studentId] == null) {
+        map[s.studentId] = normalizedStudent;
+      }
     });
     setStudentMap(map);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    fetchTickets();
+    (async () => { await fetchTickets(); })();
   }, [fetchTickets]);
 
-  const tickets = allPending
+  const tickets = allTickets
     .filter((t) => {
       if (!search) return true;
       const q = search.toLowerCase();
@@ -161,18 +182,41 @@ export default function useTicketQueue() {
 
   const assignTicketToStaff = useCallback(async (ticket, staffId) => {
     try {
-      // The assignment object structure should match backend expectations
-      const assignment = {
-        ticketId: ticket.ticketId,
-        staffId: staffId
-      };
-      await createAssignment(assignment);
+      const { error: assignError } = await updateTicketAssignedStaff(ticket.ticketId, staffId);
+      if (assignError) {
+        throw assignError;
+      }
       await fetchTickets();
       return { success: true };
     } catch (err) {
       return { success: false, error: typeof err === "string" ? err : "Failed to assign ticket." };
     }
   }, [fetchTickets]);
+
+  const markTicketAsHigh = useCallback(async (ticket) => {
+    if (!ticket?.ticketId) {
+      return { success: false, error: "Invalid ticket." };
+    }
+
+    try {
+      const { error: priorityError } = await setTicketPriorityHigh(ticket.ticketId);
+      if (priorityError) {
+        throw priorityError;
+      }
+
+      setAllTickets((prev) =>
+        prev.map((entry) =>
+          entry.ticketId === ticket.ticketId
+            ? { ...entry, priority: "High" }
+            : entry
+        )
+      );
+
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: typeof err === "string" ? err : "Failed to update priority." };
+    }
+  }, []);
 
 
   return {
@@ -188,5 +232,6 @@ export default function useTicketQueue() {
     setTypeFilter,
     refetch: fetchTickets,
     assignTicketToStaff,
+    markTicketAsHigh,
   };
 }
