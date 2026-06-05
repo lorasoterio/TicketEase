@@ -1,0 +1,39 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Frontend
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: |
+          cd frontend
+          npm ci
+          npm run build
+
+      # Backend
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - run: |
+          cd backend
+          dotnet restore
+          dotnet build -c Release
+          dotnet publish -c Release -o publish
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-publish
+          path: backend/publish
